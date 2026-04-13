@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# Obsidian local UI state
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Obsidian caches and transient files
+.obsidian/cache/
+.obsidian/plugins/obsidian-git/obsidian_askpass.sh
+.trash/
