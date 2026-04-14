@@ -84,3 +84,10 @@ be aware
 $$
 x^3 = 125
 $$
+
+
+---
+
+## Imported GitHub test note
+
+![info] Hepatho-Pathology
