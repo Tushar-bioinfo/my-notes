@@ -692,16 +692,16 @@ Cancer cells do not simply grow faster than normal cells. They build and maintai
 
 ### The cellular cast
 
-| Cell Type | Corruption Summary | Net Effect |
-|---|---|---|
-| **Cancer cells** | Driver; secretes signals to reprogram all others | Proliferation, invasion, immune evasion |
-| **CAFs** | Wound-healing gone wrong | ECM fortress, growth factors, T cell exclusion |
-| **TAMs** | Corrupt police in M2 state | Immune suppression, angiogenesis, metastasis |
-| **T cells / NK** | Exhausted or excluded | Failed anti-tumor immunity |
-| **MDSCs** | Immature myeloid flood | Potent T cell suppression, Treg expansion |
-| **Tregs** | Peacekeepers protecting the wrong side | Shut down anti-tumor T cells |
-| **Endothelial cells** | Building leaky, chaotic supply lines | Hypoxia, metastatic routes |
-| **Pericytes** | Absent or loosely attached | Vascular instability, IFP, metastasis |
+| Cell Type             | Corruption Summary                               | Net Effect                                     |
+| --------------------- | ------------------------------------------------ | ---------------------------------------------- |
+| **Cancer cells**      | Driver; secretes signals to reprogram all others | Proliferation, invasion, immune evasion        |
+| **CAFs**              | Wound-healing gone wrong                         | ECM fortress, growth factors, T cell exclusion |
+| **TAMs**              | Corrupt police in M2 state                       | Immune suppression, angiogenesis, metastasis   |
+| **T cells / NK**      | Exhausted or excluded                            | Failed anti-tumor immunity                     |
+| **MDSCs**             | Immature myeloid flood                           | Potent T cell suppression, Treg expansion      |
+| **Tregs**             | Peacekeepers protecting the wrong side           | Shut down anti-tumor T cells                   |
+| **Endothelial cells** | Building leaky, chaotic supply lines             | Hypoxia, metastatic routes                     |
+| **Pericytes**         | Absent or loosely attached                       | Vascular instability, IFP, metastasis          |
 
 ### The non-cellular landscape
 
