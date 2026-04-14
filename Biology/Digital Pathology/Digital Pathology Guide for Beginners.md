@@ -1,3 +1,11 @@
+---
+tags:
+  - biology
+  - digital-pathology
+  - histology
+aliases:
+  - Digital Pathology Guide
+---
 # 🔬 Digital Pathology Guide for Beginners
 ## H&E Staining: Normal Tissue vs. Tumor — A Visual Reference
 
@@ -553,3 +561,12 @@ No necrosis                     →   Coagulative/geographic necrosis
 
 ---
 *Guide compiled for educational purposes. Always correlate with clinical, radiological, and IHC findings for diagnosis.*
+
+---
+
+## Related
+
+- [[Digital Pathology MOC]]
+- [[Beginner Digital Pathology Guide for H&E]]
+- [[Cancer Biology MOC]]
+- [[Computational Pathology MOC]]

@@ -15,12 +15,11 @@ or was it not that great enough?
 
  
 ![[Pasted image 20260412150924.png|410]]
-[[
-]]
 
 
 
-[https://github.com/Tushar-bioinfo/my-notes/edit/main/digital_pathology_guide_cld.md]()
+
+[[Digital Pathology Guide for Beginners]]
 
 [^1]
 
@@ -91,3 +90,10 @@ $$
 ## Imported GitHub test note
 
 ![info] Hepatho-Pathology
+
+---
+
+## Related
+
+- [[Home]]
+- [[Biology MOC]]

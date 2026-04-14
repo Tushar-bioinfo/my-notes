@@ -2,6 +2,7 @@
 .DS_Store
 
 # Obsidian local UI state
+.obsidian/graph.json
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 

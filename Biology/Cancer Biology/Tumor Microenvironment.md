@@ -1,3 +1,11 @@
+---
+tags:
+  - biology
+  - cancer-biology
+  - tumor-microenvironment
+aliases:
+  - TME
+---
 # The Tumor Microenvironment (TME)
 ### A Comprehensive Study Guide
 
@@ -709,3 +717,12 @@ Understanding the TME has shifted the field from a cancer-cell-centric view to a
 ---
 
 *Study notes compiled for educational purposes. For clinical decisions, consult current primary literature and clinical guidelines.*
+
+---
+
+## Related
+
+- [[Cancer Biology MOC]]
+- [[Cancer Biology - Comprehensive Reference for Computational Pathology]]
+- [[Digital Pathology MOC]]
+- [[Computational Pathology MOC]]

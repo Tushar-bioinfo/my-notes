@@ -1,3 +1,11 @@
+---
+tags:
+  - biology
+  - cancer-biology
+  - computational-pathology
+aliases:
+  - Cancer Biology Reference
+---
 # Cancer Biology: A Comprehensive Reference for Computational Pathology 
 Researchers
 
@@ -3549,3 +3557,12 @@ and experimental work.*
 ---
 
 *Last updated: 2025*
+
+---
+
+## Related
+
+- [[Cancer Biology MOC]]
+- [[Tumor Microenvironment]]
+- [[Digital Pathology MOC]]
+- [[Computational Pathology MOC]]

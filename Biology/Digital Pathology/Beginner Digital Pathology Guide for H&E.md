@@ -1,3 +1,12 @@
+---
+tags:
+  - biology
+  - digital-pathology
+  - h-and-e
+  - histology
+aliases:
+  - H&E Beginner Guide
+---
 # Beginner Digital Pathology Guide for H&E
 ## Normal tissue, common cell types, and how tumor changes the picture
 
@@ -509,3 +518,12 @@ If you want to grow this guide later, the next sections to add should be:
 - TME-specific atlas: lymphocytes, plasma cells, macrophages, CAF-like stroma, vessels, necrosis
 
 ---
+
+---
+
+## Related
+
+- [[Digital Pathology MOC]]
+- [[Digital Pathology Guide for Beginners]]
+- [[Cancer Biology MOC]]
+- [[Computational Pathology MOC]]
