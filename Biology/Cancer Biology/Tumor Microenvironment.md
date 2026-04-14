@@ -3,13 +3,38 @@ tags:
   - biology
   - cancer-biology
   - tumor-microenvironment
+  - cornell
 aliases:
   - TME
+date: 2026-04-14
+status: permanent
 ---
 # The Tumor Microenvironment (TME)
 ### A Comprehensive Study Guide
 
-> **Core concept:** A tumor is not a clump of rogue cells sitting quietly in your body — it is a living, dynamic, corrupted ecosystem. To understand cancer, you must understand the world the cancer cell builds around itself.
+> [!ABSTRACT] Summary
+> The TME is a corrupted ecosystem containing cancer cells, immune cells (T cells, macrophages, NK cells, MDSCs, Tregs), cancer-associated fibroblasts (CAFs), endothelial cells, pericytes, and acellular components (ECM, signaling molecules, metabolites). Cancer cells reprogram every component to create an immunosuppressive, pro-angiogenic, invasion-promoting niche. The TME determines treatment response (especially immunotherapy) and is the primary target of modern cancer therapeutics. Understanding TME composition and spatial organization is central to computational pathology.
+
+---
+
+## Cue Questions
+
+> [!QUESTION] Key questions for self-testing
+> - What are the 8 major cellular components of the TME?
+> - What is the difference between M1 (anti-tumor) and M2 (pro-tumor) macrophages?
+> - Name the 4 subtypes of CAFs and their functions.
+> - What are the 3 main mechanisms of immune evasion in the TME?
+> - What is the difference between immune-inflamed, immune-excluded, and immune-desert phenotypes?
+> - How does desmoplasia create a physical barrier to immune cell infiltration?
+> - Why are tumor blood vessels abnormal, and what consequences does this have?
+> - Name 5 immunosuppressive strategies used by the TME.
+> - How do checkpoint inhibitors (anti-PD-1, anti-CTLA-4) target the TME?
+> - How does your research on whole-cell segmentation help characterize the TME?
+
+---
+
+> [!IMPORTANT] Core Concept
+> A tumor is not a clump of rogue cells sitting quietly in your body — it is a living, dynamic, corrupted ecosystem. To understand cancer, you must understand the world the cancer cell builds around itself.
 
 ---
 
@@ -716,6 +741,13 @@ Understanding the TME has shifted the field from a cancer-cell-centric view to a
 
 ---
 
+## Summary
+
+> [!TIP] Cornell Summary
+> The TME is a dynamic ecosystem where cancer cells recruit and reprogram stromal cells (CAFs → desmoplasia), immune cells (TAMs → M2, Tregs → suppression, MDSCs → T cell dysfunction), and vasculature (leaky vessels → hypoxia → more VEGF). The interplay creates positive feedback loops favoring tumor growth, immune evasion, and metastasis. Therapeutic targeting includes checkpoint inhibitors (anti-PD-1/PD-L1, anti-CTLA-4), anti-angiogenics (bevacizumab), and emerging CAF/MDSC-targeting strategies. For computational pathology, characterizing the TME requires whole-cell segmentation + cell type classification + spatial analysis — precisely your research domain.
+
+---
+
 *Study notes compiled for educational purposes. For clinical decisions, consult current primary literature and clinical guidelines.*
 
 ---
@@ -723,6 +755,9 @@ Understanding the TME has shifted the field from a cancer-cell-centric view to a
 ## Related
 
 - [[Cancer Biology MOC]]
-- [[Cancer Biology - Comprehensive Reference for Computational Pathology]]
+- [[Cancer Biology Reference Index]]
+- [[Immune Evasion and Immunology]]
+- [[Hallmarks of Cancer]]
+- [[Spatial Biology and Computational Pathology]]
 - [[Digital Pathology MOC]]
 - [[Computational Pathology MOC]]

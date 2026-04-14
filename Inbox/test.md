@@ -1,95 +1,78 @@
+---
+tags:
+  - inbox
+  - fleeting
+date: 2026-04-14
+status: fleeting
+---
+# Inbox
 
+> [!WARNING] Fleeting note
+> This is the staging area. Move notes to their permanent folder when they are stable enough.
+
+## Notes to Process
+
+- [[Digital Pathology Guide for Beginners]]
 
 ---
-*Guide compiled for educational purposes. Always correlate with clinical, radiological, and IHC findings for diagnosis.*
 
-$x^2=25$
+## Obsidian Callout Reference
 
-`this is not been a good one i guess lol. not really feeling all that well recently cuz of this pinodial sinus.` 
+A quick reference for all Obsidian callout types.
 
-```
-this was a game eh?
-or was it not that great enough?
-```
+> [!NOTE] Note
+> Blue. Use for background context or supplementary information.
 
+> [!INFO] Info
+> Blue. Use for factual information or definitions.
 
- 
-![[Pasted image 20260412150924.png|410]]
+> [!ABSTRACT] Abstract / Summary / TLDR
+> Green. Use for summaries or abstracts.
 
+> [!TODO] Todo
+> Blue. Use for task lists.
 
+> [!TIP] Tip / Hint / Important
+> Sky blue. Use for useful tips or best practices.
 
+> [!SUCCESS] Success / Check / Done
+> Green. Use to mark completed tasks or positive outcomes.
 
-[[Digital Pathology Guide for Beginners]]
+> [!QUESTION] Question / Help / FAQ
+> Yellow. Use for open questions or uncertainties.
 
-[^1]
+> [!WARNING] Warning / Caution / Attention
+> Orange. Use for things that need care.
 
-[^1]: this is something that we r not sure of
+> [!DANGER] Danger / Error
+> Red. Use for critical issues or dangerous actions.
 
-[^2]: not too bad ig
+> [!BUG] Bug
+> Red. Use for known bugs or issues.
 
-[^3]: what is this
-	
+> [!EXAMPLE] Example
+> Purple. Use for worked examples or illustrations.
 
-
-> [!info] Hepatho-Pathology
-> be aware
-
-
->[!warning] Hepatho-Pathology
-be aware
-
->[!danger] Hepatho-Pathology
-> be aware
-
-
->[!tip] Hepatho-Pathology
-> be aware
-
->[!okay] Hepatho-Pathology
-> be aware
-
->[!error] Hepatho-Pathology
-> be aware
-
->[!summary] Hepatho-Pathology
-> be aware
-
->[!todo] Hepatho-Pathology
-> be aware
-
-- note (blue)
-- abstract, summary, tldr (green)
-- info (blue)
-- todo (blue)
-- tip, hint, important (sky blue)
-- success, check, done (green)
-- question, help, faq (yellow)
-- warning, caution, attention (orange)
-- failure, fail, missing (red)
-- danger, error (red)
-- bug (red)
-- example (purple)
-- quote, cite (grey)
-
-> [!example] Hepatho-Pathology
-> be aware
-
-
-> [!NOTE] Title
-> Contents
-
+> [!QUOTE] Quote / Cite
+> Grey. Use for quotations or citations.
 
 ---
+
+## Math Reference
+
+Inline: $x^2 = 25$
+
+Block:
 $$
 x^3 = 125
 $$
 
-
 ---
 
-## Imported GitHub test note
+## Hepato-Pathology Callout Example
 
-![info] Hepatho-Pathology
+> [!INFO] Hepato-Pathology
+> Correlate with clinical, radiological, and IHC findings for diagnosis.
 
 ---
 

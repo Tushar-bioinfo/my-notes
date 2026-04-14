@@ -2,8 +2,12 @@
 tags:
   - moc
   - machine-learning
+date: 2026-04-14
+status: permanent
 ---
 # ML MOC
+
+> [!abstract] Map of Content for machine learning — classical methods, model evaluation, feature engineering, and connections to computational pathology.
 
 ## Notes
 

@@ -2,8 +2,12 @@
 tags:
   - moc
   - deep-learning
+date: 2026-04-14
+status: permanent
 ---
 # DL MOC
+
+> [!abstract] Map of Content for deep learning — neural networks, CNNs, transformers, self-supervised learning, and applications in computational pathology.
 
 ## Notes
 

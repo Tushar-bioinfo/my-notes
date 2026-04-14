@@ -2,8 +2,12 @@
 tags:
   - moc
   - maths
+date: 2026-04-14
+status: permanent
 ---
 # Maths MOC
+
+> [!abstract] Map of Content for mathematics — linear algebra, calculus, optimization, probability foundations, and numerical methods.
 
 ## Notes
 

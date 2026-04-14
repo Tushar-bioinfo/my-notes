@@ -4,11 +4,34 @@ tags:
   - digital-pathology
   - h-and-e
   - histology
+  - cornell
 aliases:
   - H&E Beginner Guide
+date: 2026-04-14
+status: permanent
 ---
 # Beginner Digital Pathology Guide for H&E
 ## Normal tissue, common cell types, and how tumor changes the picture
+
+> [!ABSTRACT] Summary
+> A beginner-first visual orientation guide for H&E digital pathology. Covers normal tissue appearance and tumor changes for: skin (squamous epithelium), colon (glandular epithelium), breast (lobular/ductal), lung (alveolar), kidney (glomerular/tubular), brain (glial/neuronal), liver (hepatocytes), lymph node, and thyroid. Each section provides normal patterns, tumor features, digital pathology pointers, and image links for visual learning.
+
+---
+
+## Cue Questions
+
+> [!QUESTION] Key questions for self-testing
+> - What does normal squamous epithelium look like on H&E, and what changes in SCC?
+> - How do you distinguish normal colon crypts from adenocarcinoma?
+> - What are the H&E differences between ductal and lobular breast carcinoma?
+> - What does normal lung parenchyma look like vs. adenocarcinoma?
+> - How do you recognize glomeruli and tubules on H&E?
+> - What is the characteristic H&E appearance of glioblastoma?
+> - How does hepatocellular carcinoma differ from normal liver on H&E?
+> - What does a reactive vs. malignant lymph node look like?
+> - For each tissue: what would a segmentation model need to detect?
+
+---
 
 ## What this guide is
 This is a beginner-first study guide for learning **how normal H&E tissue looks** and **what usually changes when tissue becomes tumorous**.
@@ -519,11 +542,17 @@ If you want to grow this guide later, the next sections to add should be:
 
 ---
 
+## Summary
+
+> [!TIP] Cornell Summary
+> This guide covers 9 organ/tissue types, each comparing normal H&E architecture to tumor patterns. Key themes: normal tissues have organized, predictable architecture (regular crypts, lobules, alveoli, glomeruli); tumors disrupt this with loss of organization, nuclear atypia, desmoplasia, and necrosis. For digital pathology and computational models, the most important features are: tissue-level architecture (glands vs. solid sheets), nuclear features (size, shape, chromatin), and stromal changes (desmoplasia, inflammatory infiltrates). Each tissue presents unique segmentation challenges relevant to your research.
+
 ---
 
 ## Related
 
 - [[Digital Pathology MOC]]
 - [[Digital Pathology Guide for Beginners]]
+- [[Histopathology and H&E Interpretation]]
 - [[Cancer Biology MOC]]
 - [[Computational Pathology MOC]]

@@ -3,11 +3,33 @@ tags:
   - biology
   - digital-pathology
   - histology
+  - cornell
 aliases:
   - Digital Pathology Guide
+date: 2026-04-14
+status: permanent
 ---
 # 🔬 Digital Pathology Guide for Beginners
 ## H&E Staining: Normal Tissue vs. Tumor — A Visual Reference
+
+> [!ABSTRACT] Summary
+> This guide covers H&E appearance of all major tissue types: epithelial (squamous, glandular, transitional), connective (fibrous, adipose, cartilage/bone), muscle (skeletal, smooth, cardiac), nervous tissue, blood/lymphoid tissue, and liver. For each tissue, it contrasts normal architecture with tumor features, providing a systematic visual reference for learning digital pathology and building intuition for computational pathology tasks like cell segmentation and tissue classification.
+
+---
+
+## Cue Questions
+
+> [!QUESTION] Key questions for self-testing
+> - What are the 5 major tissue types, and how does each appear on H&E?
+> - How do you distinguish squamous from glandular epithelium on H&E?
+> - What features distinguish normal glandular architecture from adenocarcinoma?
+> - What does desmoplasia look like on H&E?
+> - How do you identify lymphocytes vs. neutrophils vs. macrophages on H&E?
+> - What is the difference between skeletal, smooth, and cardiac muscle on H&E?
+> - What are the key H&E features that suggest malignancy (nuclear atypia, loss of architecture, mitotic figures)?
+> - At what magnification should you assess architecture vs. cytology?
+
+---
 
 > **How to Read H&E Stains**
 > - **Hematoxylin (H):** Stains nuclei **purple/blue** — DNA, RNA-rich structures
@@ -560,6 +582,14 @@ No necrosis                     →   Coagulative/geographic necrosis
 > 5. **Compare to adjacent normal tissue** always present on the same slide
 
 ---
+
+## Summary
+
+> [!TIP] Cornell Summary
+> H&E interpretation starts with tissue identification (epithelial, connective, muscle, nervous, lymphoid), then assesses architecture at low power and cytology at high power. Normal tissue is organized with predictable patterns; tumors disrupt architecture (loss of polarity, irregular glands, solid sheets), alter nuclei (enlargement, pleomorphism, hyperchromasia, prominent nucleoli), and increase mitotic activity. Desmoplastic stroma and inflammatory infiltrates are additional H&E clues. For digital pathology, the key insight is: normal = organized, abnormal = chaotic — use this as your first computational filter.
+
+---
+
 *Guide compiled for educational purposes. Always correlate with clinical, radiological, and IHC findings for diagnosis.*
 
 ---
@@ -568,5 +598,6 @@ No necrosis                     →   Coagulative/geographic necrosis
 
 - [[Digital Pathology MOC]]
 - [[Beginner Digital Pathology Guide for H&E]]
+- [[Histopathology and H&E Interpretation]]
 - [[Cancer Biology MOC]]
 - [[Computational Pathology MOC]]

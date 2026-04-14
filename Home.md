@@ -2,12 +2,14 @@
 tags:
   - home
   - moc
+date: 2026-04-14
+status: permanent
 ---
 # Home
 
-Use this as the vault dashboard. Folders keep files tidy; links below keep the graph useful.
+> [!abstract] Vault dashboard — start here to navigate all areas of the knowledge base.
 
-## Main areas
+## Main Areas
 
 - [[Biology MOC]]
 - [[ML MOC]]
@@ -17,12 +19,13 @@ Use this as the vault dashboard. Folders keep files tidy; links below keep the g
 - [[Projects MOC]]
 - [[Inbox/test|Inbox]]
 
-## Active project maps
+## Active Project Maps
 
 - [[Computational Pathology MOC]]
 
-## Capture flow
+## Capture Flow
 
-- Put rough notes in [[Inbox/test|Inbox]] or a new note inside `Inbox/`.
-- Move stable notes into a topic folder.
-- Link the note from the relevant MOC so it appears in graph context.
+> [!TIP] Workflow
+> 1. Put rough notes in [[Inbox/test|Inbox]] or a new note inside `Inbox/`.
+> 2. Move stable notes into a topic folder when they mature.
+> 3. Link the note from the relevant MOC so it appears in the graph.
