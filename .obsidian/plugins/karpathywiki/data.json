@@ -1,0 +1,178 @@
+{
+  "provider": "openai-codex",
+  "apiKey": "",
+  "openAICodexSecretId": "karpathywiki-openai-codex",
+  "openAICodexModels": [
+    {
+      "slug": "gpt-5.6-sol",
+      "displayName": "GPT-5.6-Sol",
+      "supportedReasoningLevels": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "additionalSpeedTiers": [
+        "fast"
+      ],
+      "serviceTiers": [
+        {
+          "id": "priority",
+          "name": "Fast",
+          "description": "1.5x speed, increased usage"
+        }
+      ]
+    },
+    {
+      "slug": "gpt-5.6-terra",
+      "displayName": "GPT-5.6-Terra",
+      "supportedReasoningLevels": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max",
+        "ultra"
+      ],
+      "additionalSpeedTiers": [
+        "fast"
+      ],
+      "serviceTiers": [
+        {
+          "id": "priority",
+          "name": "Fast",
+          "description": "1.5x speed, increased usage"
+        }
+      ]
+    },
+    {
+      "slug": "gpt-5.6-luna",
+      "displayName": "GPT-5.6-Luna",
+      "supportedReasoningLevels": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "additionalSpeedTiers": [
+        "fast"
+      ],
+      "serviceTiers": [
+        {
+          "id": "priority",
+          "name": "Fast",
+          "description": "1.5x speed, increased usage"
+        }
+      ]
+    },
+    {
+      "slug": "gpt-5.5",
+      "displayName": "GPT-5.5",
+      "supportedReasoningLevels": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "additionalSpeedTiers": [
+        "fast"
+      ],
+      "serviceTiers": [
+        {
+          "id": "priority",
+          "name": "Fast",
+          "description": "1.5x speed, increased usage"
+        }
+      ]
+    },
+    {
+      "slug": "gpt-5.4",
+      "displayName": "GPT-5.4",
+      "supportedReasoningLevels": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "additionalSpeedTiers": [
+        "fast"
+      ],
+      "serviceTiers": [
+        {
+          "id": "priority",
+          "name": "Fast",
+          "description": "1.5x speed, increased usage"
+        }
+      ]
+    },
+    {
+      "slug": "gpt-5.4-mini",
+      "displayName": "GPT-5.4-Mini",
+      "supportedReasoningLevels": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "additionalSpeedTiers": [],
+      "serviceTiers": []
+    }
+  ],
+  "openAICodexModelsFetchedAt": 1784737667864,
+  "baseUrl": "",
+  "model": "gpt-5.6-sol",
+  "wikiFolder": "wiki",
+  "language": "en",
+  "wikiLanguage": "en",
+  "useCustomWikiLanguage": false,
+  "availableModels": [
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
+    "gpt-5.5",
+    "gpt-5.4",
+    "gpt-5.4-mini"
+  ],
+  "useCustomModel": false,
+  "maxConversationHistory": 30,
+  "queryHistory": [],
+  "enableSchema": true,
+  "tagVocabularyMode": "default",
+  "customEntityTags": "",
+  "customConceptTags": "",
+  "extractionGranularity": "standard",
+  "autoWatchSources": false,
+  "autoWatchMode": "notify",
+  "autoWatchDebounceMs": 5000,
+  "watchedFolders": [],
+  "periodicLint": "off",
+  "startupCheck": true,
+  "startupCheckNoticeLevel": "visible",
+  "autoSmartFix": false,
+  "autoIngestNotificationLevel": "notice",
+  "createWelcomeNote": true,
+  "pageGenerationConcurrency": 2,
+  "batchDelayMs": 500,
+  "lastOfferedQueryHash": "",
+  "llmReady": true,
+  "maxTokensPerCall": 0,
+  "disableThinking": false,
+  "advancedSettingsMode": "default",
+  "forcePdfSupport": false,
+  "writePdfMarkdownToVault": true,
+  "slugCase": "lower",
+  "customQueryInstructions": "",
+  "bedrockRegion": "us-east-1",
+  "ingestModelUseCustom": false,
+  "lintModelUseCustom": false,
+  "queryModelUseCustom": false,
+  "openAICodexUnavailableModels": [],
+  "usePerTaskModels": true,
+  "ingestModel": "",
+  "lintModel": "",
+  "queryModel": "",
+  "_migrated_v1_23_0_startup_notice": true
+}
