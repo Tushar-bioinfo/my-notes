@@ -1,4 +1,9 @@
 {
   "theme": "obsidian",
-  "cssTheme": "AnuPpuccin"
+  "cssTheme": "AnuPpuccin",
+  "accentColor": "#36c4a1",
+  "translucency": true,
+  "textFontFamily": "Apple Color Emoji",
+  "baseFontSize": 15,
+  "monospaceFontFamily": "Arial Black"
 }
