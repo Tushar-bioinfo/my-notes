@@ -190,6 +190,8 @@ L=\min_w \theta_F(w),
 U=\max_w \theta_F(w)
 \]
 
+
+
 where:
 
 - \(w\) is one allowed transcript-assignment world;
