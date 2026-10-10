@@ -15,6 +15,7 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
+- [[Reading the maths in methods sections - Visual]] *(Interactive Visual)*
 - [[Reading Deep Learning Notation (Opus Edition) - Visual]] *(Interactive Visual)*
 - [[Reading Deep Learning Notation - Visual]] *(Interactive Visual)*
 

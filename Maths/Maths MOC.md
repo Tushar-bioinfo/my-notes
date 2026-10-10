@@ -13,6 +13,10 @@ status: permanent
 
 - Add linear algebra, calculus, optimization, probability foundations, and numerical methods here.
 
+## Visuals & Walkthroughs
+
+- [[Reading the maths in methods sections - Visual]] *(Interactive Visual)*
+
 ## Bridges
 
 - [[Stats MOC]]

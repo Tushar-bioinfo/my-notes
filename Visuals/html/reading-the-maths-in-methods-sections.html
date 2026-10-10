@@ -1,0 +1,1820 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reading the maths in methods sections</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css"><script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<style>/* Proff visual kit. BlockFrame chrome (thick borders, hard offset shadows, heavy Inter, Space Grotesk labels)
+   around clean figures. Dark only. Every colour is a token. Authors never edit this file. */
+:root,[data-theme=dark]{   /* default palette "blockframe": the Block Frame pastels (frontend-slides, MIT) on black, with quiet grey frames.
+     Tuned for dark: blue made more saturated so it is not read as text; yellow deepened a touch to separate it from cream.
+     c2 and c5 are both warm and light: never let them carry a contrast alone (add a label, dash, or shape). */
+  --bg:#0b0b0c;--fig:#121214;--surf:#18181b;--surf2:#232327;--line:#5a5a63;--line-dim:#2c2c31;--grid:#232327;
+  --ink:#fffdf5;--muted:#a9a9b2;--dim:#6e6e76;--on:#000000;
+  --c1:#8feaf7;--c2:#f5c030;--c3:#fe90e8;--c4:#99e885;--c5:#ffdc8b;--c6:#b7b4c7;--mix:20%;
+}
+[data-palette=lab][data-theme=dark]{   /* preset "lab": Okabe-Ito hues */
+  --bg:#0e1116;--fig:#12161c;--surf:#171c23;--surf2:#1e242d;--line:#e8ecf2;--line-dim:#343c48;--grid:#222934;
+  --ink:#eef2f7;--muted:#9aa5b5;--dim:#6a7584;--on:#0e1116;
+  --c1:#5cb8f0;--c2:#f0b43c;--c3:#f2694a;--c4:#3ccf9e;--c5:#c98ae6;--c6:#cfdc5a;--mix:22%;
+}
+/* palette "neon" (the original proff look): Proff.page({palette:'neon'}) */
+[data-palette=neon][data-theme=dark]{--bg:#0a0a0b;--fig:#111113;--surf:#161618;--surf2:#1d1d20;--line:#ececee;--line-dim:#3a3a3f;--grid:#26262b;
+  --ink:#f4f4f5;--muted:#a1a1aa;--dim:#6b6b72;--on:#0a0a0b;--c1:#56c2ff;--c2:#ffc531;--c3:#ff6363;--c4:#59d499;--c5:#b98cff;--c6:#ff8f4a}
+/* soft fills are mixed where data-theme is set, so they follow the live palette (a :root-only rule would freeze them to dark) */
+:root,[data-theme]{--f-disp:'Inter',system-ui,-apple-system,sans-serif;--f-mono:'Space Grotesk',ui-monospace,Menlo,monospace;
+  --f1:color-mix(in srgb,var(--c1) var(--mix),var(--fig));--f2:color-mix(in srgb,var(--c2) var(--mix),var(--fig));
+  --f3:color-mix(in srgb,var(--c3) var(--mix),var(--fig));--f4:color-mix(in srgb,var(--c4) var(--mix),var(--fig));
+  --f5:color-mix(in srgb,var(--c5) var(--mix),var(--fig));--f6:color-mix(in srgb,var(--c6) var(--mix),var(--fig));
+  --acc:var(--c1);--stage-w:min(1240px,calc(100vw - 32px))}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-disp);font-size:18px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  padding:28px 16px 64px;transition:background .2s,color .2s}
+b,strong{font-weight:700}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+a{color:var(--c1)}
+
+/* header: compact so the stage owns the screen */
+.top{max-width:var(--stage-w);margin:0 auto 22px;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;
+  border-bottom:3px solid var(--line);padding-bottom:16px}
+.top .tx{flex:1;min-width:260px}
+.eyebrow{display:inline-block;font-family:var(--f-mono);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--on);background:var(--acc);border:2px solid var(--line);box-shadow:3px 3px 0 var(--line);padding:3px 10px;margin-bottom:12px}
+h1{font-size:clamp(26px,3.4vw,40px);font-weight:900;text-transform:uppercase;letter-spacing:-.025em;line-height:1}
+.sub{font-family:var(--f-mono);font-size:14px;color:var(--muted);margin-top:8px}.sub::before{content:"// ";color:var(--acc)}
+
+/* the stage card: the figure is the hero */
+.card{position:relative;max-width:var(--stage-w);margin:0 auto 40px;background:var(--surf);border:3px solid var(--line);
+  box-shadow:8px 8px 0 var(--acc);padding:20px 22px 18px}
+.head{display:flex;align-items:baseline;gap:14px;min-height:34px;padding-right:44px;margin-bottom:12px}
+.phase{font:700 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--on);background:var(--acc);border:2px solid var(--line);padding:2px 8px;white-space:nowrap}
+.stitle{font-size:clamp(18px,2vw,24px);font-weight:850;letter-spacing:-.01em;line-height:1.15}
+.fig{position:relative;background:var(--fig);border:2px solid var(--line);overflow:hidden}
+.fig svg,.fig canvas{display:block;width:100%;height:auto;max-height:70vh;margin:0 auto}
+.fig svg text{font-family:var(--f-disp)}
+.fig svg .mono{font-family:var(--f-mono)}
+.ib{position:absolute;top:16px;right:18px;width:32px;height:32px;border:2px solid var(--line);background:var(--acc);color:var(--on);
+  font:900 15px var(--f-mono);cursor:pointer;box-shadow:3px 3px 0 var(--line)}
+.ib[aria-expanded=true]{background:var(--line);color:var(--bg)}
+
+/* figure + step strip: the strip is the figure's bottom edge; chevrons appear on the figure's sides on hover */
+.figwrap{position:relative}
+.strip{position:relative;display:flex;gap:10px;margin-top:6px;height:14px;align-items:flex-start}
+.sg{display:flex;gap:3px;min-width:0}
+.seg{flex:1;min-width:6px;height:4px;padding:0;border:0;background:var(--line-dim);cursor:pointer;position:relative;transition:height .15s}
+.seg::after{content:"";position:absolute;inset:-6px 0}   /* bigger hit area */
+.seg i{display:block;height:100%;width:0;background:var(--acc)}
+.strip:hover .seg{height:8px}
+.seg[aria-selected=true]{box-shadow:0 0 0 1px var(--acc)}
+.seg:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.tip{position:absolute;bottom:18px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s;
+  font:700 11px var(--f-mono);letter-spacing:.04em;color:var(--ink);background:var(--surf2);border:1px solid var(--line-dim);padding:3px 8px}
+.tip.on{opacity:1}
+.gh{position:absolute;top:calc(50% - 40px);width:44px;height:64px;border:0;background:color-mix(in srgb,var(--surf) 70%,transparent);color:var(--ink);
+  font:900 26px var(--f-mono);cursor:pointer;opacity:0;transition:opacity .15s}
+.gh.prev{left:0}.gh.next{right:0}
+.figwrap:hover .gh:not(:disabled),.gh:focus-visible{opacity:.85}
+.gh:disabled{display:none}
+@media (hover:none){.gh:not(:disabled){opacity:.55}}
+
+/* controls: one quiet line; drag the value sideways, or use the thin track that shows on hover */
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 30px;margin:12px 0 0;padding:0 2px}
+.kn{position:relative;display:inline-flex;align-items:baseline;gap:9px;font:700 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-bottom:8px}
+.kv{font:800 17px var(--f-mono);letter-spacing:0;text-transform:none;color:var(--acc);border-bottom:2px dotted var(--acc);cursor:ew-resize;user-select:none;touch-action:none;min-width:2ch}
+.kn input{position:absolute;left:0;right:0;bottom:-6px;width:100%;height:14px;margin:0;opacity:0;accent-color:var(--acc);cursor:pointer;transition:opacity .15s}
+.kn:hover input,.kn.drag input,.kn input:focus-visible{opacity:1}
+.kn.drag .kv{color:var(--ink)}
+.kb{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font:700 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  background:none;border:0;border-bottom:2px dotted var(--line-dim);padding:2px 0 6px;cursor:pointer}
+.kb span{font-size:16px;color:var(--acc);transition:transform .3s}
+.kb:hover{color:var(--ink)}.kb:active span{transform:rotate(-180deg)}
+
+/* info sidebar: 30% of the screen on the right; the page shifts left so nothing is hidden */
+.side{position:fixed;top:0;right:0;z-index:50;height:100vh;width:clamp(360px,32vw,500px);overflow-y:auto;background:var(--surf);
+  border-left:3px solid var(--line);padding:24px 32px 56px;transform:translateX(102%);transition:transform .22s ease;font-size:17px;line-height:1.6}
+.side.open{transform:none}
+.side .lead{font-size:19px;line-height:1.6;color:var(--ink);margin:0 0 24px}
+.side .sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.side .sx{width:32px;height:32px;border:2px solid var(--line);background:var(--surf2);color:var(--ink);font:900 18px var(--f-mono);cursor:pointer}
+.side .st{font-size:23px;font-weight:850;line-height:1.25;margin-bottom:18px}
+.side section{padding:24px 0;border-top:1px solid var(--line-dim)}
+.side h4{font:700 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin-bottom:14px}
+.side ul{padding-left:1.1em}.side li{margin:.7em 0;line-height:1.6}.side p+p{margin-top:.8em}
+/* notation: "symbol : meaning" on one line, the example under it */
+.side .nts{display:grid;grid-template-columns:max-content auto 1fr;column-gap:10px;align-items:baseline}
+.side .nt,.side .nk{display:contents}
+.side .sym{grid-column:1;font-weight:700;color:var(--acc);white-space:nowrap;line-height:1.55}
+.side .col{grid-column:2;color:var(--dim)}
+.side .ne{grid-column:3;color:var(--ink);line-height:1.55}
+.side .eg{grid-column:3;margin:6px 0 22px;font:15px/1.55 var(--f-mono);color:var(--muted)}
+.side .nt:last-child .eg{margin-bottom:4px}
+.side .eg strong{color:var(--ink)}
+.side .wx{font:16px/1.6 var(--f-mono);color:var(--ink);background:var(--surf2);border-left:3px solid var(--acc);padding:12px 16px}
+.side details{margin-top:12px;border-top:2px solid var(--line-dim);padding-top:10px}.side summary{cursor:pointer;font:700 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+@media (min-width:1000px){body.side-on{--stage-w:min(1240px,calc(100vw - clamp(360px,32vw,500px) - 48px));padding-right:calc(clamp(360px,32vw,500px) + 16px)}}
+@media (max-width:1399px){.side{width:340px;padding:22px 26px 48px}body.side-on{--stage-w:calc(100vw - 340px - 48px);padding-right:356px}}   /* laptops: keep the figure big enough that 16-unit labels stay ≥ 12 px */
+@media (max-width:999px){.side{width:min(92vw,460px);box-shadow:-12px 0 0 rgba(0,0,0,.35)}}
+
+/* article layout: short prose between wide figures */
+.prose{max-width:68ch;margin:0 auto 26px;font-size:19px}
+.prose p+p{margin-top:.8em}
+.prose h2{font-size:clamp(22px,2.6vw,30px);font-weight:900;text-transform:uppercase;letter-spacing:-.02em;margin:46px 0 14px;line-height:1.05}
+.prose ul{padding-left:1.2em}.prose li{margin:.25em 0}
+.acc1{--acc:var(--c1)}.acc2{--acc:var(--c2)}.acc3{--acc:var(--c3)}.acc4{--acc:var(--c4)}.acc5{--acc:var(--c5)}.acc6{--acc:var(--c6)}
+
+/* study page blocks */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;max-width:var(--stage-w);margin:0 auto 34px}
+.tile{background:var(--surf);border:3px solid var(--line);box-shadow:6px 6px 0 var(--acc);padding:18px 20px}
+.tile h3{font-size:17px;font-weight:850;text-transform:uppercase;letter-spacing:-.01em;margin-bottom:8px;line-height:1.15}
+.tile p,.tile li{font-size:16px}.tile ul{padding-left:1.1em}
+.tile .tag{font:700 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.big{font-size:44px;font-weight:900;letter-spacing:-.03em;line-height:1;color:var(--acc)}
+.flip{cursor:pointer}.flip .a{display:none;margin-top:10px;padding-top:10px;border-top:2px dashed var(--line-dim)}.flip.on .a{display:block}
+.flip .hint{font:700 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+.flip.on .hint{display:none}
+table.cmp{width:100%;max-width:var(--stage-w);margin:0 auto 34px;border-collapse:collapse;background:var(--surf);border:3px solid var(--line);box-shadow:6px 6px 0 var(--acc)}
+table.cmp th,table.cmp td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line-dim);font-size:16px;vertical-align:top}
+table.cmp th{font:700 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sec{display:block;max-width:var(--stage-w);margin:40px auto 16px;font:700 13px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--line-dim);padding-bottom:6px}
+
+/* calc engine extras */
+.fig .katex{font-size:1em}
+.fig .katex svg{height:inherit;max-height:none;margin:0}  /* KaTeX draws radicals with inner SVGs; the stage rule above must not resize them */
+.fig foreignObject div{color:var(--ink);font-family:var(--f-disp);line-height:1.2}
+.foot{max-width:var(--stage-w);margin:30px auto 0;font:500 12px var(--f-mono);color:var(--dim)}
+
+@media (max-width:700px){
+  body{padding:18px 12px 48px;font-size:17px}
+  .card{padding:14px 12px;box-shadow:5px 5px 0 var(--acc)}
+  .fig.pan{overflow-x:auto}.fig.pan svg{min-width:720px;max-height:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head>
+<body data-theme="dark">
+<script>window.PROFF_DATA={};window.PROFF_SVG={};window.PROFF_ASSETS={};</script>
+<script>/* Proff stage runtime: page shell, scenes, steps, controls, drawing kit, self-audit.
+   Authors call Proff.page / Proff.scene / Proff.prose in story.js; build.py inlines this file. Do not edit per topic. */
+(function () {
+  'use strict';
+  const P = window.Proff = { scenes: [], blocks: [], opts: {}, errors: [], plugins: {} };
+  const TOK = ['ink', 'muted', 'dim', 'line', 'grid', 'fig', 'surf', 'surf2', 'bg', 'on', 'line-dim'];
+  const col = c => c == null ? null : /^[cf][1-6]$/.test(c) || TOK.includes(c) ? `var(--${c})` : c;
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const md = s => esc(s || '').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>').replace(/`(.+?)`/g, '<code>$1</code>');
+  const para = s => String(s || '').split(/\n\s*\n/).map(b => /^\s*- /.test(b)
+    ? '<ul>' + b.split('\n').filter(l => l.trim()).map(l => '<li>' + md(l.replace(/^\s*- /, '')) + '</li>').join('') + '</ul>'
+    : '<p>' + md(b) + '</p>').join('');
+  P.md = para;
+
+  // ---------- maths helpers ----------
+  P.lerp = (a, b, t) => a + (b - a) * t;
+  P.ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  P.seg = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));   // progress of t inside [a,b]
+  P.clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  P.range = (a, b, n) => Array.from({ length: n }, (_, i) => a + (b - a) * i / (n - 1));
+  P.fmt = (v, d) => v == null || isNaN(v) ? '–' : Math.abs(v) >= 1e5 || (Math.abs(v) < 1e-3 && v !== 0) ? v.toExponential(d ?? 1).replace('e+', 'e')
+    : (+v.toFixed(d ?? (Number.isInteger(v) ? 0 : 2))).toLocaleString('en-US', { maximumFractionDigits: d ?? 2 });
+  P.rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const lgamma = x => { const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, .1208650973866179e-2, -.5395239384953e-5];
+    let y = x, t = x + 5.5; t -= (x + .5) * Math.log(t); let s = 1.000000000190015; for (const k of c) s += k / ++y; return -t + Math.log(2.5066282746310005 * s / x); };
+  const erf = x => { const s = Math.sign(x); x = Math.abs(x); const t = 1 / (1 + .3275911 * x);
+    return s * (1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x)); };
+  P.stat = {
+    lgamma, erf,
+    normPdf: (x, m = 0, s = 1) => Math.exp(-.5 * ((x - m) / s) ** 2) / (s * Math.sqrt(2 * Math.PI)),
+    normCdf: (x, m = 0, s = 1) => .5 * (1 + erf((x - m) / (s * Math.SQRT2))),
+    tPdf: (x, v) => Math.exp(lgamma((v + 1) / 2) - lgamma(v / 2)) / Math.sqrt(v * Math.PI) * (1 + x * x / v) ** (-(v + 1) / 2),
+    binomPmf: (k, n, p) => Math.exp(lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1) + k * Math.log(p) + (n - k) * Math.log(1 - p)),
+    poisPmf: (k, l) => Math.exp(k * Math.log(l) - l - lgamma(k + 1)),
+    nbPmf: (k, mu, phi) => { const r = 1 / phi; return Math.exp(lgamma(k + r) - lgamma(r) - lgamma(k + 1) + r * Math.log(r / (r + mu)) + k * Math.log(mu / (r + mu))); },
+    gammaPdf: (x, a, b) => x <= 0 ? 0 : Math.exp(a * Math.log(b) - lgamma(a) + (a - 1) * Math.log(x) - b * x),
+    betaPdf: (x, a, b) => x <= 0 || x >= 1 ? 0 : Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + (a - 1) * Math.log(x) + (b - 1) * Math.log(1 - x)),
+    normal: r => () => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r()),
+    mean: a => a.reduce((s, x) => s + x, 0) / a.length,
+    sd: a => { const m = P.stat.mean(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / (a.length - 1)); },
+  };
+
+  // ---------- text measuring (shared by both backends and the audit) ----------
+  const mctx = document.createElement('canvas').getContext('2d');
+  const font = o => `${o.italic ? 'italic ' : ''}${o.weight || 500} ${o.size}px ${o.mono ? "'Space Grotesk',monospace" : "Inter,system-ui,sans-serif"}`;
+  const runs = s => { const out = []; const re = /([_^])\{([^}]*)\}/g; let i = 0, m;   // x_{ij}, x^{2}
+    while ((m = re.exec(s))) { if (m.index > i) out.push([s.slice(i, m.index), 0]); out.push([m[2], m[1] === '_' ? 1 : -1]); i = re.lastIndex; }
+    if (i < s.length) out.push([s.slice(i), 0]); return out; };
+  const measure = (s, o) => { mctx.font = font(o); let w = 0; for (const [t, sh] of runs(s)) { mctx.font = font({ ...o, size: sh ? o.size * .7 : o.size }); w += mctx.measureText(t).width; } return w; };
+
+  // ---------- drawing kit: identical API on SVG and Canvas ----------
+  function Kit(W, H, backend, rng) {
+    const g = { W, H, rng, texts: [], boxes: [], segs: [], plots: [], words: 0 };
+    let out = [], ctx = backend.ctx, alpha = [1], xf = [[0, 0, 1]];
+    const vars = backend.vars || (k => k);
+    const X = (x, y) => { const [tx, ty, s] = xf[xf.length - 1]; return [tx + x * s, ty + y * s]; };   // to stage units, for the audit
+    const S = () => xf[xf.length - 1][2];
+    const A = () => alpha[alpha.length - 1];
+    const C = c => ctx ? vars(c) : col(c);
+    const reg = (kind, a) => (A() > .05) && g[kind].push(a);
+    const box = (x, y, w, h, solid) => { const [a, b] = X(x, y), s = S(); reg('boxes', { x0: a, y0: b, x1: a + w * s, y1: b + h * s, solid }); };
+    const seg = (x1, y1, x2, y2) => { const [a, b] = X(x1, y1), [c, d] = X(x2, y2); reg('segs', [a, b, c, d]); };
+    const style = o => { const f = o.fill === undefined ? 'none' : col(o.fill), st = o.stroke === undefined ? (o.fill === undefined ? 'var(--ink)' : 'none') : col(o.stroke);
+      return `fill="${f}" stroke="${st}" stroke-width="${o.sw ?? 2}"${o.dash ? ` stroke-dasharray="${o.dash === true ? '7 6' : o.dash}"` : ''}${o.op != null ? ` opacity="${o.op}"` : ''} stroke-linecap="round" stroke-linejoin="round"${o.cls ? ` class="${o.cls}"` : ''}`; };
+    const cv = (o, path) => {  // canvas paint
+      ctx.save(); ctx.globalAlpha = A() * (o.op ?? 1);
+      if (o.fill !== undefined && o.fill !== 'none') { ctx.fillStyle = C(o.fill); ctx.fill(path); }
+      const st = o.stroke === undefined ? (o.fill === undefined ? 'ink' : null) : o.stroke;
+      if (st && st !== 'none') { ctx.strokeStyle = C(st); ctx.lineWidth = o.sw ?? 2; ctx.lineCap = ctx.lineJoin = 'round'; ctx.setLineDash(o.dash ? (o.dash === true ? [7, 6] : String(o.dash).split(/\s+/).map(Number)) : []); ctx.stroke(path); }
+      ctx.restore(); };
+    g.path = (d, o = {}) => { if (ctx) cv(o, new Path2D(d)); else out.push(`<path d="${d}" ${style(o)}/>`); if (o.reg) o.reg.forEach(p => seg(...p)); return g; };
+    g.rect = (x, y, w, h, o = {}) => { const r = o.r || 0;
+      if (ctx) { const p = new Path2D(); r ? p.roundRect(x, y, w, h, r) : p.rect(x, y, w, h); cv(o, p); }
+      else out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}"${r ? ` rx="${r}"` : ''} ${style(o)}/>`);
+      if (!o.free) box(x, y, w, h, o.fill !== undefined && o.fill !== 'none'); return g; };
+    g.circle = (cx, cy, r, o = {}) => { if (ctx) { const p = new Path2D(); p.arc(cx, cy, r, 0, 7); cv(o, p); } else out.push(`<circle cx="${cx}" cy="${cy}" r="${r}" ${style(o)}/>`);
+      if (!o.free && r > 6) box(cx - r * .7, cy - r * .7, r * 1.4, r * 1.4, o.fill !== undefined && o.fill !== 'none'); return g; };
+    g.ellipse = (cx, cy, rx, ry, o = {}) => { if (ctx) { const p = new Path2D(); p.ellipse(cx, cy, rx, ry, 0, 0, 7); cv(o, p); } else out.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" ${style(o)}/>`); return g; };
+    g.line = (x1, y1, x2, y2, o = {}) => { o = { stroke: 'ink', ...o }; g.path(`M${x1} ${y1}L${x2} ${y2}`, o); if (!o.free) seg(x1, y1, x2, y2); return g; };
+    g.poly = (pts, o = {}) => { if (!pts.length) return g; g.path('M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + (o.close ? 'Z' : ''), o);
+      if (o.reg !== false && !o.free) { const k = Math.max(1, Math.floor(pts.length / 40)); for (let i = k; i < pts.length; i += k) seg(pts[i - k][0], pts[i - k][1], pts[i][0], pts[i][1]); } return g; };
+    g.arrow = (x1, y1, x2, y2, o = {}) => {  // o.bend curves it; o.pad trims both ends; o.head size
+      const pad = o.pad ?? 0, L = Math.hypot(x2 - x1, y2 - y1) || 1, ux = (x2 - x1) / L, uy = (y2 - y1) / L;
+      x1 += ux * pad; y1 += uy * pad; x2 -= ux * pad; y2 -= uy * pad;
+      const hs = o.head ?? 12, b = o.bend || 0, mx = (x1 + x2) / 2 - uy * b, my = (y1 + y2) / 2 + ux * b;
+      const ang = b ? Math.atan2(y2 - my, x2 - mx) : Math.atan2(uy, ux), c = o.stroke || 'ink';
+      const ex = x2 - Math.cos(ang) * hs * .8, ey = y2 - Math.sin(ang) * hs * .8;
+      g.path(b ? `M${x1} ${y1}Q${mx} ${my} ${ex} ${ey}` : `M${x1} ${y1}L${ex} ${ey}`, { ...o, stroke: c, fill: undefined });
+      g.path(`M${x2} ${y2}L${x2 - hs * Math.cos(ang - .45)} ${y2 - hs * Math.sin(ang - .45)}L${x2 - hs * Math.cos(ang + .45)} ${y2 - hs * Math.sin(ang + .45)}Z`, { fill: c, stroke: c, sw: 1, op: o.op });
+      if (!o.free) { if (b) { seg(x1, y1, mx, my); seg(mx, my, x2, y2); } else seg(x1, y1, x2, y2); } return g; };
+    g.text = (x, y, s, o = {}) => {
+      s = String(s); o = { size: 22, ...o }; const lines = s.split('\n'), lh = o.size * 1.22, anchor = o.anchor || 'start';
+      const fill = o.fill || 'ink', wmax = Math.max(...lines.map(l => measure(l, o)));
+      const y0 = y - (lines.length - 1) * lh / 2;
+      lines.forEach((l, i) => {
+        const yy = y0 + i * lh;
+        if (ctx) { let xx = x - (anchor === 'middle' ? measure(l, o) / 2 : anchor === 'end' ? measure(l, o) : 0);
+          ctx.save(); ctx.globalAlpha = A() * (o.op ?? 1); ctx.fillStyle = C(fill); ctx.textBaseline = 'middle';
+          if (o.halo) { ctx.strokeStyle = C('fig'); ctx.lineWidth = 6; ctx.lineJoin = 'round'; }
+          for (const [t, sh] of runs(l)) { ctx.font = font({ ...o, size: sh ? o.size * .7 : o.size }); const dy = sh * o.size * .3;
+            if (o.halo) ctx.strokeText(t, xx, yy + dy); ctx.fillText(t, xx, yy + dy); xx += ctx.measureText(t).width; }
+          ctx.restore(); }
+        else { const sp = runs(l).map(([t, sh]) => sh ? `<tspan font-size="${o.size * .7}" dy="${sh * o.size * .3}">${esc(t)}</tspan><tspan dy="${-sh * o.size * .3}">​</tspan>` : esc(t)).join('');
+          out.push(`<text x="${x}" y="${yy}" font-size="${o.size}" font-weight="${o.weight || 500}" text-anchor="${anchor}" dominant-baseline="central" fill="${col(fill)}"${o.mono ? ' class="mono"' : ''}${o.italic ? ' font-style="italic"' : ''}${o.op != null ? ` opacity="${o.op}"` : ''}${o.halo ? ` stroke="var(--fig)" stroke-width="6" paint-order="stroke" stroke-linejoin="round"` : ''}>${sp}</text>`); }
+      });
+      const bx = x - (anchor === 'middle' ? wmax / 2 : anchor === 'end' ? wmax : 0), by = y0 - o.size * .55, bh = (lines.length - 1) * lh + o.size * 1.1;
+      const [a, b] = X(bx, by), sc = S();
+      if (!o.free) reg('texts', { x0: a, y0: b, x1: a + wmax * sc, y1: b + bh * sc, s, px: o.size * sc, size: o.size, tick: o.tick });
+      if (A() > .05 && !o.free && !o.tick) g.words += s.split(/\s+/).filter(w => /[A-Za-z]{2,}/.test(w)).length;
+      return { w: wmax, h: bh, x0: bx, y0: by, x1: bx + wmax, y1: by + bh }; };
+    g.label = (x, y, s, o = {}) => {  // text with a leader line to the point it names: o.to=[x,y]
+      const r = g.text(x, y, s, o);
+      if (o.to) { const [tx, ty] = o.to, cx = P.clamp(tx, r.x0, r.x1), cy = P.clamp(ty, r.y0, r.y1);
+        const sx = Math.abs(tx - (r.x0 + r.x1) / 2) > Math.abs(ty - (r.y0 + r.y1) / 2) ? (tx > r.x1 ? r.x1 + 6 : r.x0 - 6) : cx;
+        const sy = sx === cx ? (ty > r.y1 ? r.y1 + 4 : r.y0 - 4) : cy;
+        g.line(sx, sy, tx, ty, { stroke: o.lc || 'muted', sw: 1.5, free: true }); g.circle(tx, ty, 3, { fill: o.lc || 'muted', stroke: 'none', free: true }); }
+      return r; };
+    g.tex = (x, y, tex, o = {}) => {  // LaTeX via KaTeX (SVG backend only); box centred at x,y unless o.anchor
+      const size = o.size || 26, w = o.w || Math.max(80, tex.length * size * .42), h = o.h || size * 2.2;
+      const x0 = o.anchor === 'start' ? x : o.anchor === 'end' ? x - w : x - w / 2;
+      if (ctx || !window.katex) { g.text(x, y, tex.replace(/\\[a-z]+/g, m => ({ '\\sum': 'Σ', '\\times': '×', '\\cdot': '·', '\\div': '÷', '\\sigma': 'σ', '\\mu': 'μ', '\\log': 'log' }[m] || '')).replace(/[{}]/g, ''), { ...o, size, mono: true }); return g; }
+      let html; try { html = katex.renderToString(tex, { throwOnError: false }); } catch (e) { html = esc(tex); }
+      out.push(`<foreignObject x="${x0}" y="${y - h / 2}" width="${w}" height="${h}"${o.op != null ? ` opacity="${o.op}"` : ''}><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${size}px;height:100%;display:flex;align-items:center;justify-content:${o.anchor === 'start' ? 'flex-start' : o.anchor === 'end' ? 'flex-end' : 'center'};color:${col(o.fill || 'ink')}">${html}</div></foreignObject>`);
+      const [a, b] = X(x0, y - size * .7); reg('texts', { x0: a, y0: b, x1: a + w * S() * .9, y1: b + size * 1.4 * S(), s: tex, px: size * S(), size, tex: 1 }); return g; };
+    g.img = (href, x, y, w, h, o = {}) => { if (ctx) { const im = P.images[href]; if (im && im.complete) { ctx.save(); ctx.globalAlpha = A() * (o.op ?? 1); ctx.drawImage(im, x, y, w, h); ctx.restore(); } }
+      else out.push(`<image href="${P.assets[href] || href}" x="${x}" y="${y}" width="${w}" height="${h}"${o.op != null ? ` opacity="${o.op}"` : ''} preserveAspectRatio="xMidYMid meet"/>`); return g; };
+    g.raw = s => { if (!ctx) out.push(s); return g; };
+    g.svgfile = (name, x, y, w, h, o = {}) => {  // a figure from svg/<name>.svg (plot.py output), fitted into the box
+      const src = (window.PROFF_SVG || {})[name]; if (!src) throw new Error(`svg/${name}.svg not found`);
+      out.push(src.replace(/<svg\b[^>]*?(viewBox="[^"]*")[^>]*>/, (m, vb) => `<svg class="ext" x="${x}" y="${y}" width="${w}" height="${h}" ${vb} preserveAspectRatio="xMidYMid meet"${o.op != null ? ` opacity="${o.op}"` : ''}>`));
+      const side = (window.PROFF_DATA || {})[name + '_axes'], res = []; if (!side) return res;   // data-unit mappers per axes (plot.py sidecar)
+      const fw = Math.min(w, h * side.aspect), fh = fw / side.aspect, ox = x + (w - fw) / 2, oy = y + (h - fh) / 2;
+      side.axes.forEach(a => { const L = v => Math.log10(v), [x0, x1] = a.xlog ? a.xlim.map(L) : a.xlim, [y0, y1] = a.ylog ? a.ylim.map(L) : a.ylim;
+        const X0 = ox + a.x * fw, Y0 = oy + a.y * fh, AW = a.w * fw, AH = a.h * fh;
+        reg('plots', { w: AW * S(), h: AH * S(), name: a.yl || a.xl || name });   // matplotlib axes obey the same size rules
+        res.push({ x: X0, y: Y0, w: AW, h: AH, sx: v => X0 + ((a.xlog ? L(v) : v) - x0) / (x1 - x0) * AW, sy: v => Y0 + AH - ((a.ylog ? L(v) : v) - y0) / (y1 - y0) * AH }); });
+      box(ox, oy, fw, fh, false); return res; };
+    g.group = (o, fn) => {  // o: {x, y, s (scale), op}
+      const [tx, ty, s0] = xf[xf.length - 1], s = o.s ?? 1, x = o.x || 0, y = o.y || 0;
+      xf.push([tx + x * s0, ty + y * s0, s0 * s]); alpha.push(A() * (o.op ?? 1));
+      if (ctx) { ctx.save(); ctx.translate(x, y); ctx.scale(s, s); fn(g); ctx.restore(); }
+      else { out.push(`<g transform="translate(${x} ${y}) scale(${s})"${o.op != null ? ` opacity="${o.op}"` : ''}>`); fn(g); out.push('</g>'); }
+      xf.pop(); alpha.pop(); return g; };
+    g.fade = (op, fn) => g.group({ op }, fn);
+
+    // ---- charts ----
+    g.axes = (o) => {  // {x,y,w,h, xd:[a,b], yd:[a,b], xl, yl, xt:n|[..], yt, grid, fmtx, fmty, log}
+      const { x, y, w, h } = o, [xa, xb] = o.xd, [ya, yb] = o.yd;
+      reg('plots', { w: w * S(), h: h * S(), name: o.yl || o.xl || '' });   // the audit refuses squeezed plots
+      const sx = v => x + (v - xa) / (xb - xa) * w, sy = v => y + h - (v - ya) / (yb - ya) * h;
+      const ticks = (t, a, b) => Array.isArray(t) ? t : nice(a, b, t ?? 5);
+      const xt = ticks(o.xt, xa, xb), yt = ticks(o.yt, ya, yb), fs = o.size || 18;
+      if (o.grid !== false) { yt.forEach(v => g.line(x, sy(v), x + w, sy(v), { stroke: 'grid', sw: 1, free: true })); }
+      g.line(x, y + h, x + w, y + h, { stroke: 'muted', sw: 2, free: true }); g.line(x, y, x, y + h, { stroke: 'muted', sw: 2, free: true });
+      xt.forEach(v => { g.line(sx(v), y + h, sx(v), y + h + 6, { stroke: 'muted', sw: 2, free: true }); g.text(sx(v), y + h + 8 + fs * .7, (o.fmtx || P.fmt)(v), { size: fs, anchor: 'middle', fill: 'muted', tick: 1 }); });
+      yt.forEach(v => g.text(x - 10, sy(v), (o.fmty || P.fmt)(v), { size: fs, anchor: 'end', fill: 'muted', tick: 1 }));
+      if (o.xl) g.text(x + w, y + h + fs * 2.6, o.xl, { size: fs + 1, anchor: 'end', fill: 'muted', weight: 600 });
+      if (o.yl) g.text(x, y - fs * 1.2, o.yl, { size: fs + 1, anchor: 'start', fill: 'muted', weight: 600 });
+      return { sx, sy, x, y, w, h }; };
+    g.curve = (f, ax, a, b, o = {}) => { const n = o.n || 200, pts = P.range(a, b, n).map(v => [ax.sx(v), ax.sy(f(v))]).filter(p => isFinite(p[1]));
+      return g.poly(pts.map(p => [p[0], P.clamp(p[1], ax.y - 4, ax.y + ax.h)]), { stroke: 'c1', sw: 3, ...o }); };
+    g.area = (f, ax, a, b, o = {}) => { const pts = P.range(a, b, o.n || 120).map(v => [ax.sx(v), P.clamp(ax.sy(f(v)), ax.y, ax.y + ax.h)]);
+      return g.poly([[ax.sx(a), ax.y + ax.h], ...pts, [ax.sx(b), ax.y + ax.h]], { fill: 'f1', stroke: 'none', close: true, reg: false, ...o }); };
+    g.bars = (vals, ax, o = {}) => { const bw = o.bw || 0.8; vals.forEach(([x, v], i) => { const x0 = ax.sx(x - bw / 2), x1 = ax.sx(x + bw / 2), y0 = ax.sy(Math.max(0, ax.yd0 || 0));
+      g.rect(x0, Math.min(ax.sy(v), y0), x1 - x0, Math.abs(y0 - ax.sy(v)), { fill: typeof o.fill === 'function' ? o.fill(x, v, i) : (o.fill || 'f1'), stroke: o.stroke || 'c1', sw: o.sw ?? 1.5, free: true }); }); return g; };
+    g.dots = (pts, ax, o = {}) => { pts.forEach((p, i) => g.circle(ax ? ax.sx(p[0]) : p[0], ax ? ax.sy(p[1]) : p[1], o.r || 6, { fill: typeof o.fill === 'function' ? o.fill(p, i) : (o.fill || 'c1'), stroke: o.stroke || 'none', op: o.op, free: true })); return g; };
+    g.brace = (x1, y1, x2, y2, s, o = {}) => {  // curly brace from (x1,y1) to (x2,y2), label on the outside (left side of travel)
+      const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, nx = uy, ny = -ux, d = o.depth || 14;
+      const p = (t, k) => [x1 + ux * L * t + nx * d * k, y1 + uy * L * t + ny * d * k];
+      const [a, b, c, e, f] = [p(0, 0), p(.25, 1), p(.5, 2), p(.75, 1), p(1, 0)];
+      g.path(`M${a}Q${p(0, 1)} ${b}L${p(.45, 1)}Q${p(.5, 1)} ${c}Q${p(.5, 1)} ${p(.55, 1)}L${e}Q${p(1, 1)} ${f}`.replace(/,/g, ' '), { stroke: o.stroke || 'muted', sw: 2, reg: [[...p(0, 1), ...p(1, 1)], [...p(.5, 1), ...p(.5, 2)]] });
+      if (s) { const [lx, ly] = p(.5, 2 + (o.gap || 1.2)); g.text(lx, ly, s, { size: o.size || 18, anchor: Math.abs(nx) > .5 ? (nx > 0 ? 'start' : 'end') : 'middle', fill: o.fill || 'muted', weight: 600 }); } return g; };
+    g.matrix = (x, y, data, o = {}) => {  // table of numbers; o: cw, ch, rows, cols, fmt, cell(i,j,v)->{fill,stroke,op,text}, title
+      const cw = o.cw || 74, ch = o.ch || 46, R = data.length, Cn = data[0].length, fs = o.size || Math.min(22, ch * .46);
+      const pos = (i, j) => ({ x: x + j * cw, y: y + i * ch, w: cw, h: ch, cx: x + j * cw + cw / 2, cy: y + i * ch + ch / 2 });
+      if (o.title) g.text(x + cw * Cn / 2, y - (o.cols ? fs * 2.6 : fs * 1.3), o.title, { size: fs, anchor: 'middle', weight: 750 });
+      if (o.cols) o.cols.forEach((c, j) => g.text(pos(0, j).cx, y - fs * .9, c, { size: Math.max(16, fs * .85), anchor: 'middle', fill: o.colFill ? o.colFill(j) : 'muted', mono: true }));
+      if (o.rows) o.rows.forEach((r, i) => g.text(x - 10, pos(i, 0).cy, r, { size: Math.max(16, fs * .85), anchor: 'end', fill: o.rowFill ? o.rowFill(i) : 'muted', mono: true }));
+      for (let i = 0; i < R; i++) for (let j = 0; j < Cn; j++) {
+        const p = pos(i, j), st = (o.cell && o.cell(i, j, data[i][j])) || {};
+        g.rect(p.x, p.y, cw, ch, { fill: st.fill || 'surf', stroke: st.stroke || 'line-dim', sw: st.sw || 1.5, op: st.op, free: true });
+        const v = st.text ?? (data[i][j] == null ? '' : (o.fmt || P.fmt)(data[i][j]));
+        if (v !== '') g.text(p.cx, p.cy, v, { size: fs, anchor: 'middle', mono: true, weight: st.weight || 600, fill: st.color || 'ink', op: st.top, tick: 1 });
+      }
+      if (o.frame !== false) g.rect(x, y, cw * Cn, ch * R, { stroke: 'line', sw: 2.5, free: true });
+      box(x, y, cw * Cn, ch * R, false);
+      return { pos, w: cw * Cn, h: ch * R, x, y }; };
+    if (P.plugins) for (const k in P.plugins) g[k] = (...a) => P.plugins[k](g, ...a);
+    g._svg = () => out.join('');
+    return g;
+  }
+  const nice = (a, b, n) => { const span = b - a, step0 = span / Math.max(1, n), mag = 10 ** Math.floor(Math.log10(step0)), err = step0 / mag;
+    const st = (err >= 7.5 ? 10 : err >= 3.5 ? 5 : err >= 1.5 ? 2 : 1) * mag, out = []; for (let v = Math.ceil(a / st) * st; v <= b + st * 1e-9; v += st) out.push(+v.toFixed(10)); return out; };
+  P.nice = nice; P.measure = (s, o = {}) => measure(String(s), { size: 22, ...o }); P.images = {}; P.assets = window.PROFF_ASSETS || {};
+
+  // ---------- page API ----------
+  P.page = o => Object.assign(P.opts, o);
+  P.scene = s => { s.steps = (s.steps || ['']).map(x => typeof x === 'string' ? { cap: x } : x); s.params = {}; (s.controls || []).forEach(c => s.params[c.name] = c.value ?? c.min); s.defaults = { ...s.params };
+    s.W = s.w || 1200; s.H = s.h || 675; s.seed = s.seed || 7; s.i = P.scenes.length; P.scenes.push(s); P.blocks.push({ scene: s }); return s; };
+  P.prose = (text, o = {}) => P.blocks.push({ prose: text, ...o });
+  P.html = (html) => P.blocks.push({ html });
+  // study blocks (layout 'article'): section heading, tiles, flip questions, comparison table. Text is markdown-lite (**b**, *i*, `code`).
+  P.section = (name) => P.html(`<h2 class="sec">${esc(name)}</h2>`);
+  P.tiles = (items, o = {}) => P.html(`<div class="grid">${items.map((t, i) => `<div class="tile acc${t.acc || o.acc || (i % 6) + 1}">${t.tag ? `<span class="tag">${esc(t.tag)}</span>` : ''}${t.big ? `<div class="big">${esc(t.big)}</div>` : ''}${t.h ? `<h3>${md(t.h)}</h3>` : ''}${t.text ? para(t.text) : ''}</div>`).join('')}</div>`);
+  P.quiz = (items) => P.html(`<div class="grid">${items.map((q, i) => `<div class="tile flip acc${q.acc || (i % 6) + 1}" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('on');this.setAttribute('aria-expanded',this.classList.contains('on'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"><span class="tag">${esc(q.tag || 'question ' + (i + 1))}</span><h3>${md(q.q)}</h3><div class="hint">tap to reveal</div><div class="a">${para(q.a)}</div></div>`).join('')}</div>`);
+  P.compare = (head, rows) => P.html(`<table class="cmp"><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, j) => j ? `<td>${md(c)}</td>` : `<td><b>${md(c)}</b></td>`).join('')}</tr>`).join('')}</tbody></table>`);
+
+  // ---------- rendering ----------
+  let cssVars = {};
+  const readVars = () => { const cs = getComputedStyle(document.body); cssVars = {};
+    for (const k of [...TOK, 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6']) cssVars[k] = cs.getPropertyValue('--' + k).trim(); };
+  const resolve = c => { if (c == null) return null; const m = /^var\(--([\w-]+)\)$/.exec(c); const k = m ? m[1] : c;
+    return k in cssVars ? resolveMix(k) : c; };
+  const mixCache = {}; const resolveMix = k => { const key = k + document.body.dataset.theme + (document.body.dataset.palette || ''); if (mixCache[key]) return mixCache[key];
+    const d = document.createElement('div'); d.style.color = `var(--${k})`; document.body.appendChild(d); const v = getComputedStyle(d).color; d.remove(); return mixCache[key] = v; };
+
+  function draw(s, k, t) {
+    s.k = k; s.t = t; const fig = s.el.fig;
+    let g;
+    try {
+      if (s.kind === 'canvas') {
+        const cv = fig.querySelector('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1);
+        if (cv.width !== s.W * dpr) { cv.width = s.W * dpr; cv.height = s.H * dpr; }
+        const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, s.W, s.H);
+        g = Kit(s.W, s.H, { ctx, vars: resolve }, P.rng(s.seed)); g.panels = (kk = k, tt = t) => panelsAt(s, kk, tt); g.panel = (id, fn) => { const b = panelsAt(s, k, t)[id]; if (b && b.a > .01) g.fade(b.a, () => fn(b)); }; s.draw(g, k, t, s.params, s);
+      } else {
+        g = Kit(s.W, s.H, {}, P.rng(s.seed)); g.panels = (kk = k, tt = t) => panelsAt(s, kk, tt); g.panel = (id, fn) => { const b = panelsAt(s, k, t)[id]; if (b && b.a > .01) g.fade(b.a, () => fn(b)); }; s.draw(g, k, t, s.params, s);
+        fig.querySelector('svg').innerHTML = g._svg();
+      }
+      s.last = g; s.err = null;
+    } catch (e) { s.err = e.message; P.errors.push(`scene ${s.i + 1} step ${k + 1}: ${e.message}`); console.error(e);
+      fig.querySelector(s.kind === 'canvas' ? 'canvas' : 'svg').insertAdjacentHTML?.('afterend', ''); }
+    const st = s.steps[k] || {};
+    if (s.el.cap) s.el.cap.innerHTML = st.cap ? md(st.cap) : '';
+    if (s.el.title && (st.title || s.title)) s.el.title.textContent = st.title || s.title;
+    if (s.el.phase) { s.el.phase.textContent = st.phase || s.phase || ''; s.el.phase.style.display = (st.phase || s.phase) ? '' : 'none'; }
+    if (s.el.ib && (!sideS || sideS === s || s.el.card !== sideS.el.card)) s.el.ib.style.visibility = infoOf(s, k) || (s.steps[k] || {}).cap ? '' : 'hidden';
+    if (sideS === s) renderSide(s);
+    if (s.paint) s.paint(t);
+  }
+  // panels: boxes that share the stage; a panel appears at step `from`, and the others make room, animated by t
+  // panels: [{ id, from, to, w, keep }]. One figure per step: when the next panel arrives, the one on screen
+  // retires (slides left and fades) and the new one takes the whole stage. Boxes animate between steps.
+  function panelsAt(s, k, t) {
+    const spec = s.panels || [], gap = s.panelGap ?? 40, pad = { l: 90, r: 30, t: 70, b: 80, ...(s.panelPad || {}) }, max = 1;
+    const boxes = kk => { let v = spec.filter(p => (p.from || 0) <= kk && (p.to == null || kk <= p.to));
+      while (v.length > max) { const old = v.filter(p => !p.keep).sort((a, b) => (a.from || 0) - (b.from || 0))[0]; if (!old) break; v = v.filter(p => p !== old); }
+      const tot = v.reduce((a, p) => a + (p.w || 1), 0) || 1, out = {};
+      let x = 0; const avail = s.W - gap * Math.max(0, v.length - 1);
+      v.forEach(p => { const w = avail * (p.w || 1) / tot, q = { ...pad, ...(p.pad || {}) }; out[p.id] = { x: x + q.l, y: q.t, w: w - q.l - q.r, h: s.H - q.t - q.b, ox: x, ow: w }; x += w + gap; }); return out; };
+    const A = boxes(k), B = k > 0 ? boxes(k - 1) : A, L = (a, b) => a + (b - a) * t, out = {};
+    for (const id in A) { const a = A[id], b = B[id]; out[id] = b ? { x: L(b.x, a.x), y: L(b.y, a.y), w: L(b.w, a.w), h: L(b.h, a.h), ox: L(b.ox, a.ox), ow: L(b.ow, a.ow), a: 1 } : { ...a, a: t }; }
+    for (const id in B) if (!A[id] && t < 1) { const b = B[id], dx = -t * b.ow * .4; out[id] = { ...b, x: b.x + dx, ox: b.ox + dx, a: 1 - t }; }   // leaving
+    return out;
+  }
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function play(s, k, instant) {
+    cancelAnimationFrame(s.raf); const dur = s.anim ?? 700;
+    if (instant || reduce || !dur || P.static) return draw(s, k, 1);
+    const t0 = performance.now(); const tick = now => { const t = Math.min(1, (now - t0) / dur); draw(s, k, P.ease(t)); if (t < 1) s.raf = requestAnimationFrame(tick); };
+    s.raf = requestAnimationFrame(tick);
+  }
+
+  function figure(s) {
+    const svg = s.kind === 'canvas' ? `<canvas width="${s.W}" height="${s.H}" role="img" aria-label="${esc(s.alt || s.title || '')}"></canvas>`
+      : `<svg viewBox="0 0 ${s.W} ${s.H}" role="img" aria-label="${esc(s.alt || s.title || '')}"></svg>`;
+    return `<div class="fig${s.pan ? ' pan' : ''}">${svg}</div>`;
+  }
+  // controls: one quiet line under the figure. Drag a value sideways (or use the thin track, or arrow keys) to change it.
+  const fmtC = (c, v) => (c.fmt ? c.fmt(+v) : P.fmt(+v)) + (c.unit || '');
+  function controls(s) {
+    if (!s.controls || !s.controls.length) return '';
+    return `<div class="ctl">${s.controls.map(c => c.type === 'button' ? `<button class="kb" data-b="${c.name}"><span aria-hidden="true">↻</span>${esc(c.label)}</button>`
+      : `<label class="kn"><span class="kl">${esc(c.label || c.name)}</span><span class="kv" title="drag sideways">${esc(fmtC(c, c.value ?? c.min))}</span><input type="range" name="${c.name}" min="${c.min}" max="${c.max}" step="${c.step ?? 1}" value="${c.value ?? c.min}" aria-label="${esc(c.label || c.name)}"></label>`).join('')}</div>`;
+  }
+  function syncControls(s) {   // show the live params on the controls (check.py sets params directly)
+    document.querySelectorAll(`[data-s="${s.i}"] .ctl input`).forEach(inp => { if (!(inp.name in s.params)) return; const c = s.controls.find(c => c.name === inp.name);
+      inp.value = s.params[inp.name]; inp.parentNode.querySelector('.kv').textContent = fmtC(c, inp.value); }); }
+  function bindControls(s, root) {
+    root.querySelectorAll('.ctl input').forEach(inp => {
+      const c = s.controls.find(c => c.name === inp.name), kn = inp.parentNode, kv = kn.querySelector('.kv'), st = c.step ?? 1;
+      const set = v => { v = +P.clamp(c.min + Math.round((v - c.min) / st) * st, c.min, c.max).toFixed(6); inp.value = v; kv.textContent = fmtC(c, v);
+        if (v !== s.params[c.name]) { s.params[c.name] = v; draw(s, s.k || 0, 1); } };
+      inp.addEventListener('input', () => set(+inp.value));
+      kv.addEventListener('pointerdown', e => { e.preventDefault(); kv.setPointerCapture(e.pointerId); const x0 = e.clientX, v0 = +inp.value; kn.classList.add('drag');
+        const mv = e => set(v0 + (e.clientX - x0) / 240 * (c.max - c.min)), up = () => { kv.onpointermove = kv.onpointerup = kv.onpointercancel = null; kn.classList.remove('drag'); };
+        kv.onpointermove = mv; kv.onpointerup = kv.onpointercancel = up; });
+    });
+    root.querySelectorAll('.ctl [data-b]').forEach(b => b.addEventListener('click', () => { const c = s.controls.find(c => c.name === b.dataset.b);
+      if (c.name === 'reseed') s.seed++; if (c.on) c.on(s.params, s); draw(s, s.k || 0, 1); }));
+  }
+
+  // step strip: thin segments that form the figure's bottom edge; ghost chevrons on the figure's sides
+  const ghosts = `<button class="gh prev" aria-label="previous step">‹</button><button class="gh next" aria-label="next step">›</button>`;
+  const strip = groups => groups.reduce((a, b) => a + b, 0) > 1 ? `<div class="strip" role="tablist" aria-label="steps">${groups.map(n => `<div class="sg" style="flex:${n}">${'<button class="seg" role="tab"><i></i></button>'.repeat(n)}</div>`).join('')}<span class="tip" aria-hidden="true"></span></div>` : '';
+  function bindStrip(card, n, go, cur, label) {
+    const segs = [...card.querySelectorAll('.seg')], tip = card.querySelector('.tip');
+    segs.forEach((b, i) => { b.setAttribute('aria-label', label(i)); b.onclick = () => go(i);
+      b.onmouseenter = b.onfocus = () => { tip.textContent = label(i); const R = tip.parentNode.getBoundingClientRect(), r = b.getBoundingClientRect();   // centred on the segment, kept inside the strip
+        tip.style.left = Math.max(0, Math.min(R.width - tip.offsetWidth, r.left - R.left + r.width / 2 - tip.offsetWidth / 2)) + 'px'; tip.classList.add('on'); };
+      b.onmouseleave = b.onblur = () => tip.classList.remove('on'); });
+    card.querySelector('.gh.prev').onclick = () => go(cur() - 1); card.querySelector('.gh.next').onclick = () => go(cur() + 1);
+    return (i, t) => { segs.forEach((b, j) => { b.firstChild.style.width = (j < i ? 100 : j === i ? Math.round(t * 100) : 0) + '%'; b.setAttribute('aria-selected', j === i); });
+      card.querySelector('.gh.prev').disabled = i <= 0; card.querySelector('.gh.next').disabled = i >= n - 1; };
+  }
+  const short = (s, n = 7) => { const w = String(s || '').replace(/\*\*|\*|`/g, '').split(/\s+/); return w.slice(0, n).join(' ') + (w.length > n ? ' …' : ''); };
+
+  // info sidebar: one panel on the right; follows the scene it was opened from, step by step
+  let side = null, sideS = null;
+  // scene info + step info; a plain string counts as { text }. Step keys win, notation tables merge.
+  const asInfo = x => typeof x === 'string' ? { text: x } : x;
+  function infoOf(s, k) { const a = asInfo(s.info), b = asInfo((s.steps[k] || {}).info); if (!a || !b) return a || b;
+    return { ...a, ...b, notation: { ...(a.notation || {}), ...(b.notation || {}) } }; }
+  const texOr = x => window.katex && /[\\_^{]/.test(x) ? katex.renderToString(x, { throwOnError: false }) : `<code>${esc(x)}</code>`;
+  // one notation entry: "symbol : what it is", then the example on its own line. v = 'text' | {is, eg} | [is, eg]; a string may carry 'e.g. …'
+  function noteHTML(k, v) {
+    let is = v, eg = '';
+    if (Array.isArray(v)) [is, eg] = v; else if (v && typeof v === 'object') ({ is, eg = '' } = v);
+    else { const m = String(v).match(/^(.*?)[.;,]?\s+(?:e\.g\.|for example|example:)\s*(.+)$/i); if (m) [, is, eg] = m; }
+    return `<div class="nt"><div class="nk"><span class="sym">${texOr(k)}</span><span class="col">:</span><span class="ne">${md(is)}</span></div>${eg ? `<div class="eg">e.g. ${md(eg)}</div>` : ''}</div>`;
+  }
+  function infoHTML(inf) {
+    if (!inf) return '';
+    const li = a => `<ul>${[].concat(a).map(x => `<li>${md(x)}</li>`).join('')}</ul>`, sec = (h, b) => `<section><h4>${h}</h4>${b}</section>`;
+    return (inf.text ? `<section>${para(inf.text)}</section>` : '') + (inf.see ? sec('What you see', li(inf.see)) : '')
+      + (inf.notation && Object.keys(inf.notation).length ? sec('Notation', `<div class="nts">${Object.entries(inf.notation).map(([k, v]) => noteHTML(k, v)).join('')}</div>`) : '')
+      + (inf.example ? sec('Worked example', `<p class="wx">${md(inf.example)}</p>`) : '') + (inf.read ? sec('How to read it', li(inf.read)) : '') + (inf.try ? sec('Try', `<p>${md(inf.try)}</p>`) : '')
+      + (inf.more ? `<details><summary>Deeper</summary>${para(inf.more)}</details>` : '');
+  }
+  P.infoWords = (s, k) => { const d = document.createElement('div'); d.innerHTML = infoHTML(infoOf(s, k)); d.querySelectorAll('.katex-mathml, .eg').forEach(e => e.remove());   /* required example lines do not count */ return d.textContent.split(/\s+/).filter(Boolean).length; };
+  function renderSide(s) { const k = s.k || 0, st = s.steps[k] || {};
+    side.querySelector('.phase').textContent = st.phase || s.phase || 'details'; side.querySelector('.st').textContent = st.title || s.title || '';
+    // the step caption leads the sidebar; nothing is written under the figure
+    side.querySelector('.sb').innerHTML = (st.cap ? `<p class="lead">${md(st.cap)}</p>` : '') + infoHTML(infoOf(s, k)); }
+  P.side = i => { const s = i == null ? null : P.scenes[i]; if (s !== sideS) toggleSide(s); };   // for check.py: open the sidebar of scene i (null closes)
+  function toggleSide(s) {
+    if (!side) { document.body.insertAdjacentHTML('beforeend', `<aside class="side" aria-label="details" aria-hidden="true"><div class="sh"><span class="phase"></span><button class="sx" aria-label="close (Esc)">×</button></div><h3 class="st"></h3><div class="sb"></div></aside>`);
+      side = document.querySelector('.side'); side.querySelector('.sx').onclick = () => toggleSide(null); addEventListener('keydown', e => { if (e.key === 'Escape' && sideS) toggleSide(null); }); }
+    sideS = s && s !== sideS ? s : null;
+    side.classList.toggle('open', !!sideS); side.setAttribute('aria-hidden', !sideS); document.body.classList.toggle('side-on', !!sideS);
+    document.querySelectorAll('.ib').forEach(b => b.setAttribute('aria-expanded', !!sideS && b.closest('.card') === sideS.el.card));
+    if (sideS) renderSide(sideS);
+  }
+  const infoBtn = `<button class="ib" aria-expanded="false" aria-label="details (i)" title="details (i)">i</button>`;
+
+  // walk: one stage, one strip over every step of every scene
+  // keys that move between steps: ignore typing in text boxes and modified keys; a range slider gives up ← → (it keeps ↑ ↓)
+  const navKey = e => !(e.metaKey || e.ctrlKey || e.altKey) && !(e.target.isContentEditable || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || (e.target.tagName === 'INPUT' && e.target.type !== 'range'))
+    && !(e.target.type === 'range' && !/Arrow(Left|Right)/.test(e.key));
+  function buildWalk(root) {
+    const flat = []; P.scenes.forEach(s => s.steps.forEach((_, k) => flat.push([s, k])));
+    root.innerHTML = `<section class="card"><div class="head"><span class="phase"></span><span class="stitle"></span></div>${infoBtn}
+      <div class="figwrap"><div class="stagewrap">${P.scenes.map(s => `<div class="sc" data-s="${s.i}" hidden>${figure(s)}</div>`).join('')}</div>${ghosts}${strip(P.scenes.map(s => s.steps.length))}</div>
+      ${P.scenes.map(s => `<div class="cs" data-s="${s.i}" hidden>${controls(s)}</div>`).join('')}</section>`;
+    const card = root.querySelector('.card');
+    let cur = -1;
+    const go = (i, instant) => { i = P.clamp(Math.round(i), 0, flat.length - 1); const [s, k] = flat[i], prev = cur >= 0 ? flat[cur][0] : null;
+      card.querySelectorAll('.sc,.cs').forEach(e => e.hidden = +e.dataset.s !== s.i);
+      card.className = 'card ' + (s.acc ? 'acc' + s.acc : '');
+      const fwd = i === cur + 1 && prev === s; cur = i; if (sideS && sideS !== s) { sideS = s; }
+      s.paint = t => paintStrip(i, t); play(s, k, instant || !fwd); };
+    const paintStrip = bindStrip(card, flat.length, go, () => cur, i => `${flat[i][0].title || ''} · ${flat[i][1] + 1}/${flat[i][0].steps.length}`);
+    P.scenes.forEach(s => { s.el = { card, fig: card.querySelector(`.sc[data-s="${s.i}"] .fig`), cap: card.querySelector('.cap'), title: card.querySelector('.stitle'), phase: card.querySelector('.phase'), ib: card.querySelector('.ib') };
+      bindControls(s, card.querySelector(`.cs[data-s="${s.i}"]`)); });
+    card.querySelector('.ib').onclick = () => toggleSide(flat[cur][0]);
+    // ← → always step, even with a slider focused; ↑ ↓ still move that slider
+    addEventListener('keydown', e => { if (!navKey(e)) return;
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(cur + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
+      else if (e.key === 'Home') go(0, true); else if (e.key === 'End') go(flat.length - 1, true); else if (e.key === 'i') card.querySelector('.ib').click(); });
+    P.states = () => flat.map(([s, k], i) => ({ i, scene: s.i, step: k }));
+    P.show = st => { const s = P.scenes[st.scene]; Object.assign(s.params, s.defaults, st.params || {}); syncControls(s); go(st.i, true); draw(s, st.step, 1); };
+    go(0, true);
+  }
+  // article: wide figures, each with its own strip and controls (study blocks may sit between scenes, never before the first)
+  function buildArticle(root) {
+    root.innerHTML = P.blocks.map(b => b.prose != null ? `<div class="prose">${b.h ? `<h2>${esc(b.h)}</h2>` : ''}${para(b.prose)}</div>`
+      : b.html != null ? b.html
+      : `<section class="card ${b.scene.acc ? 'acc' + b.scene.acc : ''}" data-s="${b.scene.i}">${(b.scene.title || b.scene.phase) ? `<div class="head">${b.scene.phase ? `<span class="phase">${esc(b.scene.phase)}</span>` : ''}<span class="stitle"></span></div>` : ''}${infoBtn}
+         <div class="figwrap">${figure(b.scene)}${ghosts}${strip([b.scene.steps.length])}</div>${controls(b.scene)}</section>`).join('');
+    P.scenes.forEach(s => { const card = root.querySelector(`.card[data-s="${s.i}"]`);
+      s.el = { card, fig: card.querySelector('.fig'), cap: card.querySelector('.cap'), title: card.querySelector('.stitle'), ib: card.querySelector('.ib') };
+      bindControls(s, card); card.querySelector('.ib').onclick = () => toggleSide(s);
+      let k = 0;
+      const go = (j, instant) => { j = P.clamp(Math.round(j), 0, s.steps.length - 1); const fwd = j === k + 1; k = j; s.paint = t => paintStrip(j, t); play(s, j, instant || !fwd); };
+      const paintStrip = card.querySelector('.strip') ? bindStrip(card, s.steps.length, go, () => k, j => `${j + 1}/${s.steps.length} · ${short(s.steps[j].title || s.steps[j].cap)}`) : () => {};
+      if (!card.querySelector('.strip')) card.querySelectorAll('.gh').forEach(b => b.remove());
+      card.addEventListener('pointerdown', () => lastCard = s, true); card.addEventListener('focusin', () => lastCard = s);
+      s.go = go; s.at = () => k; go(0, true); });
+    // ← → step the figure you last touched if it is on screen, else the one nearest the middle of the screen; ↑ ↓ still move a focused slider
+    let lastCard = null;
+    const inView = s => { const r = s.el.card.getBoundingClientRect(); return r.bottom > innerHeight * .2 && r.top < innerHeight * .8; };
+    const active = () => lastCard && inView(lastCard) ? lastCard : P.scenes.slice().sort((a, b) => { const d = s => { const r = s.el.card.getBoundingClientRect(); return Math.abs(r.top + r.height / 2 - innerHeight / 2); }; return d(a) - d(b); })[0];
+    addEventListener('keydown', e => { if (!navKey(e)) return; const s = active(); if (!s) return;
+      if (e.key === 'i' && e.target.type !== 'range') { toggleSide(s); return; }
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      e.preventDefault(); s.go(s.at() + (e.key === 'ArrowRight' ? 1 : -1)); });
+    P.states = () => { const out = []; let i = 0; P.scenes.forEach(s => s.steps.forEach((_, k) => out.push({ i: i++, scene: s.i, step: k }))); return out; };
+    P.show = st => { const s = P.scenes[st.scene]; Object.assign(s.params, s.defaults, st.params || {}); syncControls(s); s.go(st.step, true); draw(s, st.step, 1); };
+  }
+
+  // ---------- self audit: run on the drawn state; check.py calls it for every step and control extreme ----------
+  P.audit = (sceneIndex) => {
+    const s = P.scenes[sceneIndex], g = s && s.last, out = [], where = `scene ${s.i + 1} "${(s.steps[s.k] && s.steps[s.k].title) || s.title || ''}" step ${s.k + 1}`;
+    if (s.err) out.push(`${where}: draw error: ${s.err}`);
+    if (!g) return out;
+    const fig = s.el.fig.getBoundingClientRect(), px = fig.width / s.W;
+    const T = g.texts.filter(a => a.x1 > a.x0), ov = (a, b, m = 0) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) - m) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) - m);
+    const short = s => `"${String(s).slice(0, 28)}"`;
+    for (let i = 0; i < T.length; i++) {
+      const a = T[i];
+      if (a.x0 < -2 || a.y0 < -2 || a.x1 > s.W + 2 || a.y1 > s.H + 2) out.push(`${where}: ${short(a.s)} leaves the figure`);
+      if (a.px * px < 11.5 && px > .5) out.push(`${where}: ${short(a.s)} renders at ${(a.px * px).toFixed(1)}px (<12px)`);
+      if (!a.tex && String(a.s).trim().length > 2 && /[Σ∏√∫]|[ᵢⱼₖ].*=|=.*[ᵢⱼₖ]/.test(a.s)) out.push(`${where}: ${short(a.s)} is a formula typed as text; draw it with g.tex and explain its symbols in info.notation`);
+      if (!a.tex && String(a.s).split(/\s+/).length > 7) out.push(`${where}: label ${short(a.s)} has >7 words; move detail to the caption or info`);
+      for (let j = i + 1; j < T.length; j++) if (ov(a, T[j], 1) > 6) out.push(`${where}: labels overlap ${short(a.s)} × ${short(T[j].s)}`);
+      for (const [x1, y1, x2, y2] of g.segs) if (segHit(x1, y1, x2, y2, a.x0 + 3, a.y0 + 3, a.x1 - 3, a.y1 - 3)) { out.push(`${where}: a line crosses ${short(a.s)}`); break; }
+      for (const b of g.boxes) { const inside = a.x0 >= b.x0 - 1 && a.x1 <= b.x1 + 1 && a.y0 >= b.y0 - 1 && a.y1 <= b.y1 + 1;
+        if (!inside && ov(a, b, 2) > 8 && b.solid) { out.push(`${where}: ${short(a.s)} sits across a shape edge`); break; } }
+    }
+    // a listed panel that is never on screen (two panels start on the same step) would vanish silently
+    if (s.k === 0 && s.panels) { const seen = new Set(); s.steps.forEach((_, kk) => Object.keys(panelsAt(s, kk, 1)).forEach(id => seen.add(id)));
+      const lost = s.panels.filter(q => !seen.has(q.id)).map(q => q.id); if (lost.length) out.push(`${where}: panel ${lost.join(', ')} is never on screen: one figure per step and the older one retires; give it a later 'from', or its own scene`); }
+    // plots fill their panel: a short plot under big headings wastes the stage (titles belong in the head or the sidebar)
+    // every notation entry carries an example from the figure: "symbol : meaning", then "e.g. …"
+    { const nt = (infoOf(s, s.k) || {}).notation || {}, bare = Object.entries(nt).filter(([, v]) => !(Array.isArray(v) ? v[1] : v && typeof v === 'object' ? v.eg : /\s(e\.g\.|for example|example:)\s/i.test(v))).map(([k]) => k);
+      if (bare.length) out.push(`${where}: notation without an example: ${bare.slice(0, 4).join(', ')}; write each as [meaning, example from the figure], e.g. n: ['samples per group', '6 dots in each group']`); }
+    // a formula on the stage needs its symbols explained in the sidebar
+    if (g.texts.some(q => q.tex)) { const inf = infoOf(s, s.k) || {}; if (!inf.notation || !Object.keys(inf.notation).length) out.push(`${where}: formula on the stage but no info.notation; name every symbol, index and operator with an example from the figure`); }
+    g.plots.forEach(q => { if (q.h < (s.minPlotH || 300)) out.push(`${where}: plot ${short(q.name)} is ${Math.round(q.h)} units tall (min ${s.minPlotH || 300}); shrink panelPad and the text above or below it, put headings in the scene title or the sidebar`); });
+    const big = g.texts.filter(q => q.size > 36 && String(q.s).trim().length > 2)   /* a lone "=" or "×" may be big */; if (big.length) out.push(`${where}: text ${short(big[0].s)} is size ${big[0].size} (max 36: labels 20, the key number 26–34); bigger text squeezes the plots`);
+    g.plots.forEach(q => { if (q.w < (s.minPlotW || 440)) out.push(`${where}: plot ${short(q.name)} is ${Math.round(q.w)} units wide (min ${s.minPlotW || 440}); one figure per step, drawn across the stage`); });
+    // one figure per step: two plots side by side look crammed; the next figure belongs on the next step
+    if (g.plots.length > 1) out.push(`${where}: ${g.plots.length} plots on one step (${g.plots.map(q => short(q.name)).join(', ')}); show one figure per step and bring the next one in on the next step (panels with a later 'from' do this)`);
+    if (g.words > (s.wordBudget || 40)) out.push(`${where}: ${g.words} words on the figure (budget ${s.wordBudget || 40}); move text to caption/info`);
+    const iw = P.infoWords(s, s.k); if (iw > 120) out.push(`${where}: info sidebar has ${iw} words (max 120); cut to short points`);
+    const cap = (s.steps[s.k] || {}).cap || ''; if (cap.split(/\s+/).length > 28) out.push(`${where}: caption has ${cap.split(/\s+/).length} words (max 28)`);
+    { const nl = T.filter(a => !a.tick).length; if (nl > (s.labelBudget || 24)) out.push(`${where}: ${nl} labels on the figure (max ${s.labelBudget || 24}); split the scene`); }
+    return [...new Set(out)];
+  };
+  function segHit(x1, y1, x2, y2, l, t, r, b) {
+    if (r <= l || b <= t) return false;
+    const inside = (x, y) => x > l && x < r && y > t && y < b; if (inside(x1, y1) || inside(x2, y2)) return true;
+    const cr = (ax, ay, bx, by, cx, cy, dx, dy) => { const d = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx); if (!d) return false;
+      const u = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / d, v = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d; return u > 0 && u < 1 && v > 0 && v < 1; };
+    return cr(x1, y1, x2, y2, l, t, r, t) || cr(x1, y1, x2, y2, r, t, r, b) || cr(x1, y1, x2, y2, l, b, r, b) || cr(x1, y1, x2, y2, l, t, l, b);
+  }
+
+  // ---------- boot ----------
+  function boot() {
+    const o = P.opts, theme = 'dark';
+    document.body.dataset.theme = theme; if (o.palette) document.body.dataset.palette = o.palette; if (o.acc) document.body.classList.add('acc' + o.acc);
+    document.title = o.title || 'Proff';
+    const head = `<header class="top"><div class="tx">${o.eyebrow ? `<span class="eyebrow">${esc(o.eyebrow)}</span>` : ''}<h1>${esc(o.title || '')}</h1>${o.sub ? `<p class="sub">${esc(o.sub)}</p>` : ''}</div></header>`;
+    document.body.insertAdjacentHTML('afterbegin', head + '<main id="story"></main>' + (o.foot ? `<p class="foot">${md(o.foot)}</p>` : ''));
+    const setT = t => { document.body.dataset.theme = t; readVars(); P.scenes.forEach(s => s.el && draw(s, s.k || 0, 1)); };
+    readVars();
+    const root = document.getElementById('story');
+    (o.layout === 'article' ? buildArticle : buildWalk)(root);
+    setT(theme);
+    P.ready = true;
+  }
+  const start = () => (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => {
+    const imgs = Object.entries(P.assets).map(([k, v]) => new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = v; P.images[k] = im; }));
+    return Promise.all(imgs); }).then(boot).catch(e => { P.errors.push('boot: ' + e.message); console.error(e); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else setTimeout(start);
+  addEventListener('error', e => P.errors.push('page: ' + e.message));
+})();
+</script><script>/* Proff calc engine: replays a calctrace.py trace. Proff.calc(trace, {phase, acc}) adds one scene per operation.
+   Reads glow in their table's colour, the formula bar shows the numbers being combined, the output cell fills. */
+(function () {
+  'use strict';
+  const P = window.Proff, ST = P.stat;
+  const fcol = c => 'f' + c.slice(1);
+  const CAP_ALL = 'Same rule for every cell.';
+
+  P.calc = (tr, opt = {}) => {
+    const TS = tr.tensors;
+    (tr.warn || []).forEach(w => P.errors.push(w));   // calctrace found a formula it cannot explain: check.py fails
+    tr.steps.forEach((st, si) => {
+      const n = st.cells.length, k = Math.min(st.expand || 0, n), plan = [];
+      for (let c = 0; c < k; c++) plan.push({ one: c });
+      if (n > k || !n) plan.push({ rest: k });
+      // the sidebar lead keeps the step's own sentence on every step; the stage shows the cells moving
+      const steps = plan.map((p, j) => ({ cap: j === 0 ? st.cap : `${st.cap} ${p.rest != null ? (st.cap_all || CAP_ALL) : 'Next cell, same rule.'}` }));
+      P.scene({ title: st.title, phase: opt.phase || st.phase, labelBudget: 60, wordBudget: 60, acc: opt.acc, steps, info: merge(st.info, explain(st, tr)), anim: st.op === 'show' ? 450 : 900, w: 1200, h: 675,
+        draw: (g, j, t) => (st.op === 'dist' ? drawDist : drawOp)(g, st, plan[j], t, TS) });
+    });
+  };
+
+  // ---------- the i sidebar, written from the trace: every symbol, index and operator in the formula, plus one worked example ----------
+  const OPS = [  // [pattern in the TeX, plain words]; v = the summed index, if any
+    [/\\sum_\{?([a-z])\}?/, (m, ix) => [`\\sum_${m[1]}`, { is: `add up over every ${m[1]} (every ${ix[m[1]] || m[1]})`, eg: 'Σ over 1, 2, 3 = 6' }]],
+    [/\\sum(?!_)/, () => ['\\sum', 'add up']],
+    [/\\prod/, () => ['\\prod', 'multiply all together']],
+    [/\\bar\{?([a-zA-Z])/, m => [`\\bar{${m[1]}}`, { is: `the average of ${m[1]}`, eg: 'average of 2, 4, 6 = 4' }]],
+    [/\\log_2|\\log_\{2\}/, () => ['\\log_2', { is: 'log base 2: how many doublings', eg: 'log₂ 8 = 3' }]],
+    [/\\log_\{?10\}?/, () => ['\\log_{10}', { is: 'log base 10: how many tenfolds', eg: 'log₁₀ 1000 = 3' }]],
+    [/\\ln|\\log(?!_)/, () => ['\\ln', 'natural log (base e ≈ 2.718)']],
+    [/\\sqrt/, () => ['\\sqrt{\\;}', { is: 'square root', eg: '√9 = 3' }]],
+    [/\\frac|\//, () => ['a / b', 'divide']],
+    [/\\times|\\cdot/, () => ['\\times', 'multiply']],
+    [/\^(\{2\}|2(?![0-9]))/, () => ['a^2', { is: 'squared', eg: '3² = 3 × 3 = 9' }]],
+    [/\\exp|e\^/, () => ['e^{a}', 'e (≈ 2.718) to the power a; undoes ln']],
+    [/\|/, () => ['|a|', 'size of a, sign dropped']],
+  ];
+  const nm = (a, i) => a && a[i] != null ? a[i] : String(i + 1);
+  function explain(st, tr) {
+    if (!st.tex && st.op === 'show') return null;
+    const TS = tr.tensors, ix = tr.index || { i: 'row', j: 'column' }, notation = {}, tex = st.tex || '';
+    const used = [...new Set((st.layout || []).flatMap(it => it && typeof it === 'object' ? [it.t, it.right, it.below] : []).concat(st.out).filter(Boolean))];
+    for (const n of used) { const T = TS[n]; if (!T || !T.sym) continue;
+      const R = T.data.length, C = T.data[0].length, sub = R > 1 && C > 1 ? 'ij' : R > 1 ? 'i' : C > 1 ? 'j' : '';
+      const where = sub === 'ij' ? ` of ${ix.i} i in ${ix.j} j` : sub === 'i' ? ` of ${ix.i} i` : sub === 'j' ? ` of ${ix.j} j` : '';
+      const eg = sub === 'ij' ? `${nm(T.rows, 0)} in ${nm(T.cols, 0)}` : sub === 'i' ? nm(T.rows, 0) : sub === 'j' ? nm(T.cols, 0) : '';
+      notation[sub ? `${T.sym}_{${sub}}` : T.sym] = { is: `${T.label || n}${T.unit ? ` (${T.unit})` : ''}${where}`, eg: eg ? `${eg} = **${T.disp[0][0]}**` : `**${T.disp[0][0]}**` }; }
+    const first = Object.values(TS).find(T => T.rows && T.cols) || {};
+    const subs = [...tex.matchAll(/_(?:\{([^}]*)\}|([a-zA-Z]))/g)].map(m => (m[1] ?? m[2]).replace(/\\[a-zA-Z]+/g, '')).join(' ');   // index letters only inside subscripts
+    if (/i/.test(subs)) notation.i = { is: `one ${ix.i} (a row)`, eg: `${nm(first.rows, 0)}, ${nm(first.rows, 1)}, …` };
+    if (/j/.test(subs)) notation.j = { is: `one ${ix.j} (a column)`, eg: `${nm(first.cols, 0)}, ${nm(first.cols, 1)}, …` };
+    const opKeys = []; OPS.forEach(([re, f]) => { const m = tex.match(re); if (m) { const [k, v] = f(m, ix); if (!notation[k]) { notation[k] = v; opKeys.push(k); } } });   // 'words. example' strings split into two lines in the sidebar
+    // worked example: the first output cell, named by its row and column
+    const c = st.cells && st.cells[0], O = TS[st.out];
+    let example = null;
+    if (c && O && c.expr) { const [i, j] = c.out, who = [O.rows && O.rows[i], O.cols && O.cols[j]].filter(Boolean).join(', ');
+      const plain = (O.sym || '').replace(/\\mathrm\{(.*?)\}/g, '$1').replace(/[\\{}]/g, '');
+      example = `${who ? `**${who}**: ` : ''}${plain ? `${plain} = ` : ''}${c.expr.map(e => e[0]).join(' ').replace(/\s+/g, ' ').trim()}`; }
+    // an operator's example is better taken from the figure than made up
+    const op = opKeys.find(k => /^\\(sum|prod)/.test(k)) || opKeys.find(k => typeof notation[k] === 'string'); opKeys.filter(k => k !== op && typeof notation[k] === 'string').forEach(k => notation[k] = { is: notation[k], eg: { 'a / b': '6 / 3 = 2', '\\times': '3 × 4 = 12', '\\ln': 'ln 1 = 0', '|a|': '|−3| = 3', 'e^{a}': 'e⁰ = 1', '\\sum': '1 + 2 + 3 = 6', '\\prod': '2 × 3 × 4 = 24' }[k] || '' });
+    if (op && example) { notation[op] = { ...(typeof notation[op] === 'string' ? { is: notation[op] } : notation[op]), eg: example.replace(/\*\*/g, '') }; example = null; }   // shown once, under the operator
+    return { notation, example };
+  }
+  function merge(a, b) { if (!b) return a; a = typeof a === 'string' ? { text: a } : (a || {});
+    return { ...b, ...a, notation: { ...b.notation, ...(a.notation || {}) }, example: a.example || b.example }; }
+
+  // ---------- layout of the equation row ----------
+  function sizeOf(T, cw, ch) {
+    const R = T.data.length, C = T.data[0].length, fs = Math.min(28, ch * .44);
+    const lab = T.rows ? Math.max(...T.rows.map(r => String(r).length)) * fs * .5 + 16 : 0;
+    const top = (T.cols ? fs * 1.3 : 0) + fs * 1.6;
+    return { w: C * cw, h: R * ch, lab, top, fs };
+  }
+  function layoutRow(g, items, TS, cw, ch) {
+    const gap = 26, parts = [];
+    let x = 0;
+    for (const it of items) {
+      if (it == null) continue;
+      if (typeof it === 'string') { const w = Math.max(40, it.length * 17 + 24); parts.push({ op: it, x, w }); x += w + gap; continue; }
+      const T = TS[it.t], s = sizeOf(T, cw, ch);
+      const p = { t: it.t, x: x + s.lab, y: 0, s, below: it.below, right: it.right, sym: it.sym };
+      let w = s.lab + s.w, h = s.h;
+      if (it.right) { const V = TS[it.right], vs = sizeOf(V, cw, ch); p.rx = s.w + 70; w += 70 + vs.w; }
+      if (it.below) { p.by = s.h + ch * .9; h += ch * 1.9; }
+      p.W = w; p.Hh = h; parts.push(p); x += w + gap;
+    }
+    return { parts, width: x - gap };
+  }
+  function fit(g, st, TS) {
+    const top = st.tex ? 110 : 64, bottom = 120, availH = g.H - top - bottom, availW = g.W - 80;
+    for (let cw = 150; cw >= 40; cw -= 4) {
+      const ch = Math.round(cw * .56), L = layoutRow(g, st.layout, TS, cw, ch);
+      const H = Math.max(...L.parts.filter(p => p.t).map(p => p.s.top + (p.Hh || p.s.h)), 0);
+      if (L.width <= availW && H <= availH) return { cw, ch, L, H, top, x0: (g.W - L.width) / 2, y0: top + (availH - H) / 2 };
+    }
+    const cw = 40, ch = 24, L = layoutRow(g, st.layout, TS, cw, ch);
+    return { cw, ch, L, H: 0, top, x0: 40, y0: top + 10 };
+  }
+
+  // ---------- one operation ----------
+  function drawOp(g, st, pl, t, TS) {
+    const F = fit(g, st, TS), { cw, ch } = F, n = st.cells.length;
+    // which cells are done, which one is live
+    let live = null, done = 0, phase = 1;
+    if (pl.one != null) { live = st.cells[pl.one]; done = pl.one; phase = t; }
+    else if (n) { const k = pl.rest; const f = k + (n - k) * t; done = Math.floor(f); live = done < n ? st.cells[done] : null; if (t >= 1) { done = n; live = null; } }
+    const isDone = (i, j) => { for (let c = 0; c < done; c++) { const o = st.cells[c].out; if (o[0] === i && o[1] === j) return true; } return false; };
+    const reads = new Set((live ? live.reads : []).map(r => r.join(':')));
+    const outCell = live ? live.out.join(':') : null;
+    const showRead = pl.one != null ? P.seg(phase, 0, .25) : 1, showOut = pl.one != null ? P.seg(phase, .7, .95) : 1;
+
+    if (st.tex) g.tex(g.W / 2, 58, st.tex, { size: 36, w: 1000, h: 80 });
+    const y0 = F.y0;
+    for (const p of F.L.parts) {
+      const x = F.x0 + p.x;
+      if (p.op) { g.text(F.x0 + p.x + p.w / 2, y0 + F.H / 2 + 12, p.op, { size: p.op.length > 3 ? 24 : 36, anchor: 'middle', weight: 700, fill: 'muted' }); continue; }
+      const T = TS[p.t], top = y0 + p.s.top;
+      drawT(g, T, p.t, x, top, cw, ch, st, { reads, outCell, isDone, showRead, showOut, phase });
+      if (p.below) { const V = TS[p.below], vy = top + p.by;
+        g.text(x - 12, vy + ch / 2, p.sym, { size: 26, anchor: 'end', weight: 800, fill: V.color });
+        drawT(g, V, p.below, x, vy, cw, ch, st, { reads, outCell, isDone, showRead, showOut, phase, noTitle: true });
+        g.text(x + p.s.w + 12, vy + ch / 2, V.label, { size: 17, fill: V.color, weight: 650 }); }
+      if (p.right) { const V = TS[p.right], vx = x + p.rx;
+        g.text(vx - 35, top + p.s.h / 2, p.sym, { size: 26, anchor: 'middle', weight: 800, fill: V.color });
+        drawT(g, V, p.right, vx, top, cw, ch, st, { reads, outCell, isDone, showRead, showOut, phase }); }
+    }
+    // formula bar: the live cell's arithmetic, coloured by table
+    const ex = live ? live.expr : (n ? st.cells[n - 1].expr : null);
+    if (ex && st.op !== 'show') {
+      const fy = g.H - 62, size = 34, upto = pl.one != null ? Math.ceil(ex.length * P.seg(phase, .2, .75)) : ex.length;
+      const ws = ex.map(([s, name]) => P.measure(s, { size, mono: true, weight: name ? 750 : 500 })), w = ws.reduce((a, b) => a + b, 0);
+      let x = g.W / 2 - w / 2;
+      g.rect(g.W / 2 - w / 2 - 28, fy - 36, w + 56, 72, { fill: 'surf', stroke: 'line-dim', sw: 1.5, r: 4, free: true });
+      ex.slice(0, upto).forEach(([s, name], q) => { const c = name ? TS[name].color : 'muted';
+        g.text(x, fy, s, { size, fill: c, weight: name ? 750 : 500, mono: true, op: live ? 1 : .5 }); x += ws[q]; });
+    }
+  }
+
+  function drawT(g, T, name, x, y, cw, ch, st, s) {
+    const R = T.data.length, isOut = name === st.out;
+    if (!s.noTitle) g.text(x + T.data[0].length * cw / 2, y - (T.cols ? Math.min(28, ch * .44) * 2.4 : Math.min(28, ch * .44) * 1.1), T.label + (T.unit ? ` (${T.unit})` : ''), { size: 18, anchor: 'middle', weight: 750, fill: T.color });
+    g.matrix(x, y, T.disp, {
+      cw, ch, rows: T.rows, cols: T.cols, fmt: v => v, size: Math.min(28, ch * .44),
+      cell: (i, j) => {
+        const key = `${name}:${i}:${j}`;
+        if (isOut) {
+          const here = s.outCell === `${i}:${j}`;
+          if (here) return { fill: fcol(T.color), stroke: T.color, sw: 3, text: s.showOut > .5 ? T.disp[i][j] : '', top: s.showOut };
+          if (!s.isDone(i, j)) return { fill: 'fig', stroke: 'line-dim', text: '' };
+          return {};
+        }
+        if (s.reads.has(key)) return { fill: fcol(T.color), stroke: T.color, sw: 3, op: 1, top: 1, weight: 800, color: s.showRead > .3 ? T.color : 'ink' };
+        return { };
+      } });
+  }
+
+  // ---------- where a statistic falls on its distribution ----------
+  function drawDist(g, st, pl, t, TS) {
+    const prm = st.params, x = st.x, disc = ['pois', 'nb', 'binom'].includes(st.dist);
+    const left = st.src ? 420 : 90;
+    if (st.src) { const [nm, i, j] = st.src, T = TS[nm], cw = 66, ch = 40;
+      const R = T.data.length, C = T.data[0].length, mx = 60 + (T.rows ? 70 : 0), my = (g.H - R * ch) / 2;
+      g.text(mx + C * cw / 2, my - 48, T.label, { size: 18, anchor: 'middle', weight: 750, fill: T.color });
+      g.matrix(mx, my, T.disp, { cw, ch, rows: T.rows, cols: T.cols, fmt: v => v, size: 18, cell: (a, b) => a === i && b === j ? { fill: fcol(T.color), stroke: T.color, sw: 3, color: T.color } : { op: .5, top: .5 } }); }
+    let pdf, lo, hi;
+    if (st.dist === 'norm') { const m = prm.mu ?? 0, s = prm.sd ?? 1; pdf = v => ST.normPdf(v, m, s); lo = Math.min(m - 4 * s, x - s); hi = Math.max(m + 4 * s, x + s); }
+    else if (st.dist === 't') { pdf = v => ST.tPdf(v, prm.df); lo = Math.min(-5, x - 1); hi = Math.max(5, x + 1); }
+    else if (st.dist === 'chi2') { const k = prm.df; pdf = v => ST.gammaPdf(v, k / 2, .5); lo = 0; hi = Math.max(k + 5 * Math.sqrt(2 * k), x * 1.15); }
+    else { const pm = st.dist === 'pois' ? k => ST.poisPmf(k, prm.lam) : st.dist === 'nb' ? k => ST.nbPmf(k, prm.mu, prm.phi) : k => ST.binomPmf(k, prm.n, prm.p);
+      pdf = pm; const mu = prm.lam ?? prm.mu ?? prm.n * prm.p; lo = 0; hi = Math.max(Math.ceil(mu * 2.6 + 6), x + 3); if (st.dist === 'binom') hi = prm.n; }
+    const ymax = disc ? Math.max(...P.range(lo, hi, hi - lo + 1).map(k => pdf(Math.round(k)))) : Math.max(...P.range(lo, hi, 200).map(pdf));
+    const ax = g.axes({ x: left, y: 120, w: g.W - left - 80, h: 380, xd: [lo, hi], yd: [0, ymax * 1.15], xt: 6, yt: 3, xl: st.xlabel || 'value', yl: disc ? 'probability' : 'density', size: 17 });
+    const sh = P.seg(t, .3, 1), inTail = v => st.tail === 'upper' ? v >= x : st.tail === 'lower' ? v <= x : Math.abs(v) >= Math.abs(x);
+    if (disc) { const ks = []; for (let k = Math.ceil(lo); k <= hi; k++) ks.push(k);
+      g.bars(ks.map(k => [k, pdf(k)]), ax, { bw: .8, fill: (k) => inTail(k) && sh > 0 ? 'f3' : 'f1', stroke: 'c1' }); }
+    else {
+      g.area(pdf, ax, lo, hi, { fill: 'f1' });
+      if (sh > 0) { if (st.tail !== 'lower') g.area(pdf, ax, st.tail === 'two' ? Math.abs(x) : x, hi, { fill: 'c3', op: .55 * sh });
+        if (st.tail !== 'upper') g.area(pdf, ax, lo, st.tail === 'two' ? -Math.abs(x) : x, { fill: 'c3', op: .55 * sh }); }
+      g.curve(pdf, ax, lo, hi, { stroke: 'c1', sw: 3, free: true }); }
+    const X = ax.sx(x);
+    g.line(X, ax.y - 6, X, ax.y + ax.h, { stroke: 'c3', sw: 3, free: true });
+    g.text(X, ax.y - 22, `observed ${P.fmt(x)}`, { size: 20, anchor: X > g.W - 180 ? 'end' : 'middle', fill: 'c3', weight: 750 });
+    if (sh > .5) g.text(ax.x + ax.w, ax.y + 30, `p = ${P.fmt(st.p, 3)}`, { size: 28, anchor: 'end', weight: 800, fill: 'c3', mono: true });
+    if (st.tex) g.tex(g.W / 2, 50, st.tex, { size: 28, w: 900, h: 60 });
+  }
+})();
+</script>
+<script>
+// A–Z course in statistical and deep-learning notation, from first symbols to masters-level papers.
+// Article layout: each level = a reference table + live figures. All numbers on the figures are computed in draw().
+
+const on = (k, j, t) => k > j ? 1 : k === j ? t : 0;
+const f2 = v => v.toFixed(2), f1 = v => v.toFixed(1);
+const sum = a => a.reduce((s, v) => s + v, 0);
+
+// Every notation row in the i panel also says how to READ the symbol aloud.
+// Rows are [meaning, say, example] (or [meaning, example] with the reading looked up in SAY).
+const SAY = {
+  i: 'i (the index)', 'x_i': 'x sub i', n: 'n', '\\mathbf{x}': 'bold x, the vector x',
+  '\\sum_{i=1}^{k}': 'the sum from i equals 1 to k', '\\bar{x}': 'x bar',
+  '\\prod_{i=1}^{k}': 'the product from i equals 1 to k', 'p_i': 'p sub i',
+  '\\log \\prod_i p_i = \\sum_i \\log p_i': 'log of the product of p sub i equals the sum of log p sub i', '\\log': 'log (natural log, ln)',
+  '\\mathbf{x} \\in \\mathbb{R}^{12}': 'x is in R twelve', '\\in': 'is in / is an element of', '\\mathbb{R}': 'R, the reals (blackboard-bold R)', '[n]': 'the set one to n',
+  '\\tau': 'tau (rhymes with "cow")', '\\ge': 'is greater than or equal to',
+  'S = \\{ i : x_i \\ge \\tau \\}': 'S is the set of all i such that x sub i is at least tau', '|S|': 'the size of S, or the cardinality of S', ':': 'such that',
+  '\\mathbb{1}[x_i \\ge \\tau]': 'the indicator that x sub i is at least tau', '\\sum_i \\mathbb{1}[\\cdot] = |S|': 'the sum of the indicators equals the size of S',
+  '\\mathbf{X} \\in \\mathbb{R}^{n \\times p}': 'X is in R n by p', p: 'p', 'X_{ij}': 'X sub i j', 'X_{ij} \\in \\mathbb{R}': 'X sub i j is a real number',
+  '\\mathbf{x}_{i\\cdot}': 'x sub i dot, row i', '\\cdot \\text{ or } :': 'dot or colon: all of them', '\\mathbf{X}_{\\cdot j}': 'X sub dot j, column j', '\\mathbf{X}^{\\top}': 'X transpose',
+  '(\\mathbf{X}\\boldsymbol{\\beta})_i = \\sum_j X_{ij}\\beta_j': 'entry i of X beta is the sum over j of X i j times beta j', '\\boldsymbol{\\beta}': 'bold beta, the coefficient vector', '(n \\times p)(p \\times 1)': 'n by p times p by 1',
+  '\\mathbf{u} = (3, 1)^{\\top}': 'u is the column vector 3, 1', '\\|\\mathbf{u}\\|_2': 'the L2 norm of u, or the length of u',
+  '\\mathbf{u}^{\\top}\\mathbf{v} = \\mathbf{u}\\cdot\\mathbf{v}': 'u transpose v, or u dot v', '\\langle \\mathbf{u}, \\mathbf{v} \\rangle': 'the inner product of u and v', '\\|\\mathbf{u}\\|\\|\\mathbf{v}\\|\\cos\\theta': 'norm u times norm v times cos theta',
+  '\\cos\\theta = \\frac{\\mathbf{u}^{\\top}\\mathbf{v}}{\\|\\mathbf{u}\\|\\|\\mathbf{v}\\|}': 'cos theta equals u dot v over norm u times norm v', '\\theta': 'theta',
+  '\\|\\mathbf{v}\\|_1 = \\sum_i |v_i|': 'the L1 norm of v: sum of absolute v sub i', '\\|\\mathbf{v}\\|_2 = \\sqrt{\\sum_i v_i^2}': 'L2 norm: square root of the sum of v sub i squared', '\\|\\mathbf{v}\\|_\\infty = \\max_i |v_i|': 'the L-infinity norm: the max over i of absolute v sub i', '\\|\\mathbf{X}\\|_F': 'the Frobenius norm of X',
+  X: 'capital X, the random variable X', x: 'little x, the observed value', '\\sim': 'is distributed as / follows', '\\mathcal{N}(\\mu, \\sigma^2)': 'normal with mean mu and variance sigma squared', 'p(x)': 'p of x, the density at x',
+  'P(X \\le a)': 'the probability that X is at most a', '\\int_{-\\infty}^{a} p(x)\\,dx': 'the integral from minus infinity to a of p of x d x', dx: 'd x',
+  'F(x) = P(X \\le x)': 'F of x equals the probability that X is at most x', 'F^{-1}(q)': 'F inverse of q, the q-th quantile',
+  'z = \\frac{a - \\mu}{\\sigma}': 'z equals a minus mu, over sigma', '\\Phi(z)': 'capital phi of z', '\\phi(z)': 'little phi of z'
+};
+const sayRows = nt => { if (!nt) return; for (const key of Object.keys(nt)) { const v = nt[key]; if (!Array.isArray(v)) continue;
+  const [m, a, b] = v.length === 3 ? v : [v[0], SAY[key], v[1]];
+  nt[key] = [m, a ? `say “${a}” · ${b}` : b]; } };
+const scene = o => { [o.info, ...o.steps.map(x => x && x.info)].forEach(inf => inf && sayRows(inf.notation)); return Proff.scene(o); };
+// identity colours used on every scene: c1 = data / main object, c3 = selected or changed, c2 = the key number, c4 = reference/truth, c6 = background
+
+Proff.page({
+  title: 'Reading the maths in methods sections',
+  sub: 'An A–Z course in statistics and deep-learning notation, from the first subscript to KL divergence',
+  eyebrow: 'notation course · 8 levels',
+  layout: 'article'
+});
+
+// ======================= LEVEL 0 =======================
+Proff.section('level 0 · three rules that decode most formulas');
+Proff.tiles([
+  { big: 'xᵢ', h: 'subscript = which one', text: 'A small letter under a symbol picks one item. **i** = a cell, **j** = a gene, **k** = a class. Two subscripts, **xᵢⱼ**, = a table cell.' },
+  { big: 'θ vs θ̂', h: 'Greek = truth, hat = estimate', text: 'Greek letters are fixed unknowns in nature (μ, σ, β). A hat marks the number you computed from data (μ̂, β̂). Latin letters are data (x, y, n).' },
+  { big: 'x vs **x** vs X', h: 'font = shape', text: 'Plain *x* is one number. Bold lower-case **x** is a list (vector). Bold capital **X** is a table (matrix). ℝⁿ says how long the list is.' }
+]);
+
+Proff.compare(
+  ['symbol', 'say it', 'usual job in papers', 'example you will meet'],
+  [
+    ['α', 'alpha', 'significance level; Dirichlet/Gamma shape; learning rate in some papers', 'α = 0.05; Gamma(α, β)'],
+    ['β', 'beta', 'regression coefficient; type II error rate (power = 1 − β); Adam momentum', 'β₁ = log fold change in DESeq2-style models'],
+    ['γ, δ', 'gamma, delta', 'γ: discount or scale; δ: a small change, or the Dirac spike', 'Δ = difference between groups'],
+    ['ε', 'epsilon', 'noise term, or a tiny number added for safety', 'y = f(x) + ε; log(x + ε)'],
+    ['η', 'eta', 'learning rate in deep learning; linear predictor in GLMs', 'θ ← θ − η∇L; η = Xβ'],
+    ['θ, Θ', 'theta', 'θ: “all the parameters”; Θ: the set of allowed θ', 'p(x | θ); θ ∈ Θ'],
+    ['λ', 'lambda', 'Poisson rate; penalty strength; eigenvalue', 'Pois(λ); ‖β‖₁ penalty × λ'],
+    ['μ, σ, ρ', 'mu, sigma, rho', 'mean, standard deviation, correlation', 'N(μ, σ²); ρ = 0.8'],
+    ['π', 'pi', 'the number 3.14…, OR mixing proportions / class probabilities', 'π_k = share of cell type k'],
+    ['φ, ϕ, ψ', 'phi, psi', 'dispersion; encoder weights (VAE); standard normal density φ(z)', 'q_φ(z | x) in scVI-style models'],
+    ['Σ', 'capital sigma', 'two jobs: “add up”, OR a covariance matrix', 'Σᵢ xᵢ vs N(μ, Σ)'],
+    ['Π, Φ, Ω', 'capital pi, phi, omega', 'Π: multiply up; Φ: normal CDF; Ω: the set of all outcomes', 'Πᵢ p(xᵢ); Φ(1.96) = 0.975']
+  ]
+);
+
+// ======================= LEVEL 1 =======================
+Proff.section('level 1 · index, sum, product, and the log trick');
+scene({
+  title: 'Σ adds a list, Π multiplies it, and log turns one into the other',
+  phase: 'operators', acc: 1, h: 620,
+  panels: [{ id: 'sum', from: 0 }, { id: 'prod', from: 2 }, { id: 'log', from: 3 }],
+  controls: [{ name: 'k', label: 'upper limit k', min: 1, max: 6, step: 1, value: 4 }],
+  steps: [
+    { cap: 'Six cells, one gene. The index i names each cell; xᵢ is its count. The bar for i = 3 holds 7 reads.',
+      info: { see: ['Bars: x₁ … x₆, the counts of one gene in six cells'],
+        notation: { i: ['index: which cell. Runs 1, 2, …, n', 'i = 4 is the tallest bar'], 'x_i': ['the value for item i', 'x₄ = 45 reads'], n: ['how many items', 'n = 6 cells'], '\\mathbf{x}': ['the whole list as one object (a vector)', 'x = (12, 30, 7, 45, 20, 16)'] },
+        read: ['A subscript never changes the value; it only points at one entry'],
+        more: 'Papers often drop the limits: Σᵢ xᵢ means "over every i". If two indices appear, xᵢⱼ, read i as row (cell) and j as column (gene), unless the text says otherwise.' } },
+    { cap: 'Σ from i = 1 to k: add the first k bars. Drag k and watch the brace and the total move.',
+      info: { notation: { '\\sum_{i=1}^{k}': ['start at i = 1, stop at i = k, add each term', 'k = 4: 12 + 30 + 7 + 45 = 94'], '\\bar{x}': ['mean: the full sum divided by n', '130 ÷ 6 = 21.67'] },
+        read: ['Below Σ: where to start. Above: where to stop. Right: what to add', 'Σᵢ (xᵢ − x̄) is always 0: the mean is the balance point'],
+        try: 'Set **k** to 6: the sum becomes the library total for this gene, 130.' } },
+    { cap: 'Π multiplies. Each pᵢ is a probability below 1, so the running product shrinks fast towards 0.',
+      info: { see: ['Bars: pᵢ, the chance the model gives each cell’s count', 'Dots: running product p₁ × … × pⱼ'],
+        notation: { '\\prod_{i=1}^{k}': ['multiply terms i = 1 … k', 'k = 4: 0.9 × 0.8 × 0.7 × 0.95 = 0.479'], 'p_i': ['probability of observation i under the model', 'p₅ = 0.6'] },
+        read: ['A likelihood is a Π over independent observations', 'With 20,000 genes the product underflows to 0 on a computer'] } },
+    { cap: 'Take logs: each bar becomes negative, and the product becomes a sum. Same information, stable numbers.',
+      info: { notation: { '\\log \\prod_i p_i = \\sum_i \\log p_i': ['log of a product = sum of logs', 'log 0.479 = −0.105 − 0.223 − 0.357 − 0.051 = −0.736'], '\\log': ['natural log (base e) unless written log₂ or log₁₀', 'log 0.9 = −0.105'] },
+        read: ['This is why every paper writes the **log-likelihood**, ℓ(θ) = Σᵢ log p(xᵢ | θ)', 'Maximising log L gives the same answer as maximising L'],
+        more: 'In single-cell papers "log" may be natural log (Seurat log1p) or log₂ (fold changes). Check the methods. log1p(x) = log(1 + x) avoids log(0).' } }
+  ],
+  draw(g, k, t, p) {
+    const x = [12, 30, 7, 45, 20, 16], pr = [0.9, 0.8, 0.7, 0.95, 0.6, 0.85], K = p.k;
+    const S = sum(x.slice(0, K));
+    g.panel('sum', D => {
+      const A = g.axes({ ...D, xd: [0.4, 6.6], yd: [0, 70], xt: [1, 2, 3, 4, 5, 6], yt: [0, 15, 30, 45, 60], fmtx: v => 'i = ' + v, xl: 'cell index i', yl: 'reads xᵢ' });
+      x.forEach((v, i) => {
+        const sel = k >= 1 && i < K, x0 = A.sx(i + 1) - 45;
+        g.rect(x0, A.sy(v), 90, A.sy(0) - A.sy(v), { fill: sel ? 'f3' : 'f1', stroke: sel ? 'c3' : 'c1', sw: 2, free: true });
+        g.text(A.sx(i + 1), A.sy(v) - 16, String(v), { size: 18, anchor: 'middle', mono: true, fill: sel ? 'c3' : 'ink' });
+      });
+      if (k === 0) g.tex(A.x + A.w - 20, A.y + 24, '\\mathbf{x} = (x_1, \\dots, x_6)', { size: 24, w: 300, anchor: 'end', fill: 'c1' });
+      if (k >= 1) g.fade(on(k, 1, t), () => {
+        g.brace(A.sx(1) - 45, A.sy(54), A.sx(K) + 45, A.sy(54), `i = 1 … ${K}`, { stroke: 'c3', fill: 'c3' });
+        g.tex(A.x + A.w - 20, A.sy(36), `\\textstyle\\sum_{i=1}^{${K}} x_i = ${S}`, { size: 26, w: 260, anchor: 'end', fill: 'c2' });
+      });
+    });
+    g.panel('prod', D => {
+      const A = g.axes({ ...D, xd: [0.4, 6.6], yd: [0, 1.1], xt: [1, 2, 3, 4, 5, 6], yt: [0, 0.25, 0.5, 0.75, 1], fmtx: v => 'i = ' + v, xl: 'observation i', yl: 'probability' });
+      let c = 1; const cum = pr.map(v => (c *= v));
+      pr.forEach((v, i) => { const sel = i < K; g.rect(A.sx(i + 1) - 40, A.sy(v), 80, A.sy(0) - A.sy(v), { fill: sel ? 'f1' : 'surf2', stroke: sel ? 'c1' : 'muted', sw: 2, free: true }); });
+      g.poly(cum.slice(0, K).map((v, i) => [A.sx(i + 1), A.sy(v)]), { stroke: 'c3', sw: 3 });
+      cum.slice(0, K).forEach((v, i) => g.circle(A.sx(i + 1), A.sy(v), 8, { fill: 'c3', stroke: 'fig', sw: 2, free: true }));
+      g.label(A.sx(K) + 70, Math.max(A.sy(cum[K - 1]) - 50, A.y + 60), f2(cum[K - 1]), { to: [A.sx(K) + 9, A.sy(cum[K - 1]) - 4], size: 22, fill: 'c3', weight: 800, anchor: 'start' });
+      g.tex(A.x + A.w - 20, A.y + 6, `\\textstyle\\prod_{i=1}^{${K}} p_i = ${cum[K - 1].toFixed(3)}`, { size: 26, w: 300, anchor: 'end', fill: 'c2' });
+    });
+    g.panel('log', D => {
+      const lp = pr.map(Math.log); let c = 0; const cum = lp.map(v => (c += v));
+      const A = g.axes({ ...D, xd: [0.4, 6.6], yd: [-2.4, 0.4], xt: [1, 2, 3, 4, 5, 6], yt: [-2, -1.5, -1, -0.5, 0], fmtx: v => 'i = ' + v, xl: 'observation i', yl: 'log probability' });
+      g.line(A.x, A.sy(0), A.x + A.w, A.sy(0), { stroke: 'muted', sw: 1.5, free: true });
+      lp.forEach((v, i) => { const sel = i < K; g.rect(A.sx(i + 1) - 40, A.sy(0), 80, A.sy(v) - A.sy(0), { fill: sel ? 'f1' : 'surf2', stroke: sel ? 'c1' : 'muted', sw: 2, free: true }); });
+      g.poly(cum.slice(0, K).map((v, i) => [A.sx(i + 1), A.sy(v)]), { stroke: 'c3', sw: 3 });
+      cum.slice(0, K).forEach(v => 0);
+      cum.slice(0, K).forEach((v, i) => g.circle(A.sx(i + 1), A.sy(v), 8, { fill: 'c3', stroke: 'fig', sw: 2, free: true }));
+      g.tex(A.x + A.w - 20, A.sy(-2.15), `\\textstyle\\sum_{i=1}^{${K}} \\log p_i = ${f2(cum[K - 1])}`, { size: 26, w: 330, anchor: 'end', fill: 'c2' });
+    });
+  }
+});
+
+scene({
+  title: 'Set-builder notation: {i : xᵢ ≥ τ} is a filter written as maths',
+  phase: 'sets', acc: 3, h: 620,
+  controls: [{ name: 'tau', label: 'threshold τ', min: -2.5, max: 3, step: 0.1, value: 1.0, fmt: v => v.toFixed(1) }],
+  steps: [
+    { cap: 'Twelve genes, one log₂ fold change each. The whole list is one vector x in ℝ¹², a point in 12-dimensional space.',
+      info: { notation: { '\\mathbf{x} \\in \\mathbb{R}^{12}': ['x is a list of 12 real numbers', 'x₆ = 2.8, x₉ = −2.2'], '\\in': ['"is a member of" / "lives in"', '6 ∈ {1, …, 12}'], '\\mathbb{R}': ['the real numbers: any decimal, negative or positive', '−2.2 and 0.4 are both in ℝ'], '[n]': ['shorthand for the index set {1, 2, …, n}', '[12] = {1, …, 12}'] },
+        read: ['ℝⁿ tells you the **length**; ℝⁿˣᵖ tells you the **shape** of a table'] } },
+    { cap: 'Dashed line: the threshold τ. Bars at or above it switch to the highlight. Drag τ.',
+      info: { notation: { '\\tau': ['tau: a cut-off you choose', 'τ = 1.0 at the start'], '\\ge': ['greater than or equal', '1.1 ≥ 1.0 is true'] } } },
+    { cap: 'Read {i : xᵢ ≥ τ} as “the set of indices i such that xᵢ ≥ τ”. It returns gene numbers, not values.',
+      info: { notation: { 'S = \\{ i : x_i \\ge \\tau \\}': ['set of all i that pass the rule after the colon', 'τ = 1.0 gives S = {2, 4, 6, 8, 11}'], '|S|': ['size of the set (how many members)', '|S| = 5'], ':': ['"such that". Some papers write a bar: {i | xᵢ ≥ τ}', 'same meaning'] },
+        read: ['Left of the colon: what you collect. Right: the rule', '{xᵢ : xᵢ ≥ τ} would collect the **values** instead'],
+        more: 'Variants: {i ∈ [n] : …} names where i comes from. ∅ is the empty set: raise τ to 3 and S = ∅. Sᶜ or [n] \\ S is everything that failed.' } },
+    { cap: 'The indicator 𝟙 turns the rule into 1 or 0 per gene. Adding those 1s counts the set.',
+      info: { notation: { '\\mathbb{1}[x_i \\ge \\tau]': ['indicator: 1 if the rule is true, else 0', 'x₂ = 2.1 → 1; x₃ = −1.3 → 0'], '\\sum_i \\mathbb{1}[\\cdot] = |S|': ['sum of indicators = count of passers', '0+1+0+1+0+1+0+1+0+0+1+0 = 5'] },
+        read: ['Empirical FDR, accuracy, and recall are all sums of indicators divided by a count', 'Mean of an indicator = a proportion'],
+        try: 'Set **τ** to 0: the count jumps to 8 genes.' } }
+  ],
+  draw(g, k, t, p) {
+    const x = [0.4, 2.1, -1.3, 1.6, 0.2, 2.8, -0.5, 1.1, -2.2, 0.9, 1.9, -0.1], tau = Math.round(p.tau * 10) / 10;
+    const pass = x.map(v => v >= tau - 1e-9), S = x.map((v, i) => i + 1).filter((v, i) => pass[i]);
+    const A = g.axes({ x: 110, y: 150, w: 1000, h: 380, xd: [0.4, 12.6], yd: [-3, 4.2], xt: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], yt: [-2, -1, 0, 1, 2, 3], xl: 'gene index i', yl: 'log₂ fold change' });
+    g.line(A.x, A.sy(0), A.x + A.w, A.sy(0), { stroke: 'muted', sw: 1.5, free: true });
+    x.forEach((v, i) => {
+      const hi = k >= 1 && pass[i];
+      g.rect(A.sx(i + 1) - 30, Math.min(A.sy(v), A.sy(0)), 60, Math.abs(A.sy(v) - A.sy(0)), { fill: hi ? 'f3' : k >= 1 ? 'surf2' : 'f1', stroke: hi ? 'c3' : k >= 1 ? 'muted' : 'c1', sw: 2, free: true });
+    });
+    if (k === 0) g.tex(A.x + A.w - 10, 70, '\\mathbf{x} \\in \\mathbb{R}^{12}', { size: 30, w: 220, anchor: 'end', fill: 'c1' });
+    if (k >= 1) {
+      g.line(A.x, A.sy(tau), A.x + A.w, A.sy(tau), { stroke: 'c2', sw: 2.5, dash: true });
+      g.text(A.x + A.w + 8, A.sy(tau), 'τ', { size: 22, anchor: 'start', fill: 'c2', weight: 800 });
+    }
+    if (k >= 2) g.fade(on(k, 2, t), () => {
+      const set = S.length ? `\\{${S.join(', ')}\\}` : '\\varnothing';
+      g.tex(A.x, 70, `S = \\{i : x_i \\ge ${tau.toFixed(1)}\\} = ${set}`, { size: 26, w: 760, anchor: 'start', fill: 'c3' });
+      g.text(A.x + A.w, 70, `|S| = ${S.length}`, { size: 28, anchor: 'end', fill: 'c2', weight: 800 });
+    });
+    if (k >= 3) g.fade(on(k, 3, t), () => {
+      g.text(A.x - 14, A.sy(3.75), '𝟙', { size: 20, anchor: 'end', fill: 'muted', weight: 800 });
+      x.forEach((v, i) => g.text(A.sx(i + 1), A.sy(3.75), pass[i] ? '1' : '0', { size: 22, anchor: 'middle', mono: true, weight: 800, fill: pass[i] ? 'c3' : 'muted' }));
+    });
+  }
+});
+
+Proff.compare(
+  ['notation', 'read aloud', 'meaning', 'bioinformatics example'],
+  [
+    ['{i : xᵢ ≥ τ}', 'indices i such that xᵢ ≥ τ', 'filter; returns positions', 'genes with log₂FC ≥ 1'],
+    ['a ∈ A, a ∉ A', 'a in A / not in A', 'membership', 'cell j ∈ cluster 3'],
+    ['A ⊆ B, A ⊂ B', 'subset (may equal) / proper subset', 'every member of A is in B', 'marker genes ⊆ all genes'],
+    ['A ∪ B, A ∩ B', 'union / intersection', 'in either / in both', 'DE in A ∩ DE in B = shared hits'],
+    ['A \\ B, Aᶜ', 'A minus B / complement', 'remove B’s members / everything not in A', 'all genes \\ mitochondrial genes'],
+    ['|A|, #A', 'size of A', 'number of members', '|S| = 5 genes pass'],
+    ['∅', 'empty set', 'no members', 'no gene passes a strict τ'],
+    ['[n], {1,…,n}', 'one to n', 'all indices', 'i ∈ [n] cells'],
+    ['(a, b) vs [a, b]', 'open / closed interval', 'ends excluded / included', 'p ∈ (0, 1]; [0, 1]'],
+    ['∀, ∃', 'for all / there exists', 'rule holds for every / at least one', '∀ i: xᵢ ≥ 0 (counts)'],
+    [':=, ≜, ≡', 'is defined as / identical to', 'a new name, not an equation to solve', 'CPMᵢ := 10⁶ xᵢ / Σⱼ xⱼ'],
+    ['≈, ∝, ∼', 'about / proportional to / distributed as (or same order)', 'approx; equal up to a constant; random draw', 'posterior ∝ likelihood × prior'],
+    ['⇒, ⇔, ↦', 'implies / if and only if / maps to', 'logic; a function sending x to f(x)', 'x ↦ log(1 + x)'],
+    ['ℕ, ℤ, ℝ, ℝ₊', 'naturals, integers, reals, positive reals', 'which numbers are allowed', 'counts ∈ ℕ; σ ∈ ℝ₊']
+  ]
+);
+
+// ======================= LEVEL 2 =======================
+Proff.section('level 2 · spaces and shapes: ℝⁿ, matrices, and the dot product');
+const XM = [[5, 12, 0, 8, 3, 1, 9, 2], [14, 3, 7, 0, 11, 4, 2, 6], [2, 9, 15, 4, 0, 7, 5, 10], [8, 0, 3, 13, 6, 2, 12, 1], [0, 6, 4, 9, 10, 15, 3, 7], [11, 7, 1, 5, 2, 8, 0, 13]];
+const BETA = [1, 1, 0, 1, 0, 0, -1, 0];
+scene({
+  title: 'X ∈ ℝⁿˣᵖ: one table, read as an entry, a row, a column, or a product',
+  phase: 'linear algebra', acc: 1, h: 620,
+  panels: [{ id: 'grid', from: 0 }, { id: 'prod', from: 4 }],
+  controls: [{ name: 'i', label: 'cell i', min: 1, max: 6, step: 1, value: 2 }, { name: 'j', label: 'gene j', min: 1, max: 8, step: 1, value: 3 }],
+  steps: [
+    { cap: 'A count matrix: n = 6 cells (rows) by p = 8 genes (columns). ℝ⁶ˣ⁸ names the shape before any number is read.',
+      info: { notation: { '\\mathbf{X} \\in \\mathbb{R}^{n \\times p}': ['a table of real numbers with n rows and p columns', 'n = 6, p = 8, so 48 numbers'], n: ['rows: usually samples or cells', '6 cells'], p: ['columns: usually features (genes, pixels)', '8 genes'] },
+        read: ['Convention varies! Scanpy/AnnData store cells × genes; DESeq2 and limma store genes × samples. Always check which way round'],
+        more: 'In deep learning a batch of images is a tensor (a table with more than 2 axes): B × C × H × W = batch × channels × height × width. a 32 × 3 × 224 × 224 tensor is 32 RGB images of 224×224 pixels.' } },
+    { cap: 'Two subscripts pick one cell of the table: Xᵢⱼ = row i, column j. Drag cell i and gene j.',
+      info: { notation: { 'X_{ij}': ['entry in row i, column j', 'X₂₃ = 7: cell 2 has 7 reads of gene 3'], 'X_{ij} \\in \\mathbb{R}': ['one entry is one number (a scalar)', 'here a whole count'] },
+        read: ['First subscript = row, second = column, always'] } },
+    { cap: 'A whole row is one cell’s profile: a vector in ℝ⁸. The dot replaces the index that runs free.',
+      info: { notation: { '\\mathbf{x}_{i\\cdot}': ['row i: all columns for cell i. Also written xᵢ, X[i, :], or Xᵢ,:', 'x₂ = (14, 3, 7, 0, 11, 4, 2, 6)'], '\\cdot \\text{ or } :': ['placeholder for "every value of this index"', 'X[2, :] in Python is row 2'] },
+        read: ['A cell is a point in gene space ℝᵖ. Clustering and UMAP start from these rows'] } },
+    { cap: 'A whole column is one gene across all cells: a vector in ℝ⁶. Same table, other direction.',
+      info: { notation: { '\\mathbf{X}_{\\cdot j}': ['column j: gene j in every cell. Also X[:, j]', 'X·₃ = (0, 7, 15, 3, 4, 1)'], '\\mathbf{X}^{\\top}': ['transpose: rows become columns', 'Xᵀ is 8 × 6, genes × cells'] },
+        read: ['Column vectors are the default in maths papers: x means a tall list, xᵀ a wide one'] } },
+    { cap: 'Matrix times vector: each output is a row of X times β, entry by entry, then summed. Shapes 6×8 · 8×1 give 6×1.',
+      info: { notation: { '(\\mathbf{X}\\boldsymbol{\\beta})_i = \\sum_j X_{ij}\\beta_j': ['row i of X dotted with β', 'i = 2: 14 + 3 + 0 − 2 = 15'], '\\boldsymbol{\\beta}': ['a weight per gene', 'β = (1, 1, 0, 1, 0, 0, −1, 0): a signature score'], '(n \\times p)(p \\times 1)': ['inner sizes must match; outer sizes give the result', '(6×8)(8×1) → 6×1'] },
+        read: ['This one operation is a linear model (Xβ), a neural network layer (Wx + b), and a gene-signature score'] } }
+  ],
+  draw(g, k, t, p) {
+    const I = p.i - 1, J = p.j - 1;
+    g.panel('grid', () => {
+      const x0 = 220, y0 = 175, cw = 82, ch = 56;
+      g.matrix(x0, y0, XM, { cw, ch, size: 22, rows: XM.map((_, r) => 'cell ' + (r + 1)), cols: XM[0].map((_, c) => 'g' + (c + 1)),
+        cell: (r, c) => {
+          const hit = (k === 1 && r === I && c === J) || (k === 2 && r === I) || (k === 3 && c === J);
+          return hit ? { fill: k === 1 ? 'f2' : 'f3', stroke: k === 1 ? 'c2' : 'c3', sw: 2.5 } : { fill: 'surf', color: k >= 1 ? 'dim' : 'ink' };
+        } });
+      const W = cw * 8, H = ch * 6;
+      g.brace(x0, y0 - 40, x0 + W, y0 - 40, 'p = 8 genes (columns)', { stroke: 'c1', fill: 'c1' });
+      g.brace(x0 - 90, y0 + H, x0 - 90, y0, 'n = 6', { stroke: 'c1', fill: 'c1' });
+      const tx = x0 + W + 30;
+      if (k === 0) g.tex(tx, y0 + H / 2, '\\mathbf{X} \\in \\mathbb{R}^{6 \\times 8}', { size: 28, w: 230, anchor: 'start', fill: 'c1' });
+      if (k === 1) g.tex(tx, y0 + ch * I + ch / 2, `X_{${I + 1}${J + 1}} = ${XM[I][J]}`, { size: 28, w: 200, anchor: 'start', fill: 'c2' });
+      if (k === 2) g.tex(tx, y0 + ch * I + ch / 2, `\\mathbf{x}_{${I + 1}\\cdot} \\in \\mathbb{R}^{8}`, { size: 28, w: 200, anchor: 'start', fill: 'c3' });
+      if (k === 3) g.tex(x0 + cw * J + cw / 2, y0 + H + 50, `\\mathbf{X}_{\\cdot ${J + 1}} \\in \\mathbb{R}^{6}`, { size: 28, w: 200, fill: 'c3' });
+    });
+    g.panel('prod', () => {
+      const out = XM.map(r => sum(r.map((v, c) => v * BETA[c])));
+      const x0 = 110, y0 = 200, cw = 56, ch = 50;
+      g.matrix(x0, y0, XM, { cw, ch, size: 20, cell: r => r === I ? { fill: 'f3', stroke: 'c3', sw: 2 } : { color: 'dim' } });
+      const bx = x0 + cw * 8 + 90, by = y0 - 50, bh = 50;
+      g.text(x0 + cw * 8 + 45, y0 + ch * 3, '×', { size: 34, anchor: 'middle', fill: 'muted' });
+      g.matrix(bx, by, BETA.map(v => [v]), { cw: 64, ch: bh, size: 20, cell: () => ({ fill: 'f1', stroke: 'c1' }) });
+      const rx = bx + 64 + 110;
+      g.text(bx + 64 + 55, y0 + ch * 3, '=', { size: 34, anchor: 'middle', fill: 'muted' });
+      g.matrix(rx, y0, out.map(v => [v]), { cw: 80, ch, size: 22, cell: r => r === I ? { fill: 'f2', stroke: 'c2', sw: 2.5, weight: 800 } : { color: 'dim' } });
+      g.text(x0 + cw * 4, y0 + ch * 6 + 34, 'X: 6 × 8', { size: 20, anchor: 'middle', fill: 'muted' });
+      g.text(bx + 32, by + bh * 8 + 34, 'β: 8 × 1', { size: 20, anchor: 'middle', fill: 'c1' });
+      g.text(rx + 40, y0 + ch * 6 + 34, 'Xβ: 6 × 1', { size: 20, anchor: 'middle', fill: 'c2' });
+      const terms = XM[I].map((v, c) => [v, BETA[c]]).filter(([, b]) => b !== 0).map(([v, b]) => (b < 0 ? '- ' : '+ ') + v).join(' ').replace(/^\+ /, '');
+      g.tex(rx + 110, y0 + ch * I + ch / 2, `= ${terms}`, { size: 22, w: 220, anchor: 'start', fill: 'c2' });
+      g.tex(x0, 80, '(\\mathbf{X}\\boldsymbol{\\beta})_i = \\textstyle\\sum_{j=1}^{8} X_{ij}\\,\\beta_j', { size: 28, w: 420, anchor: 'start', fill: 'ink' });
+    });
+  }
+});
+
+scene({
+  title: 'Vectors as arrows: length ‖x‖, dot product xᵀy, and cosine similarity',
+  phase: 'geometry', acc: 2, h: 620,
+  controls: [{ name: 'phi', label: 'angle of v', min: 0, max: 180, step: 5, value: 50, unit: '°' }, { name: 'r', label: 'length of v', min: 1.6, max: 3.4, step: 0.1, value: 2.5 }],
+  steps: [
+    { cap: 'Two vectors in ℝ²: u is fixed, v moves. Each is a list of two numbers and an arrow from the origin.',
+      info: { notation: { '\\mathbf{u} = (3, 1)^{\\top}': ['vector: 3 across, 1 up. ᵀ makes it a column', 'tip of the long arrow'], '\\|\\mathbf{u}\\|_2': ['length (L2 norm): √(sum of squares)', '√(3² + 1²) = √10 = 3.16'] },
+        read: ['In ℝ²⁰⁰⁰⁰ you cannot draw it, but length and angle still work the same way'] } },
+    { cap: 'Dot product: multiply matching entries and add. Geometrically it is ‖u‖ × the shadow of v on u.',
+      info: { notation: { '\\mathbf{u}^{\\top}\\mathbf{v} = \\mathbf{u}\\cdot\\mathbf{v}': ['sum of matching products', 'u₁v₁ + u₂v₂'], '\\langle \\mathbf{u}, \\mathbf{v} \\rangle': ['same thing, angle-bracket style (inner product)', 'common in ML theory papers'], '\\|\\mathbf{u}\\|\\|\\mathbf{v}\\|\\cos\\theta': ['geometric form of the dot product', 'θ = 90° gives 0: the vectors are orthogonal'] },
+        read: ['Dashed line: drop v straight onto u. The shadow length is ‖v‖ cos θ', 'Negative when the angle passes 90°'] } },
+    { cap: 'Cosine similarity divides out both lengths, leaving only direction: +1 same way, 0 at right angles, −1 opposite.',
+      info: { notation: { '\\cos\\theta = \\frac{\\mathbf{u}^{\\top}\\mathbf{v}}{\\|\\mathbf{u}\\|\\|\\mathbf{v}\\|}': ['cosine similarity', 'drag the length of v: it does not change'], '\\theta': ['angle between the arrows', 'arc at the origin'] },
+        read: ['Used to compare cell embeddings and in attention (QKᵀ is a table of dot products)'],
+        try: 'Change only **length of v**: cos θ stays fixed; the dot product changes.' } },
+    { cap: 'Different norms measure length differently. Shapes show every point of length 1 under L1, L2, and L∞.',
+      info: { notation: { '\\|\\mathbf{v}\\|_1 = \\sum_i |v_i|': ['L1: city-block distance', 'diamond shape; lasso penalty'], '\\|\\mathbf{v}\\|_2 = \\sqrt{\\sum_i v_i^2}': ['L2: straight-line distance', 'circle; ridge / weight decay'], '\\|\\mathbf{v}\\|_\\infty = \\max_i |v_i|': ['largest single entry', 'square'], '\\|\\mathbf{X}\\|_F': ['Frobenius norm: L2 of every matrix entry', 'used for reconstruction error'] },
+        read: ['L1 penalties push weights to exactly 0 (sparse gene sets); L2 shrinks them smoothly'] } }
+  ],
+  draw(g, k, t, p) {
+    const u = [3, 1], ph = p.phi * Math.PI / 180, v = [p.r * Math.cos(ph), p.r * Math.sin(ph)];
+    const nu = Math.hypot(...u), nv = Math.hypot(...v), dot = u[0] * v[0] + u[1] * v[1], cos = dot / (nu * nv);
+    const A = g.axes({ x: 320, y: 70, w: 560, h: 480, xd: [-3.5, 3.5], yd: [-2.5, 3.5], xt: [-3, -2, -1, 0, 1, 2, 3], yt: [-2, -1, 0, 1, 2, 3], grid: true });
+    const O = [A.sx(0), A.sy(0)];
+    g.line(A.x, O[1], A.x + A.w, O[1], { stroke: 'muted', sw: 1, free: true }); g.line(O[0], A.y, O[0], A.y + A.h, { stroke: 'muted', sw: 1, free: true });
+    if (k === 3) {
+      const ring = (f, op) => g.poly(Proff.range(0, 2 * Math.PI, 160).map(a => { const c = [Math.cos(a), Math.sin(a)], s = f(c); return [A.sx(c[0] / s), A.sy(c[1] / s)]; }), op);
+      ring(c => Math.abs(c[0]) + Math.abs(c[1]), { stroke: 'c3', sw: 2.5, close: true });
+      ring(() => 1, { stroke: 'c1', sw: 2.5, close: true });
+      ring(c => Math.max(Math.abs(c[0]), Math.abs(c[1])), { stroke: 'c4', sw: 2.5, close: true, dash: true });
+    }
+    g.arrow(O[0], O[1], A.sx(u[0]), A.sy(u[1]), { stroke: 'c1', sw: 4 });
+    g.text(A.sx(u[0]) + 14, A.sy(u[1]) - 6, 'u', { size: 24, weight: 800, fill: 'c1', anchor: 'start' });
+    g.arrow(O[0], O[1], A.sx(v[0]), A.sy(v[1]), { stroke: 'c2', sw: 4 });
+    g.text(A.sx(v[0]) + 30 * Math.cos(ph), A.sy(v[1]) - 30 * Math.sin(ph), 'v', { size: 24, weight: 800, fill: 'c2', anchor: 'middle' });
+    const L = 330, R = A.x + A.w + 30;
+    if (k === 0) {
+      g.tex(R, 200, '\\|\\mathbf{u}\\|_2 = ' + f2(nu), { size: 26, w: 260, anchor: 'start', fill: 'c1' });
+      g.tex(R, 260, '\\|\\mathbf{v}\\|_2 = ' + f2(nv), { size: 26, w: 260, anchor: 'start', fill: 'c2' });
+    }
+    if (k === 1 || k === 2) {
+      const s = dot / (nu * nu), pr = [u[0] * s, u[1] * s];
+      g.line(A.sx(v[0]), A.sy(v[1]), A.sx(pr[0]), A.sy(pr[1]), { stroke: 'muted', sw: 2, dash: true });
+      g.line(O[0], O[1], A.sx(pr[0]), A.sy(pr[1]), { stroke: 'c3', sw: 7, op: 0.7 });
+      if (k === 1) {
+        g.tex(R, 180, '\\mathbf{u}^{\\top}\\mathbf{v}', { size: 28, w: 200, anchor: 'start', fill: 'ink' });
+        g.tex(R, 240, `= 3(${f2(v[0])}) + 1(${f2(v[1])})`, { size: 22, w: 290, anchor: 'start', fill: 'muted' });
+        g.tex(R, 300, '= ' + f2(dot), { size: 30, w: 200, anchor: 'start', fill: 'c2' });
+      }
+    }
+    if (k === 2) {
+      const a0 = Math.atan2(u[1], u[0]);
+      g.path(`M${O[0] + 50 * Math.cos(a0)} ${O[1] - 50 * Math.sin(a0)} A50 50 0 0 0 ${O[0] + 50 * Math.cos(ph)} ${O[1] - 50 * Math.sin(ph)}`, { stroke: 'c3', sw: 3 });
+      g.tex(R, 200, `\\theta = ${Math.round(Math.abs(p.phi - a0 * 180 / Math.PI))}^{\\circ}`, { size: 26, w: 200, anchor: 'start', fill: 'c3' });
+      g.tex(R, 270, '\\cos\\theta = ' + f2(cos), { size: 30, w: 240, anchor: 'start', fill: 'c2' });
+    }
+    if (k === 3) {
+      g.tex(R, 160, '\\|\\mathbf{v}\\|_1 = ' + f2(Math.abs(v[0]) + Math.abs(v[1])), { size: 24, w: 260, anchor: 'start', fill: 'c3' });
+      g.tex(R, 220, '\\|\\mathbf{v}\\|_2 = ' + f2(nv), { size: 24, w: 260, anchor: 'start', fill: 'c1' });
+      g.tex(R, 280, '\\|\\mathbf{v}\\|_\\infty = ' + f2(Math.max(Math.abs(v[0]), Math.abs(v[1]))), { size: 24, w: 260, anchor: 'start', fill: 'c4' });
+      g.text(A.x - 20, A.sy(1.3), 'unit balls', { size: 20, anchor: 'end', fill: 'muted' });
+    }
+  }
+});
+
+Proff.compare(
+  ['notation', 'shape', 'meaning', 'where you see it'],
+  [
+    ['x, xᵢ (italic)', 'scalar', 'one number', 'a p-value, one count'],
+    ['𝐱 (bold lower)', 'n × 1 (column)', 'vector; 𝐱ᵀ is its 1 × n row version', 'a cell’s expression profile'],
+    ['𝐗 (bold upper)', 'n × p', 'matrix', 'count matrix, design matrix, weight matrix W'],
+    ['𝒳, 𝓓 (calligraphic)', 'a set or space', 'all possible inputs; the dataset', '𝓓 = {(xᵢ, yᵢ)}ᵢ₌₁ⁿ'],
+    ['𝐈, 𝐈ₙ', 'n × n', 'identity: 1s on the diagonal, 0 elsewhere', 'N(0, 𝐈): independent unit noise'],
+    ['diag(𝐯)', 'n × n', 'matrix with 𝐯 on its diagonal', 'size factors as a matrix'],
+    ['𝐗⁻¹, 𝐗⁺', 'n × n / p × n', 'inverse / pseudo-inverse', 'β̂ = (𝐗ᵀ𝐗)⁻¹𝐗ᵀ𝐲 (least squares)'],
+    ['tr(𝐀), det(𝐀), |𝐀|', 'scalar', 'sum of diagonal / volume scaling', 'Gaussian log-likelihood terms'],
+    ['𝐀𝐁 vs 𝐀 ⊙ 𝐁', 'matrix product vs element-wise', '⊙ (Hadamard) multiplies matching entries only', 'gates in LSTMs; masks'],
+    ['𝐀 ⊗ 𝐁', 'Kronecker / outer product', 'every entry of A times all of B', 'u ⊗ v = 𝐮𝐯ᵀ'],
+    ['λ, 𝐯 with 𝐀𝐯 = λ𝐯', 'eigenvalue, eigenvector', 'directions A only stretches', 'PCA: top eigenvectors of the covariance'],
+    ['𝐔𝚺𝐕ᵀ', 'SVD', 'any matrix = rotate · stretch · rotate', 'PCA, latent semantic models'],
+    ['rank(𝐗)', 'integer', 'number of independent columns', 'design matrix must be full rank'],
+    ['B × C × H × W', 'tensor', 'batch, channels, height, width', 'H&E tiles into a CNN'],
+    ['B × L × d', 'tensor', 'batch, sequence length, embedding size', 'transformers on genes or tokens']
+  ]
+);
+
+// ======================= LEVEL 3 =======================
+Proff.section('level 3 · random variables and distributions');
+scene({
+  title: 'X ∼ N(μ, σ²): density, area, cumulative probability, and z',
+  phase: 'distributions', acc: 4, h: 620,
+  panels: [{ id: 'pdf', from: 0 }, { id: 'cdf', from: 2 }],
+  controls: [{ name: 'mu', label: 'mean μ', min: -2, max: 2, step: 0.1, value: 0 }, { name: 'sig', label: 'sd σ', min: 0.5, max: 2, step: 0.1, value: 1 }, { name: 'a', label: 'cut a', min: -3.5, max: 3.5, step: 0.1, value: 1.5 }],
+  steps: [
+    { cap: 'Read “X ∼ N(μ, σ²)” as: X is a random draw from a bell curve centred at μ with spread σ.',
+      info: { notation: { 'X': ['capital: a random variable (not yet observed)', 'tomorrow’s measurement'], 'x': ['lower-case: one observed value', 'x = 1.5'], '\\sim': ['"is distributed as"', 'X ∼ N(0, 1)'], '\\mathcal{N}(\\mu, \\sigma^2)': ['normal distribution; 2nd slot is the **variance**', 'N(0, 4) has σ = 2, not 4'], 'p(x)': ['density: height of the curve at x', 'p(0) = 0.40 for N(0, 1)'] },
+        read: ['A density is not a probability; it can exceed 1 when σ is small. Only areas are probabilities'] } },
+    { cap: 'The shaded area left of the cut a is the probability P(X ≤ a). The whole area is 1.',
+      info: { notation: { 'P(X \\le a)': ['probability that a draw lands at or below a', 'a = 1.5 under N(0,1): 0.93'], '\\int_{-\\infty}^{a} p(x)\\,dx': ['area under p from far left up to a', 'same 0.93'], 'dx': ['"with respect to x": the tiny width of each slice', 'the integral is a Σ of thin slices'] },
+        read: ['∫ is a continuous Σ: Σᵢ p(xᵢ) Δx with Δx → 0'] } },
+    { cap: 'The cumulative distribution function F(x) records that area for every x. It climbs from 0 to 1.',
+      info: { notation: { 'F(x) = P(X \\le x)': ['CDF: area so far', 'F(1.5) = 0.93'], 'F^{-1}(q)': ['quantile: the x where the area reaches q', 'F⁻¹(0.975) = 1.96 for N(0, 1)'] },
+        read: ['Read up from a to the curve, then across to the probability'] } },
+    { cap: 'Standardise with z = (a − μ)/σ. Then any normal becomes N(0, 1), and Φ(z) gives the same area.',
+      info: { notation: { 'z = \\frac{a - \\mu}{\\sigma}': ['how many SDs a sits from the mean', 'a = 1.5, μ = 0, σ = 1 → z = 1.5'], '\\Phi(z)': ['CDF of the standard normal', 'Φ(1.96) = 0.975'], '\\phi(z)': ['density of the standard normal (small phi)', 'φ(0) = 0.399'] },
+        read: ['Change μ and σ together with a: z and the area stay the same'],
+        try: 'Set **sd σ** to 2 and **cut a** to 3: z = 1.5 again, so F is unchanged.' } }
+  ],
+  draw(g, k, t, p) {
+    const mu = p.mu, s = p.sig, a = p.a, Fa = Proff.stat.normCdf(a, mu, s), z = (a - mu) / s;
+    g.panel('pdf', D => {
+      const A = g.axes({ ...D, xd: [-5, 5], yd: [0, 1], xt: [-4, -2, 0, 2, 4], yt: [0, 0.2, 0.4, 0.6, 0.8], xl: 'x', yl: 'density p(x)' });
+      const f = x => Proff.stat.normPdf(x, mu, s);
+      if (k >= 1) g.fade(on(k, 1, t), () => g.area(f, A, -5, a, { fill: 'f3', op: 0.8 }));
+      g.curve(f, A, -5, 5, { stroke: 'c1', sw: 3.5 });
+      g.line(A.sx(mu), A.sy(0), A.sx(mu), A.sy(f(mu)), { stroke: 'c4', sw: 2, dash: true });
+      g.label(A.sx(mu) + 70, A.sy(f(mu)) - 10 < A.y + 20 ? A.y + 30 : A.sy(f(mu)) - 10, 'μ = ' + f1(mu), { to: [A.sx(mu) + 3, A.sy(f(mu))], size: 20, fill: 'c4', anchor: 'start' });
+      g.tex(A.x + 20, A.y + 10, `X \\sim \\mathcal{N}(${f1(mu)},\\ ${f1(s)}^2)`, { size: 24, w: 300, anchor: 'start', fill: 'c1' });
+      if (k >= 1) {
+        g.line(A.sx(a), A.sy(0), A.sx(a), A.sy(0.83), { stroke: 'c3', sw: 2.5 });
+        g.text(A.sx(a), A.sy(0.88), 'a', { size: 22, anchor: 'middle', fill: 'c3', weight: 800 });
+        g.fade(on(k, 1, t), () => g.tex(A.x + A.w - 10, A.y + 10, `P(X \\le ${f1(a)}) = ${f2(Fa)}`, { size: 26, w: 330, anchor: 'end', fill: 'c3' }));
+      }
+    });
+    g.panel('cdf', D => {
+      const A = g.axes({ ...D, w: D.w - 340, xd: [-5, 5], yd: [0, 1.05], xt: [-4, -2, 0, 2, 4], yt: [0, 0.25, 0.5, 0.75, 1], xl: 'x', yl: 'F(x) = P(X ≤ x)' });
+      g.curve(x => Proff.stat.normCdf(x, mu, s), A, -5, 5, { stroke: 'c1', sw: 3.5 });
+      g.line(A.sx(a), A.sy(0), A.sx(a), A.sy(Fa), { stroke: 'c3', sw: 2, dash: true });
+      g.line(A.sx(a), A.sy(Fa), A.x, A.sy(Fa), { stroke: 'c3', sw: 2, dash: true });
+      g.circle(A.sx(a), A.sy(Fa), 8, { fill: 'c3', stroke: 'fig', sw: 2, free: true });
+      const R = A.x + A.w + 40;
+      g.tex(R, A.sy(0.85), `F(${f1(a)}) = ${f2(Fa)}`, { size: 26, w: 240, anchor: 'start', fill: 'c3' });
+      if (k >= 3) g.fade(on(k, 3, t), () => {
+        g.tex(R, A.sy(0.55), `z = \\frac{${f1(a)} - ${f1(mu)}}{${f1(s)}} = ${f2(z)}`, { size: 26, w: 300, anchor: 'start', fill: 'c2' });
+        g.tex(R, A.sy(0.3), `\\Phi(${f2(z)}) = ${f2(Proff.stat.normCdf(z))}`, { size: 26, w: 280, anchor: 'start', fill: 'c2' });
+      });
+    });
+  }
+});
+
+scene({
+  title: 'P(A | B) ≠ P(B | A): conditioning means shrinking the world to the rows where B is true',
+  phase: 'conditional probability', acc: 3, h: 620,
+  controls: [{ name: 'prev', label: 'prevalence', min: 0.01, max: 0.3, step: 0.01, value: 0.1, fmt: v => Math.round(v * 100) + '%' }, { name: 'fpr', label: 'false-positive rate', min: 0.01, max: 0.2, step: 0.01, value: 0.05, fmt: v => Math.round(v * 100) + '%' }],
+  steps: [
+    { cap: '400 patients. Filled squares have the disease D. The share of filled squares is P(D), the prior.',
+      info: { notation: { 'P(D)': ['probability of disease before any test (prevalence, the prior)', 'P of D', '40 of 400 = 0.10'], '\\neg D \\text{ or } D^c': ['not D: healthy', 'not D, or D complement', '360 of 400'] },
+        read: ['P(·) of an event is a number between 0 and 1', 'Same picture works for “cell is T cell” vs “marker is on”'] } },
+    { cap: 'Ringed squares test positive. The test catches 90% of the sick and falsely flags some of the healthy.',
+      info: { notation: { 'P(+ \\mid D)': ['sensitivity: chance of a positive test **given** disease', 'P of plus given D', '0.90: 36 of 40 sick are ringed'], 'P(+ \\mid \\neg D)': ['false-positive rate', 'P of plus given not D', '0.05: 18 of 360 healthy are ringed'], '\\mid': ['"given": everything after the bar is treated as known', 'given', 'P(A | B) only looks at the B world'] },
+        read: ['Read P(A | B) right to left: first restrict to B, then ask how often A happens'] } },
+    { cap: 'Now condition on a positive test: keep only ringed squares. Among them, what share is truly sick?',
+      info: { notation: { 'P(D \\mid +)': ['chance of disease given a positive test (the posterior)', 'P of D given plus', '36 ÷ (36 + 18) = 0.67'] },
+        read: ['P(D | +) = 0.67 is far from P(+ | D) = 0.90. Swapping the bar changes the question', 'Low prevalence → most positives are false'],
+        try: 'Drop **prevalence** to 1%: most ringed squares become healthy.' } },
+    { cap: 'Bayes’ rule gives the same number from the three probabilities, without drawing the squares.',
+      info: { notation: { 'P(D \\mid +) = \\frac{P(+ \\mid D)\\,P(D)}{P(+)}': ['Bayes’ rule', 'P of D given plus equals P of plus given D times P of D, over P of plus', '0.90 × 0.10 ÷ 0.135 = 0.67'], 'P(+)': ['total chance of a positive: sum over both worlds', 'P of plus', '(36 + 18) ÷ 400 = 0.135'], 'P(A, B) = P(A \\cap B)': ['joint: both happen', 'P of A and B', 'P(D, +) = 36 ÷ 400 = 0.09'] },
+        read: ['Joint = conditional × marginal: P(D, +) = P(+ | D) P(D)', 'The denominator P(+) = Σ over D and ¬D: the law of total probability'],
+        more: 'A p-value is P(data this extreme | H₀). It is **not** P(H₀ | data). That swap is the same error as reading 0.90 as 0.67.' } }
+  ],
+  draw(g, k, t, p) {
+    const N = 400, cols = 25, sz = 24, gap = 4, x0 = 70, y0 = 110, r = Proff.rng(11);
+    const D = Math.round(N * p.prev), TP = Math.round(D * 0.9), FP = Math.round((N - D) * p.fpr);
+    const order = Proff.range(0, N - 1, N).map(Math.round); for (let i = N - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    const sick = new Set(order.slice(0, D)), pos = new Set([...order.slice(0, TP), ...order.slice(D, D + FP)]);
+    for (let q = 0; q < N; q++) {
+      const cx = x0 + (q % cols) * (sz + gap), cy = y0 + Math.floor(q / cols) * (sz + gap), sk = sick.has(q), ps = k >= 1 && pos.has(q);
+      const op = k >= 2 && !pos.has(q) ? 1 - 0.85 * on(k, 2, t) : 1;
+      g.rect(cx, cy, sz, sz, { fill: sk ? 'c3' : 'surf2', stroke: ps ? 'c2' : 'line', sw: ps ? 3.5 : 1, r: 3, op, free: true });
+    }
+    const R = 830, pD = D / N, post = TP / (TP + FP), pPos = (TP + FP) / N;
+    g.rect(R, 120, 22, 22, { fill: 'c3', r: 3, free: true }); g.text(R + 34, 131, 'has disease D', { size: 18, anchor: 'start', fill: 'muted' });
+    if (k >= 1) { g.rect(R, 160, 22, 22, { fill: 'surf2', stroke: 'c2', sw: 3.5, r: 3, free: true }); g.text(R + 34, 171, 'tests positive (+)', { size: 18, anchor: 'start', fill: 'muted' }); }
+    g.tex(R, 240, `P(D) = \\tfrac{${D}}{400} = ${f2(pD)}`, { size: 24, w: 340, anchor: 'start', fill: 'c3' });
+    if (k >= 1) {
+      g.tex(R, 300, `P(+\\mid D) = \\tfrac{${TP}}{${D}} = ${f2(D ? TP / D : 0)}`, { size: 24, w: 340, anchor: 'start', fill: 'c2' });
+      g.tex(R, 355, `P(+\\mid \\neg D) = \\tfrac{${FP}}{${N - D}} = ${f2(FP / (N - D))}`, { size: 24, w: 340, anchor: 'start', fill: 'c2' });
+    }
+    if (k >= 2) g.fade(on(k, 2, t), () => g.tex(R, 440, `P(D\\mid +) = \\tfrac{${TP}}{${TP}+${FP}} = ${f2(post)}`, { size: 26, w: 350, anchor: 'start', fill: 'ink' }));
+    if (k >= 3) g.fade(on(k, 3, t), () => g.tex(R, 525, `= \\frac{${f2(TP / D)} \\times ${f2(pD)}}{${pPos.toFixed(3)}}`, { size: 26, w: 300, anchor: 'start', fill: 'c4' }));
+  }
+});
+
+scene({
+  title: 'E[X] is a weighted average; the sample mean of many draws closes in on it like 1/√N',
+  phase: 'expectation', acc: 5, h: 620,
+  panels: [{ id: 'pdf', from: 0 }, { id: 'run', from: 1 }],
+  controls: [{ name: 'N', label: 'draws N', min: 20, max: 1000, step: 10, value: 300 }, { type: 'button', name: 'reseed', label: 'new draws' }],
+  steps: [
+    { cap: 'A skewed distribution, like expression of one gene. Its expectation E[X] is the balance point of the curve, not the peak.',
+      info: { notation: { '\\mathbb{E}[X] = \\int x\\,p(x)\\,dx': ['expectation: every value weighted by its density', 'E of X equals the integral of x p of x d x', 'Gamma(2, scale 1.5): E[X] = 2 × 1.5 = 3.0'], '\\mathrm{Var}(X) = \\mathbb{E}[(X - \\mathbb{E}X)^2]': ['variance: expected squared distance from the mean', 'var of X', '2 × 1.5² = 4.5, so σ = 2.12'], '\\mathbb{E}[X] = \\sum_x x\\,P(X = x)': ['the same idea for counts: Σ replaces ∫', 'sum over x of x times P of X equals x', 'a fair die: (1+…+6)/6 = 3.5'] },
+        read: ['E is an operator: it eats a random thing and returns a number', 'Peak (mode) ≈ 1.5 here, mean = 3.0: skew pulls them apart'] } },
+    { cap: 'Draw N values one at a time. Dots are draws; the line is the running average. It wanders, then settles on 3.0.',
+      info: { notation: { 'x^{(s)}': ['the s-th draw (superscript in brackets = sample number, not a power)', 'x super s', 'x⁽¹⁾ is the first dot on the left'], '\\hat{\\mu}_N = \\frac{1}{N}\\sum_{s=1}^{N} x^{(s)}': ['Monte Carlo estimate of E[X]', 'mu hat sub N equals one over N times the sum of x super s', 'the solid line at the right edge'], 'X_1, \\dots, X_N \\overset{iid}{\\sim} p': ['independent and identically distributed draws', 'X one to X N are i.i.d. from p', 'every dot comes from the same curve'] },
+        read: ['This is how VAEs, dropout uncertainty, and bootstraps estimate expectations they cannot integrate'] } },
+    { cap: 'The shaded band is μ ± 2σ/√N. Doubling precision costs four times the draws.',
+      info: { notation: { '\\hat{\\mu}_N \\xrightarrow{p} \\mu': ['converges in probability: the law of large numbers', 'mu hat N converges in probability to mu', 'the line ends inside the band'], '\\frac{\\sigma}{\\sqrt{N}}': ['standard error of the average', 'sigma over root N', '2.12 ÷ √300 = 0.12'], 'O(1/\\sqrt{N})': ['"of order": error shrinks like 1/√N, ignoring constants', 'big O of one over root N', 'N × 4 → error ÷ 2'] },
+        read: ['→ with a letter on top names a kind of convergence: p (probability), d (distribution), a.s. (almost surely)'],
+        try: 'Set **draws N** to 20, then 1000, and press *new draws* a few times.' } }
+  ],
+  draw(g, k, t, p, s) {
+    const shape = 2, sc = 1.5, mu = shape * sc, sd = Math.sqrt(shape) * sc, r = Proff.rng(s.seed * 7 + 3);
+    const xs = []; for (let i = 0; i < 1000; i++) xs.push(-sc * (Math.log(1 - r()) + Math.log(1 - r())));
+    const pdf = x => Proff.stat.gammaPdf(x, shape, 1 / sc);
+    g.panel('pdf', D => {
+      const A = g.axes({ ...D, xd: [0, 12], yd: [0, 0.3], xt: [0, 2, 4, 6, 8, 10, 12], yt: [0, 0.1, 0.2, 0.3], xl: 'x (expression)', yl: 'density p(x)' });
+      g.area(pdf, A, 0, 12, { fill: 'f1', op: 0.6 });
+      g.curve(pdf, A, 0, 12, { stroke: 'c1', sw: 3.5 });
+      g.line(A.sx(mu), A.sy(0), A.sx(mu), A.sy(0.27), { stroke: 'c4', sw: 3, dash: true });
+      g.poly([[A.sx(mu), A.sy(0) - 4], [A.sx(mu) - 16, A.sy(0) + 22], [A.sx(mu) + 16, A.sy(0) + 22]], { fill: 'c4', close: true, free: true, stroke: 'none' });
+      g.tex(A.sx(mu) + 20, A.sy(0.27), `\\mathbb{E}[X] = ${f1(mu)}`, { size: 26, w: 200, anchor: 'start', fill: 'c4' });
+      const md = (shape - 1) * sc;
+      g.label(A.sx(6), A.sy(0.2), `peak (mode) = ${f1(md)}`, { to: [A.sx(md) + 6, A.sy(pdf(md)) - 2], size: 18, anchor: 'start', fill: 'muted' });
+      g.tex(A.x + A.w - 10, A.sy(0.13), '\\mathrm{Var}(X) = ' + f1(sd * sd), { size: 24, w: 240, anchor: 'end', fill: 'c1' });
+    });
+    g.panel('run', D => {
+      const N = p.N, A = g.axes({ ...D, xd: [0, N], yd: [0, 10], yt: [0, 2, 4, 6, 8, 10], xl: 'draw number s', yl: 'value' });
+      if (k >= 2) g.fade(on(k, 2, t), () => {
+        const ns = Proff.range(1, N, 200), up = ns.map(n => [A.sx(n), A.sy(Math.min(10, mu + 2 * sd / Math.sqrt(n)))]), lo = ns.map(n => [A.sx(n), A.sy(Math.max(0, mu - 2 * sd / Math.sqrt(n)))]);
+        g.poly([...up, ...lo.reverse()], { fill: 'f4', stroke: 'none', close: true, op: 0.7, free: true });
+      });
+      const rr = Math.max(2.5, 6 - N / 250);
+      xs.slice(0, N).forEach((v, i) => g.circle(A.sx(i + 1), A.sy(Math.min(v, 9.9)), rr, { fill: 'c6', op: 0.55, stroke: 'none', free: true }));
+      g.line(A.x, A.sy(mu), A.x + A.w, A.sy(mu), { stroke: 'c4', sw: 2, dash: true });
+      let c = 0; const run = xs.slice(0, N).map((v, i) => [A.sx(i + 1), A.sy(Math.min(10, (c += v) / (i + 1)))]);
+      g.poly(run, { stroke: 'c2', sw: 3.5 });
+      const est = c / N;
+      g.tex(A.x + A.w - 10, A.y + 10, `\\hat{\\mu}_{${N}} = ${f2(est)}`, { size: 26, w: 230, anchor: 'end', fill: 'c2' });
+      if (k >= 2) g.fade(on(k, 2, t), () => g.tex(A.x + 20, A.y + 10, `\\pm 2\\sigma/\\sqrt{N} = \\pm ${f2(2 * sd / Math.sqrt(N))}`, { size: 24, w: 330, anchor: 'start', fill: 'c4' }));
+    });
+  }
+});
+
+Proff.compare(
+  ['notation', 'read aloud', 'what kind of data', 'parameters and their meaning', 'where in bio / DL'],
+  [
+    ['Bern(p)', 'Bernoulli p', 'one yes/no', 'p = chance of yes', 'one read maps or not; dropout mask'],
+    ['Bin(n, p)', 'binomial n, p', 'number of yes in n tries', 'n tries, p each', 'alt reads out of n at a SNP'],
+    ['Pois(λ)', 'Poisson lambda', 'counts', 'λ = mean = variance', 'technical noise in UMI counts'],
+    ['NB(μ, φ) or NB(μ, θ)', 'negative binomial', 'over-dispersed counts', 'Var = μ + φμ² (θ = 1/φ in some papers)', 'DESeq2, edgeR, scVI likelihood'],
+    ['ZINB', 'zero-inflated NB', 'counts with extra zeros', 'NB plus a dropout chance π', 'early scRNA-seq models'],
+    ['𝒩(μ, σ²)', 'normal', 'continuous, symmetric', '2nd slot = **variance**', 'log-expression, residuals, priors'],
+    ['𝒩(𝛍, 𝚺)', 'multivariate normal', 'a vector', '𝛍 mean vector, 𝚺 covariance **matrix** (not a sum!)', 'VAE latent z ∼ N(0, I)'],
+    ['Gamma(α, β)', 'gamma', 'positive, skewed', 'shape α; rate β (or scale θ = 1/β: check!)', 'priors on rates and precisions'],
+    ['Beta(α, β)', 'beta', 'a proportion in [0, 1]', 'mean α/(α+β)', 'allele fraction, methylation level'],
+    ['Dir(𝛂)', 'Dirichlet', 'proportions summing to 1', 'one α per category', 'cell-type composition, topic models'],
+    ['Cat(𝛑), Mult(n, 𝛑)', 'categorical / multinomial', 'one class / counts over classes', '𝛑 = class probabilities', 'classifier output; reads over genes'],
+    ['Unif(a, b), 𝒰', 'uniform', 'flat on [a, b]', 'every value equally likely', 'null p-values ∼ Unif(0, 1)'],
+    ['t_ν, χ²_ν, F_{ν₁,ν₂}', 't, chi-square, F', 'test-statistic shapes', 'ν = degrees of freedom', 't-tests, likelihood-ratio tests, ANOVA']
+  ]
+);
+
+Proff.compare(
+  ['notation', 'read aloud', 'meaning', 'watch out'],
+  [
+    ['P(A) vs p(x)', 'P of A / p of x', 'probability of an event / density or mass at a value', 'p(x) can exceed 1; P(A) cannot'],
+    ['p(x | θ) vs p(x; θ)', 'given theta / semicolon theta', 'model of x with parameters θ', 'bar: θ is random (Bayesian); semicolon: θ is fixed (frequentist)'],
+    ['p(x, y)', 'joint of x and y', 'both together', 'p(x) = Σ_y p(x, y) or ∫ p(x, y) dy (marginalising)'],
+    ['𝔼[X], 𝔼_{x∼q}[f(x)]', 'expectation of X / under q of f', 'average value, optionally under a named distribution', 'the subscript says what is random'],
+    ['Var(X), Cov(X, Y)', 'variance, covariance', 'spread / co-movement', 'Corr = Cov ÷ (σ_X σ_Y), between −1 and 1'],
+    ['X ⊥ Y, X ⊥ Y | Z', 'independent / conditionally independent', 'knowing one tells nothing about the other', 'the base of graphical models'],
+    ['i.i.d.', 'independent and identically distributed', 'every draw from the same distribution, no links', 'cells from one mouse are not i.i.d. across mice (pseudoreplication)'],
+    ['F, F⁻¹, Φ, φ', 'CDF, quantile, standard normal CDF and density', 'area, inverse area', 'z_{α/2} = Φ⁻¹(1 − α/2) = 1.96 for α = 0.05'],
+    ['x⁽ˢ⁾, x^{(l)}', 'x super s / super l', 'sample s or layer l, never a power', 'x² is a power; x⁽²⁾ is item 2'],
+    ['→p, →d, a.s.', 'converges in probability / in distribution / almost surely', 'what happens as n → ∞', 'CLT: √n(x̄ − μ) →d N(0, σ²)']
+  ]
+);
+
+// ======================= LEVEL 4 =======================
+Proff.section('level 4 · estimation and uncertainty: hats, argmax, ±, and intervals');
+const tCdf = (x, v) => { const n = 200, h = Math.abs(x) / n; let a = 0; for (let i = 0; i <= n; i++) a += (i === 0 || i === n ? 1 : i % 2 ? 4 : 2) * Proff.stat.tPdf(i * h, v); return 0.5 + Math.sign(x) * a * h / 3; };
+const tQ = (q, v) => { let lo = 0, hi = 20; for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (tCdf(m, v) < q) lo = m; else hi = m; } return (lo + hi) / 2; };
+const CNT = [4, 7, 5, 9, 6, 5];
+const ll = l => sum(CNT.map(x => x * Math.log(l) - l - Proff.stat.lgamma(x + 1)));
+scene({
+  title: 'Maximum likelihood: θ̂ = argmax ℓ(θ) slides the model until the data look most probable',
+  phase: 'estimation', acc: 2, h: 620,
+  panels: [{ id: 'pmf', from: 0 }, { id: 'll', from: 1 }],
+  controls: [{ name: 'lam', label: 'trial rate λ', min: 2, max: 12, step: 0.1, value: 4, fmt: v => v.toFixed(1) }],
+  steps: [
+    { cap: 'Six replicate counts of one gene (dots). Bars: a Poisson model with rate λ. Drag λ until the bars sit under the dots.',
+      info: { notation: { 'p(x \\mid \\lambda) = \\frac{\\lambda^{x} e^{-\\lambda}}{x!}': ['Poisson probability of count x at rate λ', 'p of x given lambda equals lambda to the x, e to the minus lambda, over x factorial', 'λ = 6, x = 6: 0.161'], 'x!': ['factorial: x × (x − 1) × … × 1', 'x factorial', '4! = 24'], 'e': ['Euler’s number, 2.718…; eᵃ is also written exp(a)', 'e', 'e⁻⁶ = 0.0025'] },
+        read: ['The model is fixed in shape; only λ moves'] } },
+    { cap: 'The log-likelihood ℓ(λ) scores each λ: the sum of log-probabilities of all six counts. The dot is your current λ.',
+      info: { notation: { 'L(\\lambda) = \\prod_{i=1}^{n} p(x_i \\mid \\lambda)': ['likelihood: chance of the whole dataset at this λ', 'L of lambda is the product over i of p of x i given lambda', 'a function of λ, data held fixed'], '\\ell(\\lambda) = \\log L(\\lambda)': ['log-likelihood', 'ell of lambda (curly l)', 'ℓ(6) = −12.16'] },
+        read: ['p(x | λ) read as a function of x = probability. Read as a function of λ = likelihood. Same formula'] } },
+    { cap: 'The top of the curve is the estimate λ̂. For a Poisson it lands exactly on the sample mean, 6.0.',
+      info: { notation: { '\\hat{\\lambda} = \\arg\\max_{\\lambda} \\ell(\\lambda)': ['the λ that makes ℓ largest (argmax returns the location, max returns the height)', 'lambda hat equals the arg max over lambda of ell of lambda', 'λ̂ = 6.0'], '\\frac{\\partial \\ell}{\\partial \\lambda} = 0': ['slope of ℓ is zero at the top', 'partial ell partial lambda equals zero', 'Σxᵢ/λ − n = 0 → λ̂ = x̄'], '\\arg\\min': ['location of the lowest point', 'arg min', 'loss functions are minimised: θ̂ = argmin of −ℓ'] },
+        read: ['Training a neural network = argmin of a loss = argmax of a likelihood, most of the time'] } },
+    { cap: 'A sharp peak means a precise estimate. Curvature gives the standard error, and ±1.96 SE gives a 95% interval.',
+      info: { notation: { '\\mathcal{I}(\\lambda) = -\\mathbb{E}\\left[\\frac{\\partial^2 \\ell}{\\partial \\lambda^2}\\right]': ['Fisher information: how curved ℓ is at the top', 'Fisher information of lambda', 'n/λ̂ = 6/6 = 1'], '\\mathrm{SE}(\\hat{\\lambda}) = 1/\\sqrt{\\mathcal{I}}': ['standard error from curvature', 'S E of lambda hat', '1/√1 = 1.0'], '\\hat{\\lambda} \\pm 1.96\\,\\mathrm{SE}': ['Wald 95% interval', 'lambda hat plus or minus 1.96 S E', '6 ± 1.96 = [4.04, 7.96]'] },
+        read: ['Dashed line: 1.92 below the top. Where ℓ crosses it is the likelihood-ratio 95% interval; close to Wald here'] } }
+  ],
+  draw(g, k, t, p) {
+    const lam = p.lam, n = CNT.length, lh = sum(CNT) / n, se = Math.sqrt(lh / n);
+    g.panel('pmf', D => {
+      const A = g.axes({ ...D, xd: [-0.6, 16.6], yd: [0, 0.36], xt: [0, 2, 4, 6, 8, 10, 12, 14, 16], yt: [0, 0.1, 0.2, 0.3], xl: 'count x', yl: 'probability p(x | λ)' });
+      g.bars(Proff.range(0, 16, 17).map(x => [x, Proff.stat.poisPmf(x, lam)]), A, { fill: 'f1', stroke: 'c1', bw: 0.7 });
+      const seen = {}; CNT.forEach(x => { seen[x] = (seen[x] || 0) + 1; g.circle(A.sx(x), A.sy(0.3) - (seen[x] - 1) * 22, 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true }); });
+      g.text(A.sx(11.5), A.sy(0.3), '6 observed counts', { size: 18, anchor: 'start', fill: 'c2' });
+      g.tex(A.x + A.w - 10, A.sy(0.22), `\\lambda = ${f1(lam)}`, { size: 28, w: 180, anchor: 'end', fill: 'c1' });
+    });
+    g.panel('ll', D => {
+      const A = g.axes({ ...D, xd: [2, 12], yd: [-30, -10], xt: [2, 4, 6, 8, 10, 12], yt: [-30, -25, -20, -15, -10], xl: 'rate λ', yl: 'log-likelihood ℓ(λ)' });
+      g.curve(ll, A, 2, 12, { stroke: 'c1', sw: 3.5 });
+      if (k >= 3) g.fade(on(k, 3, t), () => {
+        const cut = ll(lh) - 1.92, root = (a, b) => { for (let i = 0; i < 60; i++) { const m = (a + b) / 2; if ((ll(a) - cut) * (ll(m) - cut) <= 0) b = m; else a = m; } return (a + b) / 2; };
+        const lo = root(2, lh), hi = root(lh, 12);
+        g.line(A.x, A.sy(cut), A.x + A.w, A.sy(cut), { stroke: 'muted', sw: 2, dash: true });
+        g.line(A.sx(lo), A.sy(-28), A.sx(hi), A.sy(-28), { stroke: 'c3', sw: 5 });
+        [lo, hi].forEach(v => g.line(A.sx(v), A.sy(-28) - 10, A.sx(v), A.sy(-28) + 10, { stroke: 'c3', sw: 3 }));
+        g.tex(A.sx(hi) + 20, A.sy(-28), `[${f2(lo)},\\ ${f2(hi)}]`, { size: 24, w: 200, anchor: 'start', fill: 'c3' });
+        g.tex(A.x + A.w - 10, A.sy(-11), `\\hat\\lambda \\pm 1.96\\,\\mathrm{SE} = [${f2(lh - 1.96 * se)},\\ ${f2(lh + 1.96 * se)}]`, { size: 22, w: 400, anchor: 'end', fill: 'c4' });
+      });
+      if (k >= 2) g.fade(on(k, 2, t), () => {
+        g.line(A.sx(lh), A.sy(-30), A.sx(lh), A.sy(ll(lh)), { stroke: 'c4', sw: 2.5, dash: true });
+        g.tex(A.sx(lh), A.y + 2, `\\hat{\\lambda} = \\bar{x} = ${f1(lh)}`, { size: 24, w: 220, fill: 'c4' });
+      });
+      const y = ll(lam);
+      g.circle(A.sx(lam), A.sy(y), 10, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
+      g.tex(A.x + 20, A.sy(-12.5), `\\ell(${f1(lam)}) = ${f2(y)}`, { size: 24, w: 250, anchor: 'start', fill: 'c2' });
+    });
+  }
+});
+
+scene({
+  title: 'A 95% confidence interval: the procedure catches the true μ in about 95 of 100 repeat experiments',
+  phase: 'uncertainty', acc: 4, h: 620,
+  controls: [{ name: 'n', label: 'samples n', min: 3, max: 40, step: 1, value: 8 }, { name: 'lev', label: 'confidence', min: 0.8, max: 0.99, step: 0.01, value: 0.95, fmt: v => Math.round(v * 100) + '%' }, { type: 'button', name: 'reseed', label: 'repeat all' }],
+  steps: [
+    { cap: 'One experiment: n mice, one bar of dots. The interval is x̄ ± t × s/√n. It either contains the true μ or not.',
+      info: { notation: { '\\bar{x} \\pm t_{n-1,\\,1-\\alpha/2}\\,\\frac{s}{\\sqrt{n}}': ['t-based confidence interval for a mean', 'x bar plus or minus t with n minus 1 degrees of freedom, times s over root n', 'n = 8: t = 2.36'], 't_{\\nu,\\,q}': ['q-th quantile of the t distribution with ν degrees of freedom', 't sub nu, q', 't₇,₀.₉₇₅ = 2.36'], '\\frac{s}{\\sqrt{n}}': ['standard error of the mean (SEM)', 's over root n', 's = 2, n = 8 → 0.71'], '\\pm': ['plus or minus: the interval goes both ways', 'plus or minus', '10.2 ± 1.7 = [8.5, 11.9]'] },
+        read: ['Small n → wider t, wider interval'] } },
+    { cap: 'Repeat the experiment 30 times. Most intervals cross the dashed true μ; the highlighted ones miss.',
+      info: { notation: { '\\mu': ['the true mean: fixed, unknown', 'mu', 'μ = 10 (we can see it only because this is a simulation)'], '1 - \\alpha': ['confidence level', 'one minus alpha', '0.95 for α = 0.05'] },
+        read: ['The interval moves; μ stays put', 'Wrong reading: “95% chance μ is in **this** interval”. Right: “95% of intervals built this way contain μ”'] } },
+    { cap: 'Count the hits. Coverage stays near the confidence level at any n, but intervals narrow as n grows.',
+      info: { notation: { '\\mathrm{CI}_{95\\%}': ['95% confidence interval', 'C I ninety-five', 'reported as [lower, upper]'] },
+        read: ['A Bayesian credible interval is different: given the data, μ lies inside with 95% posterior probability (level 8)'],
+        try: 'Lower **confidence** to 80%: about 6 of 30 miss. Press *repeat all*.' } }
+  ],
+  draw(g, k, t, p, s) {
+    const mu = 10, sg = 2, n = p.n, E = 30, tq = tQ(1 - (1 - p.lev) / 2, n - 1), z = Proff.stat.normal(Proff.rng(s.seed * 13 + 1));
+    const exps = Array.from({ length: E }, () => { const d = Array.from({ length: n }, () => mu + sg * z()), m = Proff.stat.mean(d), h = tq * Proff.stat.sd(d) / Math.sqrt(n); return { d, m, lo: m - h, hi: m + h, hit: m - h <= mu && mu <= m + h }; });
+    const A = g.axes({ x: 110, y: 110, w: 760, h: 440, xd: [5, 15], yd: [E + 0.5, 0.5], xt: [5, 7.5, 10, 12.5, 15], yt: [1, 10, 20, 30], xl: 'measured value', yl: 'experiment' });
+    g.line(A.sx(mu), A.y, A.sx(mu), A.y + A.h, { stroke: 'c4', sw: 2.5, dash: true });
+    g.text(A.sx(mu), A.y - 22, 'true μ = 10', { size: 20, anchor: 'middle', fill: 'c4', weight: 700 });
+    exps.forEach((e, i) => {
+      const show = i === 0 ? 1 : k >= 1 ? (k === 1 ? Proff.clamp(t * E - i + 1, 0, 1) : 1) : 0;
+      if (!show) return;
+      const y = A.sy(i + 1), col = k >= 1 && !e.hit ? 'c3' : 'c1';
+      g.fade(show, () => {
+        if (i === 0 && k === 0) e.d.forEach(v => g.circle(A.sx(Proff.clamp(v, 5.1, 14.9)), y, 6, { fill: 'c2', op: 0.8, stroke: 'none', free: true }));
+        g.line(A.sx(Proff.clamp(e.lo, 5, 15)), y, A.sx(Proff.clamp(e.hi, 5, 15)), y, { stroke: col, sw: k >= 1 && !e.hit ? 5 : 3.5 });
+        g.circle(A.sx(e.m), y, 4.5, { fill: col, stroke: 'none', free: true });
+      });
+    });
+    const R = A.x + A.w + 40, e0 = exps[0], hits = exps.filter(e => e.hit).length;
+    if (k === 0) {
+      g.tex(R, 200, `\\bar{x} = ${f2(e0.m)}`, { size: 24, w: 240, anchor: 'start', fill: 'c2' });
+      g.tex(R, 260, `t_{${n - 1}} = ${f2(tq)}`, { size: 24, w: 240, anchor: 'start', fill: 'muted' });
+      g.tex(R, 330, `[${f2(e0.lo)},\\ ${f2(e0.hi)}]`, { size: 24, w: 240, anchor: 'start', fill: 'c1' });
+    }
+    if (k >= 2) g.fade(on(k, 2, t), () => {
+      g.text(R, 230, `${hits} of ${E} cover μ`, { size: 26, anchor: 'start', fill: 'c2', weight: 800 });
+      g.text(R, 280, `target ${Math.round(p.lev * 100)}% = ${f1(p.lev * E)} of ${E}`, { size: 18, anchor: 'start', fill: 'muted' });
+    });
+  }
+});
+
+Proff.compare(
+  ['notation', 'read aloud', 'what it measures', 'trap'],
+  [
+    ['θ, θ̂, θ*', 'theta, theta hat, theta star', 'true value, estimate, best or optimal value', 'θ* can also mean “true” in theory papers'],
+    ['mean ± SD', 'plus-minus standard deviation', 'spread of individuals', 'does not shrink with n'],
+    ['mean ± SEM', 'standard error of the mean, s/√n', 'wobble of the mean', 'looks smaller; check the legend'],
+    ['95% CI [a, b]', 'confidence interval', 'range from a procedure with 95% coverage', 'not “95% chance μ is inside”'],
+    ['95% CrI / HDI', 'credible interval / highest density interval', 'Bayesian: 95% posterior probability', 'depends on the prior'],
+    ['z_{α/2}, t_{ν,1−α/2}', 'z alpha over 2', 'cut-offs: 1.96 for 95%', 'use t when σ is estimated and n is small'],
+    ['Bias(θ̂) = 𝔼[θ̂] − θ', 'bias', 'systematic miss', 'unbiased is not the same as accurate'],
+    ['MSE = Bias² + Var', 'mean squared error', 'total error of an estimator', 'shrinkage trades a bit of bias for less variance'],
+    ['SE(θ̂) = √Var(θ̂)', 'standard error', 'SD of the estimate across repeat experiments', 'a property of θ̂, not of the data'],
+    ['IQR, MAD', 'interquartile range, median absolute deviation', 'robust spreads', 'scanpy QC uses MAD-based cut-offs'],
+    ['CV = σ/μ', 'coefficient of variation', 'spread relative to the mean', 'only meaningful for positive data'],
+    ['θ̂ ∼ₐ N(θ, ℐ⁻¹)', 'asymptotically normal', 'large-n shape of the estimate', 'can fail with small n or boundaries']
+  ]
+);
+
+// ======================= LEVEL 5 =======================
+Proff.section('level 5 · testing: H₀, α, β, power, p₍ₖ₎ and FDR');
+const zQ = q => { let lo = -8, hi = 8; for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (Proff.stat.normCdf(m) < q) lo = m; else hi = m; } return (lo + hi) / 2; };
+scene({
+  title: 'α, β and power 1 − β are three areas under two curves',
+  phase: 'testing', acc: 5, h: 620,
+  controls: [{ name: 'd', label: 'true shift δ', min: 0, max: 4, step: 0.1, value: 2.5, fmt: v => v.toFixed(1) }, { name: 'al', label: 'α', min: 0.01, max: 0.1, step: 0.01, value: 0.05, fmt: v => v.toFixed(2) }],
+  steps: [
+    { cap: 'If nothing changed (H₀), the test statistic Z follows the null curve centred at 0.',
+      info: { notation: { 'H_0': ['null hypothesis: no effect', 'H naught (or H zero)', 'mean difference = 0'], 'H_1 \\text{ or } H_A': ['alternative: a real effect', 'H one, H A', 'mean difference > 0 (one-sided here)'], 'Z \\sim \\mathcal{N}(0,1) \\text{ under } H_0': ['the null distribution of the statistic', 'Z follows standard normal under H naught', 'the muted curve'] },
+        read: ['Every test = a statistic + its distribution if H₀ were true'] } },
+    { cap: 'Choose α first. The shaded right tail has area α; a Z beyond the cut-off z₁₋α is called significant.',
+      info: { notation: { '\\alpha = P(\\text{reject } H_0 \\mid H_0)': ['type I error rate (false positive)', 'alpha', '0.05 → cut-off 1.64 (one-sided)'], 'z_{1-\\alpha} = \\Phi^{-1}(1-\\alpha)': ['critical value', 'z one minus alpha', 'Φ⁻¹(0.95) = 1.64'] },
+        read: ['p-value = area beyond **your** observed Z under the null curve. p < α ⇔ Z past the cut-off'] } },
+    { cap: 'If the effect is real, Z follows the second curve, shifted by δ. Its area past the cut-off is the power.',
+      info: { notation: { '\\beta = P(\\text{keep } H_0 \\mid H_1)': ['type II error (missed effect). Not the regression β!', 'beta', 'the lighter left part of the second curve'], '1-\\beta': ['power: chance to detect a real effect', 'one minus beta', 'δ = 2.5, α = 0.05 → 0.80'], '\\delta': ['shift = effect size × √n / σ', 'delta', 'more samples → bigger δ'] },
+        read: ['Power 0.8 is the usual planning target', 'Lower α → fewer false positives, less power'],
+        try: 'Set **true shift δ** to 0: power falls to α. Nothing to find.' } }
+  ],
+  draw(g, k, t, p) {
+    const d = p.d, al = p.al, zc = zQ(1 - al), pw = 1 - Proff.stat.normCdf(zc - d);
+    const A = g.axes({ x: 110, y: 90, w: 1000, h: 440, xd: [-4, 7], yd: [0, 0.48], xt: [-4, -2, 0, 2, 4, 6], yt: [0, 0.1, 0.2, 0.3, 0.4], xl: 'test statistic Z', yl: 'density' });
+    const f0 = x => Proff.stat.normPdf(x), f1x = x => Proff.stat.normPdf(x, d);
+    if (k >= 2) g.fade(on(k, 2, t), () => {
+      g.area(f1x, A, zc, 7, { fill: 'f4', op: 0.85 });
+      g.area(f1x, A, -4, zc, { fill: 'f6', op: 0.7 });
+      g.curve(f1x, A, -4, 7, { stroke: 'c4', sw: 3.5 });
+      g.text(A.sx(d) + 30, A.sy(0.445), 'H₁', { size: 22, anchor: 'start', fill: 'c4', weight: 800 });
+    });
+    if (k >= 1) g.fade(on(k, 1, t), () => g.area(f0, A, zc, 7, { fill: 'f3', op: 0.95 }));
+    g.curve(f0, A, -4, 7, { stroke: 'muted', sw: 3.5 });
+    g.text(A.sx(0) - 30, A.sy(0.445), 'H₀', { size: 22, anchor: 'end', fill: 'muted', weight: 800 });
+    if (k >= 1) {
+      g.line(A.sx(zc), A.sy(0), A.sx(zc), A.sy(0.42), { stroke: 'c3', sw: 2.5, dash: true });
+      g.tex(A.x + 15, A.sy(0.42), `z_{1-\\alpha} = ${f2(zc)}`, { size: 24, w: 220, anchor: 'start', fill: 'c3' });
+      g.tex(A.x + 15, A.sy(0.36), `\\alpha = ${f2(al)}`, { size: 24, w: 200, anchor: 'start', fill: 'c3' });
+    }
+    if (k >= 2) g.fade(on(k, 2, t), () => {
+      g.tex(A.x + 15, A.sy(0.30), `\\beta = ${f2(1 - pw)}`, { size: 24, w: 200, anchor: 'start', fill: 'ink' });
+      g.tex(A.x + 15, A.sy(0.24), `1-\\beta = ${f2(pw)}`, { size: 28, w: 240, anchor: 'start', fill: 'c4' });
+    });
+  }
+});
+
+scene({
+  title: 'Benjamini–Hochberg: sort the p-values, p₍₁₎ ≤ p₍₂₎ ≤ …, and compare each to (k/m)·q',
+  phase: 'multiple testing', acc: 3, h: 620,
+  controls: [{ name: 'q', label: 'FDR target q', min: 0.01, max: 0.2, step: 0.01, value: 0.05, fmt: v => v.toFixed(2) }, { name: 'real', label: 'truly changed genes', min: 0, max: 40, step: 1, value: 15 }],
+  steps: [
+    { cap: 'The 40 smallest of m = 200 p-values, sorted. Filled: truly changed; open: no change. p above 0.03 is off the plot.',
+      info: { notation: { 'p_{(k)}': ['the k-th smallest p-value (brackets in the subscript = sorted order)', 'p sub open-bracket k close-bracket, the k-th order statistic', 'p₍₁₎ is the leftmost dot'], m: ['number of tests', 'm', '200 genes'], 'p_k \\text{ vs } p_{(k)}': ['p of gene k vs k-th in sorted order', 'p sub k vs p sub (k)', 'different genes!'] },
+        read: ['Under H₀, p-values are uniform: about 1 in 20 falls below 0.05 by luck'] } },
+    { cap: 'BH line: rank ÷ m × q. Find the largest rank whose dot is under the line; call every gene up to it.',
+      info: { notation: { '\\hat{k} = \\max\\{k : p_{(k)} \\le \\tfrac{k}{m} q\\}': ['the last rank under the BH line', 'k hat is the largest k such that p sub (k) is at most k over m times q', 'set-builder notation again!'], 'q': ['the false discovery rate you accept', 'q', '0.05: about 1 in 20 calls false'], '\\mathrm{FDR} = \\mathbb{E}\\left[\\frac{V}{\\max(R,1)}\\right]': ['expected share of false calls among calls', 'F D R is the expected V over R', 'V false calls, R total calls'] },
+        read: ['DESeq2 padj and limma adj.P.Val are BH-adjusted p-values: call genes with padj ≤ q'] } },
+    { cap: 'Bonferroni: one flat line at q ÷ m. It controls the chance of even one false call, so it calls far fewer genes.',
+      info: { notation: { '\\mathrm{FWER} = P(V \\ge 1)': ['family-wise error rate', 'F W E R, the probability V is at least one', 'Bonferroni line = 0.05/200 = 0.00025'] },
+        read: ['FWER for a few planned tests; FDR for genome-wide screens'],
+        try: 'Raise **truly changed genes** to 40 and compare the two counts.' } }
+  ],
+  draw(g, k, t, p) {
+    const m = 200, q = p.q, r = Proff.rng(5), ps = [];
+    for (let i = 0; i < m; i++) { const real = i < p.real; ps.push({ p: real ? Math.pow(r(), 6) * 0.02 : r(), real }); }
+    ps.sort((a, b) => a.p - b.p);
+    let kh = 0; ps.forEach((o, i) => { if (o.p <= (i + 1) / m * q) kh = i + 1; });
+    const bon = ps.filter(o => o.p <= q / m).length;
+    const A = g.axes({ x: 120, y: 90, w: 980, h: 440, xd: [0, 41], yd: [0, 0.03], xt: [1, 10, 20, 30, 40], yt: [0, 0.01, 0.02, 0.03], fmty: v => v.toFixed(2), xl: 'rank k (smallest p first)', yl: 'p-value p₍ₖ₎' });
+    if (k >= 1) g.fade(on(k, 1, t), () => {
+      g.line(A.sx(0), A.sy(0), A.sx(41), A.sy(Math.min(0.03, 41 / m * q)), { stroke: 'c2', sw: 3 });
+      if (kh) g.rect(A.sx(0.5), A.y, A.sx(kh + 0.5) - A.sx(0.5), A.h, { fill: 'f2', op: 0.25, stroke: 'none', free: true });
+      g.tex(A.x + 20, A.y + 10, `\\hat{k} = ${kh}\\ \\text{genes called (BH)}`, { size: 24, w: 360, anchor: 'start', fill: 'c2' });
+    });
+    if (k >= 2) g.fade(on(k, 2, t), () => {
+      g.line(A.x, A.sy(q / m), A.x + A.w, A.sy(q / m), { stroke: 'c3', sw: 2.5, dash: true });
+      g.tex(A.x + 20, A.y + 55, `\\text{Bonferroni: } ${bon}`, { size: 24, w: 260, anchor: 'start', fill: 'c3' });
+    });
+    ps.slice(0, 40).forEach((o, i) => o.p <= 0.03 && g.circle(A.sx(i + 1), A.sy(o.p), 7, { fill: o.real ? 'c1' : 'fig', stroke: o.real ? 'fig' : 'c6', sw: 2, free: true }));
+  }
+});
+
+Proff.compare(
+  ['notation', 'read aloud', 'meaning', 'trap'],
+  [
+    ['H₀, H₁', 'H naught, H one', 'null and alternative hypotheses', 'you never “accept” H₀; you fail to reject it'],
+    ['T, Z, t, χ², F, W', 'test statistics', 'one number summarising the evidence', 'each has its own null distribution'],
+    ['p = P(T ≥ t_obs | H₀)', 'p-value', 'tail area under the null', 'not P(H₀ | data)'],
+    ['α, β, 1 − β', 'alpha, beta, power', 'false-positive rate, miss rate, detection rate', 'β here is not a regression coefficient'],
+    ['p₍ₖ₎', 'k-th order statistic', 'k-th smallest p', 'brackets mean “sorted”'],
+    ['m, m₀, R, V', 'tests, true nulls, calls, false calls', 'the counts behind FDR', 'FDR = E[V/R]'],
+    ['FWER, FDR, q-value, padj', 'error rates and adjusted p', 'how many false calls you accept', 'padj (BH) ≈ q-value, not identical'],
+    ['LRT, Λ = −2 log(L₀/L₁)', 'likelihood-ratio test', 'how much better the bigger model fits', 'Λ ∼ χ² with df = extra parameters'],
+    ['Wald z = β̂ / SE(β̂)', 'Wald statistic', 'estimate divided by its uncertainty', 'unstable when counts are tiny'],
+    ['one- vs two-sided', '', 'one tail or both', 'two-sided p = 2 × one-sided for symmetric nulls']
+  ]
+);
+
+// ======================= LEVEL 6 =======================
+Proff.section('level 6 · models: design matrix, link function, and the coefficient you report');
+const DS = [[1, 0], [1, 0], [1, 0], [1, 1], [1, 1], [1, 1]], SF = [0.8, 1.1, 1.0, 0.9, 1.2, 1.0], NOISE = [1.15, 0.85, 1.05, 0.9, 1.12, 0.95];
+scene({
+  title: 'A count GLM in four lines: design matrix → linear predictor → mean → counts',
+  phase: 'GLM', acc: 6, h: 620,
+  panels: [{ id: 'mat', from: 0 }, { id: 'fit', from: 2 }],
+  controls: [{ name: 'b1', label: 'treatment effect β₁', min: -3, max: 3, step: 0.1, value: 1.5, fmt: v => v.toFixed(1) }],
+  steps: [
+    { cap: 'Design matrix: one row per sample, column 1 all ones (baseline), column 2 = 1 if treated. Times β gives η.',
+      info: { notation: { '\\mathbf{x}_j^{\\top}\\boldsymbol{\\beta}': ['row j of the design matrix times the coefficients', 'x j transpose beta', 'S4: 1 × 5 + 1 × 1.5 = 6.5'], '\\beta_0': ['intercept: log₂ expression in control', 'beta naught', '5 → 2⁵ = 32 normalised reads'], '\\beta_1': ['treatment coefficient', 'beta one', 'log₂ fold change = 1.5'], '\\eta_j': ['linear predictor: the model on its own (log) scale', 'eta sub j', 'η = 5 for controls'] },
+        read: ['~ condition in R builds exactly this matrix: model.matrix(~ condition)'] } },
+    { cap: 'The link function undoes the log: mean μⱼ = sⱼ × 2^ηⱼ. Size factor sⱼ rescales for sequencing depth.',
+      info: { notation: { '\\mu_j = s_j\\, 2^{\\eta_j}': ['expected count for sample j', 'mu sub j equals s sub j times 2 to the eta j', 'S1: 0.8 × 32 = 25.6'], 's_j': ['size factor (library depth relative to a typical sample)', 's sub j', 's₅ = 1.2: 20% deeper'], 'g(\\mu) = \\eta': ['link: g = log₂ here; log for Poisson GLMs; logit for yes/no', 'g of mu equals eta', 'logit(p) = log(p/(1 − p))'] },
+        read: ['Linear on the link scale, multiplicative on the count scale'] } },
+    { cap: 'Observed counts, divided by size factor, on a log₂ axis. The gap between the group lines is β₁.',
+      info: { notation: { 'K_j / s_j': ['normalised count', 'K j over s j', 'what DESeq2 normalised counts show'], '\\log_2 \\mathrm{FC} = \\beta_1': ['log₂ fold change between groups', 'log two fold change equals beta one', '1.5 → 2^1.5 = 2.83 times higher'] },
+        read: ['Fold change 2 = log₂FC 1; fold change ½ = −1. Symmetric around 0'] } },
+    { cap: 'Written the way papers write it, with i for gene and j for sample. Every symbol is now on the screen.',
+      info: { notation: { 'K_{ij} \\sim \\mathrm{NB}(\\mu_{ij}, \\alpha_i)': ['count of gene i in sample j is negative binomial', 'K i j follows a negative binomial with mean mu i j and dispersion alpha i', 'α: extra-Poisson spread per gene'], '\\log_2 q_{ij} = \\mathbf{x}_j^{\\top}\\boldsymbol{\\beta}_i': ['linear model per gene on the log₂ scale', 'log two q i j equals x j transpose beta i', 'q = normalised mean'], '\\hat{\\beta}_{i1}': ['the estimate you report as log2FoldChange', 'beta hat i one', 'tested with Wald z = β̂/SE'] },
+        read: ['This matches the DESeq2-style model as commonly written; check the methods of the tool you use for its exact form'] } }
+  ],
+  draw(g, k, t, p) {
+    const B = [5, p.b1], eta = DS.map(r => r[0] * B[0] + r[1] * B[1]), mu = eta.map((e, j) => SF[j] * Math.pow(2, e)), K = mu.map((m, j) => Math.round(m * NOISE[j]));
+    const rl = DS.map((_, j) => 'S' + (j + 1));
+    g.panel('mat', () => {
+      const y0 = 190, ch = 52;
+      g.matrix(150, y0, DS, { cw: 80, ch, size: 22, rows: rl, cols: ['base', 'treated'], cell: (i, j, v) => j === 1 && v ? { fill: 'f3', stroke: 'c3' } : {} });
+      g.text(330, y0 + ch * 3, '×', { size: 34, anchor: 'middle', fill: 'muted' });
+      g.matrix(370, y0 + ch * 2, [[B[0]], [B[1]]], { cw: 80, ch, size: 22, cols: ['β'], fmt: f1, cell: () => ({ fill: 'f1', stroke: 'c1' }) });
+      g.text(490, y0 + ch * 3, '=', { size: 34, anchor: 'middle', fill: 'muted' });
+      g.matrix(530, y0, eta.map(v => [v]), { cw: 90, ch, size: 22, cols: ['η'], fmt: f1, cell: () => ({ fill: 'f2', stroke: 'c2' }) });
+      g.tex(150, 80, '\\boldsymbol{\\eta} = \\mathbf{X}\\boldsymbol{\\beta}', { size: 30, w: 200, anchor: 'start', fill: 'ink' });
+      if (k >= 1) g.fade(on(k, 1, t), () => {
+        g.arrow(640, y0 + ch * 3, 740, y0 + ch * 3, { stroke: 'muted', sw: 2.5 });
+        g.matrix(760, y0, mu.map(v => [v]), { cw: 110, ch, size: 22, cols: ['μ'], fmt: f1, cell: () => ({ fill: 'f4', stroke: 'c4' }) });
+        g.tex(1060, y0 + ch * 3, '\\mu_j = s_j\\,2^{\\eta_j}', { size: 26, w: 200, fill: 'c4' });
+        g.tex(760, 80, '\\text{size factors } s = (' + SF.join(', ') + ')', { size: 22, w: 400, anchor: 'start', fill: 'muted' });
+      });
+    });
+    g.panel('fit', D => {
+      const A = g.axes({ ...D, xd: [0.4, 6.6], yd: [1, 10], xt: [1, 2, 3, 4, 5, 6], fmtx: v => 'S' + v, yt: [2, 4, 6, 8, 10], fmty: v => '2^' + v, xl: 'sample', yl: 'normalised count (log₂ axis)' });
+      const L = v => Math.log2(Math.max(v, 1));
+      g.line(A.sx(0.6), A.sy(B[0]), A.sx(3.4), A.sy(B[0]), { stroke: 'c1', sw: 3 });
+      g.line(A.sx(3.6), A.sy(B[0] + B[1]), A.sx(6.4), A.sy(B[0] + B[1]), { stroke: 'c3', sw: 3 });
+      K.forEach((c, j) => g.circle(A.sx(j + 1), A.sy(L(c / SF[j])), 10, { fill: j < 3 ? 'c1' : 'c3', stroke: 'fig', sw: 2, free: true }));
+      g.text(A.sx(2), A.sy(B[0]) + (B[1] >= 0 ? 34 : -34), 'control', { size: 20, anchor: 'middle', fill: 'c1' });
+      g.text(A.sx(5), A.sy(B[0] + B[1]) + (B[1] >= 0 ? -34 : 34), 'treated', { size: 20, anchor: 'middle', fill: 'c3' });
+      if (Math.abs(B[1]) > 0.4) { g.line(A.sx(3.5), A.sy(B[0]), A.sx(3.5), A.sy(B[0] + B[1]), { stroke: 'c2', sw: 3 }); }
+      g.tex(A.x + A.w - 10, A.y + 10, `\\log_2 \\mathrm{FC} = \\beta_1 = ${f1(B[1])}`, { size: 26, w: 320, anchor: 'end', fill: 'c2' });
+      if (k >= 3) g.fade(on(k, 3, t), () => g.tex(A.x + 20, A.y + 10, 'K_{ij} \\sim \\mathrm{NB}(\\mu_{ij},\\, \\alpha_i)', { size: 24, w: 300, anchor: 'start', fill: 'ink' }));
+    });
+  }
+});
+
+// ======================= LEVEL 7 =======================
+Proff.section('level 7 · deep learning: f_θ, softmax, cross-entropy, ∇ and η');
+const LOG = [2, 1, 0.2, -0.5], CT = ['T cell', 'B cell', 'NK', 'mono'];
+scene({
+  title: 'From raw scores z to a probability ŷ to a loss L: softmax and cross-entropy',
+  phase: 'classifier output', acc: 1, h: 620,
+  panels: [{ id: 'z', from: 0 }, { id: 'e', from: 1 }, { id: 'p', from: 2 }, { id: 'ce', from: 3 }],
+  controls: [{ name: 'T', label: 'temperature T', min: 0.3, max: 4, step: 0.1, value: 1, fmt: v => v.toFixed(1) }, { name: 'c', label: 'true class c', min: 1, max: 4, step: 1, value: 1, fmt: v => CT[v - 1] }],
+  steps: [
+    { cap: 'A cell classifier ends with one raw score per class: the logits z. They can be any real number.',
+      info: { notation: { 'f_\\theta(\\mathbf{x}) = \\mathbf{z}': ['the network with weights θ maps input x to logits z', 'f theta of x equals z', 'x = expression profile, z ∈ ℝ⁴'], 'z_k': ['logit for class k', 'z sub k', 'z₁ = 2.0 for T cell'], '\\theta': ['all trainable weights stacked into one vector', 'theta', 'millions of numbers'] },
+        read: ['Subscript θ on f means “depends on parameters θ”'] } },
+    { cap: 'Step 1 of softmax: divide by temperature T and exponentiate. Every score becomes positive.',
+      info: { notation: { 'e^{z_k/T}': ['exponential of the scaled logit', 'e to the z k over T', 'T = 1: e² = 7.39'], 'T': ['temperature: larger T flattens, smaller T sharpens', 'T', 'used in distillation and LLM sampling'] } } },
+    { cap: 'Step 2: divide by the total. The outputs are positive and sum to 1, so they form a probability vector ŷ.',
+      info: { notation: { '\\hat{y}_k = \\frac{e^{z_k/T}}{\\sum_{j=1}^{K} e^{z_j/T}}': ['softmax', 'y hat k equals e to the z k over the sum over j of e to the z j', 'T = 1: 7.39 / 11.94 = 0.62'], '\\hat{\\mathbf{y}} \\in \\Delta^{K-1}': ['ŷ lies on the probability simplex', 'y hat is in the K minus one simplex', '4 numbers ≥ 0 that sum to 1'] },
+        read: ['Hat = predicted or estimated. y = truth, ŷ = model output'],
+        try: 'Drag **temperature T** to 4: the bars level out.' } },
+    { cap: 'Cross-entropy loss = −log of the probability given to the true class. Confident and right → near 0.',
+      info: { notation: { '\\mathcal{L} = -\\log \\hat{y}_c': ['cross-entropy for one sample', 'L equals minus log y hat c', 'ŷ = 0.62 → L = 0.48'], '-\\sum_k y_k \\log \\hat{y}_k': ['the same thing with one-hot y', 'minus sum over k of y k log y hat k', 'only the true class term survives'], '\\mathbb{E}_{(\\mathbf{x},y)\\sim\\mathcal{D}}[\\mathcal{L}]': ['average loss over the data distribution', 'expected loss over x, y drawn from D', 'estimated by the batch mean'] },
+        read: ['Training = make this average small'],
+        try: 'Set **true class c** to NK: ŷ = 0.10, loss = 2.28.' } }
+  ],
+  draw(g, k, t, p) {
+    const T = p.T, c = p.c - 1, e = LOG.map(v => Math.exp(v / T)), S = sum(e), y = e.map(v => v / S);
+    const bar = (D, vals, yd, yt, yl, col, fmt) => {
+      const A = g.axes({ ...D, xd: [0.4, 4.6], yd, xt: [1, 2, 3, 4], fmtx: v => CT[v - 1], yt, yl, xl: 'class' });
+      vals.forEach((v, i) => { const y0 = A.sy(Math.max(0, yd[0])), y1 = A.sy(v); g.rect(A.sx(i + 1) - 40, Math.min(y0, y1), 80, Math.abs(y1 - y0), { fill: i === c ? 'c3' : col, stroke: 'none', free: true });
+        g.text(A.sx(i + 1), (v >= 0 ? Math.min(y0, y1) - 12 : Math.max(y0, y1) + 26), fmt(v), { size: 20, anchor: 'middle', fill: 'ink' }); });
+      return A;
+    };
+    g.panel('z', D => { const A = bar(D, LOG, [-1, 3], [-1, 0, 1, 2, 3], 'logit z', 'c1', f1); g.tex(A.x + A.w - 10, A.y + 10, '\\mathbf{z} \\in \\mathbb{R}^4', { size: 26, w: 160, anchor: 'end', fill: 'c1' }); });
+    g.panel('e', D => { const top = Math.max(...e) * 1.25; const A = bar(D, e, [0, top], Proff.range(0, top, 5).map(v => +v.toFixed(1)), 'e^(z/T)', 'c2', f2);
+      g.tex(A.x + A.w - 10, A.y + 10, `\\textstyle\\sum = ${f2(S)}`, { size: 26, w: 180, anchor: 'end', fill: 'c2' }); });
+    g.panel('p', D => { const A = bar(D, y, [0, 1.15], [0, 0.25, 0.5, 0.75, 1], 'probability ŷ', 'c4', f2);
+      g.tex(A.x + A.w - 10, A.y + 10, `T = ${f1(T)}`, { size: 26, w: 140, anchor: 'end', fill: 'muted' }); });
+    g.panel('ce', D => {
+      const A = g.axes({ ...D, xd: [0, 1], yd: [0, 5], xt: [0, 0.25, 0.5, 0.75, 1], yt: [0, 1, 2, 3, 4, 5], xl: 'probability on the true class ŷ_c', yl: 'loss −log ŷ_c' });
+      g.curve(x => -Math.log(x), A, 0.0067, 1, { stroke: 'c3', sw: 3.5 });
+      const L = -Math.log(y[c]);
+      g.circle(A.sx(y[c]), A.sy(Math.min(L, 5)), 11, { fill: 'c3', stroke: 'fig', sw: 2, free: true });
+      g.tex(A.x + A.w - 10, A.y + 10, `\\mathcal{L} = -\\log ${f2(y[c])} = ${f2(L)}`, { size: 26, w: 340, anchor: 'end', fill: 'c3' });
+    });
+  }
+});
+
+scene({
+  title: 'Gradient descent: θ ← θ − η ∇L(θ), one small step downhill at a time',
+  phase: 'training', acc: 2, h: 620,
+  controls: [{ name: 'eta', label: 'learning rate η', min: 0.05, max: 2.1, step: 0.05, value: 0.3, fmt: v => v.toFixed(2) }, { name: 't0', label: 'start θ₀', min: -2, max: 8, step: 0.5, value: -1, fmt: v => v.toFixed(1) }],
+  steps: [
+    { cap: 'One weight θ and its loss L(θ). The gradient ∇L is the slope: the tangent line at the start θ₀.',
+      info: { notation: { '\\nabla_\\theta \\mathcal{L}': ['gradient: the vector of slopes, one per weight', 'nabla (or grad) theta of L', 'θ₀ = −1 → slope −4'], '\\frac{\\partial \\mathcal{L}}{\\partial \\theta_k}': ['partial derivative: slope along weight k with the others held fixed', 'partial L partial theta k', 'one entry of ∇L'] },
+        read: ['Here L(θ) = ½(θ − 3)² + 1, so ∇L = θ − 3. Minimum at θ = 3'] } },
+    { cap: 'Update: move against the slope, scaled by the learning rate η. Negative slope → θ moves right.',
+      info: { notation: { '\\theta_{t+1} = \\theta_t - \\eta\\,\\nabla \\mathcal{L}(\\theta_t)': ['one gradient-descent step', 'theta t plus one equals theta t minus eta times grad L at theta t', '−1 − 0.3 × (−4) = 0.2'], '\\leftarrow': ['“becomes” (assignment), same as the line above', 'gets', 'θ ← θ − η∇L'], '\\eta': ['learning rate (step size)', 'eta', 'common: 1e-3 for Adam'] } } },
+    { cap: 'Repeat for 12 steps. The dots walk toward the minimum θ* = arg min L. Too large an η overshoots.',
+      info: { notation: { '\\theta^{*} = \\arg\\min_\\theta \\mathcal{L}(\\theta)': ['the weights with the smallest loss', 'theta star is the arg min over theta of L', 'θ* = 3 here'], 't': ['iteration (step) counter', 't', 'superscript or subscript, both are used'] },
+        read: ['With mini-batches, ∇L is a noisy estimate: stochastic gradient descent (SGD)'],
+        try: 'Set **learning rate η** to 1.9: the dots zigzag. Above 2 they diverge.' } }
+  ],
+  draw(g, k, t, p) {
+    const L = th => 0.5 * (th - 3) ** 2 + 1, gr = th => th - 3, eta = p.eta;
+    const A = g.axes({ x: 120, y: 90, w: 980, h: 440, xd: [-3, 9], yd: [0, 26], xt: [-2, 0, 2, 4, 6, 8], yt: [0, 5, 10, 15, 20, 25], xl: 'weight θ', yl: 'loss L(θ)' });
+    g.curve(L, A, -3, 9, { stroke: 'muted', sw: 3.5 });
+    const path = [p.t0]; for (let i = 0; i < 12; i++) path.push(Proff.clamp(path[i] - eta * gr(path[i]), -3, 9));
+    const th0 = path[0], s0 = gr(th0);
+    g.line(A.sx(Math.max(-3, th0 - 1.5)), A.sy(L(th0) - s0 * Math.min(1.5, th0 + 3)), A.sx(Math.min(9, th0 + 1.5)), A.sy(L(th0) + s0 * Math.min(1.5, 9 - th0)), { stroke: 'c2', sw: 3 });
+    g.tex(A.x + 20, A.y + 10, `\\nabla \\mathcal{L}(\\theta_0) = ${f1(s0)}`, { size: 26, w: 280, anchor: 'start', fill: 'c2' });
+    const n = k === 0 ? 1 : k === 1 ? 2 : path.length;
+    for (let i = 1; i < n; i++) g.line(A.sx(path[i - 1]), A.sy(Math.min(L(path[i - 1]), 26)), A.sx(path[i]), A.sy(Math.min(L(path[i]), 26)), { stroke: 'c3', sw: 2.5, dash: true });
+    for (let i = 0; i < n; i++) g.circle(A.sx(path[i]), A.sy(Math.min(L(path[i]), 26)), i === 0 ? 11 : 8, { fill: i === 0 ? 'c2' : 'c3', stroke: 'fig', sw: 2, free: true });
+    if (k >= 1) g.tex(A.x + 20, A.y + 55, `\\theta_1 = ${f1(th0)} - ${f2(eta)}\\times(${f1(s0)}) = ${f2(path[1])}`, { size: 24, w: 460, anchor: 'start', fill: 'c3' });
+    let raw = p.t0; for (let i = 0; i < 12; i++) raw -= eta * gr(raw);
+    if (k >= 2) g.tex(A.x + 20, A.y + 100, `\\theta_{12} = ${f2(raw)}` + (Math.abs(raw - 3) > 6 ? '\\ \\text{(diverged)}' : ''), { size: 24, w: 400, anchor: 'start', fill: 'c3' });
+  }
+});
+
+Proff.compare(
+  ['notation', 'read aloud', 'meaning', 'where you meet it'],
+  [
+    ['f_θ, g_φ', 'f theta, g phi', 'a network with weights θ (or φ)', 'every DL methods section'],
+    ['W⁽ˡ⁾, b⁽ˡ⁾', 'W layer l', 'weight matrix and bias of layer l; brackets = layer, not power', 'h⁽ˡ⁾ = σ(W⁽ˡ⁾h⁽ˡ⁻¹⁾ + b⁽ˡ⁾)'],
+    ['σ(·), ReLU(x) = max(0, x)', 'sigma of dot, rel-u', 'activation functions; σ can also be sigmoid 1/(1+e⁻ˣ)', 'σ also means SD: read context'],
+    ['⊙', 'element-wise (Hadamard) product', 'multiply matching entries', 'gates in LSTMs, masks'],
+    ['∇, ∂', 'nabla, partial', 'gradient, partial derivative', 'backpropagation'],
+    ['η, λ', 'eta, lambda', 'learning rate, regularisation strength', 'L + λ‖θ‖²₂ (weight decay)'],
+    ['ŷ, 𝓛, 𝒟', 'y hat, script L, script D', 'prediction, loss, dataset', 'E₍ₓ,ᵧ₎∼𝒟[𝓛]'],
+    ['z ∈ ℝᵈ', 'z in R d', 'latent vector / embedding of size d', 'scVI, autoencoders'],
+    ['q_φ(z | x), p_θ(x | z)', 'q phi of z given x', 'encoder and decoder distributions', 'VAEs, scVI'],
+    ['softmax(QKᵀ/√d)V', 'attention', 'similarity of queries Q to keys K weights the values V', 'transformers, scGPT, pathology foundation models'],
+    ['B, ‖·‖_F', 'batch size, Frobenius norm', 'samples per step; matrix size', 'tensor shapes B × C × H × W'],
+    ['ELBO = E_q[log p_θ(x|z)] − D_KL(q_φ‖p)', 'evidence lower bound', 'reconstruction minus a closeness penalty', 'VAEs; see level 8 for D_KL']
+  ]
+);
+
+// ======================= LEVEL 8 =======================
+Proff.section('level 8 · masters: ∝, posteriors, ∫, and D_KL');
+const betaQ = (a, b, pp) => { const N = 2000; let c = 0; for (let i = 1; i < N; i++) { const x = i / N; c += Proff.stat.betaPdf(x, a, b) / N; if (c >= pp) return x; } return 1; };
+scene({
+  title: 'posterior ∝ likelihood × prior: a Beta–Binomial update you can drag',
+  phase: 'Bayesian', acc: 4, h: 620,
+  controls: [{ name: 'k', label: 'successes k of n = 20', min: 0, max: 20, step: 1, value: 14 }, { name: 'a', label: 'prior strength a = b', min: 1, max: 30, step: 1, value: 2 }],
+  steps: [
+    { cap: 'Question: what fraction π of cells carry a mutation? The prior Beta(a, b) says what we believed before data.',
+      info: { notation: { '\\pi \\sim \\mathrm{Beta}(a, b)': ['prior on the unknown proportion π', 'pi follows a beta with a and b', 'a = b = 2: mild belief near 0.5'], 'p(\\pi)': ['prior density', 'p of pi', 'the muted curve'] },
+        read: ['π here is a parameter, not 3.14. Papers reuse letters'] } },
+    { cap: 'Data: k of n = 20 cells carry it. The likelihood says which π values make this data likely.',
+      info: { notation: { 'k \\mid \\pi \\sim \\mathrm{Bin}(n, \\pi)': ['data model given π', 'k given pi follows a binomial n, pi', 'k = 14, n = 20'], 'p(k \\mid \\pi)': ['likelihood: a function of π once k is fixed', 'p of k given pi', 'peaks at k/n = 0.70'] } } },
+    { cap: 'Multiply prior by likelihood and rescale to area 1: the posterior. Its mean sits between prior and data.',
+      info: { notation: { 'p(\\pi \\mid k) \\propto p(k \\mid \\pi)\\,p(\\pi)': ['Bayes up to a constant', 'p of pi given k is proportional to likelihood times prior', '∝ hides the divisor p(k)'], 'p(k) = \\int_0^1 p(k\\mid\\pi)p(\\pi)\\,d\\pi': ['evidence: the constant that makes area 1', 'p of k equals the integral from 0 to 1 of likelihood times prior d pi', '∫ = area under the curve'], '\\mathrm{Beta}(a+k,\\ b+n-k)': ['conjugate result: posterior is Beta again', 'beta a plus k, b plus n minus k', 'Beta(16, 8), mean 0.67'] },
+        try: 'Raise **prior strength** to 30: the posterior stays near 0.5.' } },
+    { cap: 'The 95% credible interval holds the middle 95% of posterior area. Read it as: π is in here with probability 0.95.',
+      info: { notation: { 'P(\\pi \\in [l, u] \\mid k) = 0.95': ['credible interval', 'probability pi is in l to u given k equals 0.95', '[0.47, 0.84]'], '\\mathbb{E}[\\pi \\mid k]': ['posterior mean', 'expected pi given k', '16 / 24 = 0.67'] },
+        read: ['Compare level 4: a confidence interval is a statement about the procedure, not about π'] } }
+  ],
+  draw(g, k, t, p) {
+    const n = 20, kk = p.k, a = p.a, pr = x => Proff.stat.betaPdf(x, a, a), lk = x => Proff.stat.betaPdf(x, kk + 1, n - kk + 1), po = x => Proff.stat.betaPdf(x, a + kk, a + n - kk);
+    const xs = Proff.range(0.005, 0.995, 200), top = Math.max(...xs.map(po), ...xs.map(lk), ...xs.map(pr)) * 1.3, st = top > 8 ? 2 : 1;
+    const A = g.axes({ x: 120, y: 90, w: 980, h: 440, xd: [0, 1], yd: [0, top], xt: [0, 0.25, 0.5, 0.75, 1], yt: Proff.range(0, Math.floor(top / st) * st, Math.floor(top / st) + 1), fmty: v => v.toFixed(0), xl: 'proportion π', yl: 'density (area 1)' });
+    if (k >= 3) g.fade(on(k, 3, t), () => { const l = betaQ(a + kk, a + n - kk, 0.025), u = betaQ(a + kk, a + n - kk, 0.975);
+      g.area(po, A, l, u, { fill: 'f3', op: 0.9 });
+      g.tex(A.x + 20, A.y + 100, `95\\%\\ \\text{CrI} = [${f2(l)}, ${f2(u)}]`, { size: 24, w: 320, anchor: 'start', fill: 'c3' }); });
+    g.curve(pr, A, 0.002, 0.998, { stroke: 'muted', sw: 3, dash: true });
+    if (k >= 1) g.fade(on(k, 1, t), () => g.curve(lk, A, 0.002, 0.998, { stroke: 'c1', sw: 3 }));
+    if (k >= 2) g.fade(on(k, 2, t), () => { g.curve(po, A, 0.002, 0.998, { stroke: 'c3', sw: 4 });
+      g.tex(A.x + 20, A.y + 55, `\\text{posterior Beta}(${a + kk}, ${a + n - kk}),\\ \\text{mean } ${f2((a + kk) / (2 * a + n))}`, { size: 24, w: 520, anchor: 'start', fill: 'c3' }); });
+    g.tex(A.x + 20, A.y + 10, `\\text{prior Beta}(${a}, ${a})` + (k >= 1 ? `\\quad \\text{data } ${kk}/${n}` : ''), { size: 24, w: 420, anchor: 'start', fill: 'muted' });
+  }
+});
+
+scene({
+  title: 'KL divergence D_KL(p ‖ q): how badly q stands in for p, and why the order matters',
+  phase: 'information', acc: 5, h: 620,
+  controls: [{ name: 'm', label: 'mean of q', min: -2, max: 2, step: 0.1, value: 1, fmt: v => v.toFixed(1) }, { name: 's', label: 'SD of q', min: 0.7, max: 2.5, step: 0.1, value: 1.5, fmt: v => v.toFixed(1) }],
+  steps: [
+    { cap: 'p = N(0, 1) is the truth. q = N(m, s²) is an approximation, for example a VAE’s fitted latent distribution.',
+      info: { notation: { 'p, q': ['two distributions on the same variable', 'p and q', 'p fixed, q from the sliders'], 'D_{\\mathrm{KL}}(p \\,\\|\\, q) = \\int p(x) \\log\\frac{p(x)}{q(x)}\\,dx': ['KL divergence: expected log-ratio under p', 'K L of p from q (or p parallel-bars q)', '≥ 0; = 0 only if p = q'] },
+        read: ['Double bar ‖ separates the two arguments. It is not a norm here'] } },
+    { cap: 'The shaded curve is the integrand p · log(p/q). Its total signed area is D_KL(p‖q). It is large where p has mass but q does not.',
+      info: { notation: { 'p(x)\\log\\frac{p(x)}{q(x)}': ['pointwise contribution', 'p of x times log p of x over q of x', 'can dip below 0; the total cannot'], 'D_{\\mathrm{KL}}(p\\|q) = \\log s + \\frac{1+m^2}{2s^2} - \\tfrac12': ['closed form for these two normals', 'log s plus one plus m squared over two s squared minus a half', 'm = 1, s = 1.5 → 0.35'] } } },
+    { cap: 'Swap the order and the number changes. KL is not a distance: D_KL(p‖q) ≠ D_KL(q‖p).',
+      info: { notation: { 'D_{\\mathrm{KL}}(q\\|p) = -\\log s + \\frac{s^2+m^2}{2} - \\tfrac12': ['reverse KL', 'K L of q from p', 'm = 1, s = 1.5 → 0.72'], 'H(p) = -\\mathbb{E}_p[\\log p]': ['entropy: spread or surprise of p', 'H of p', 'N(0,1): 1.42 nats'], 'H(p, q) = H(p) + D_{\\mathrm{KL}}(p\\|q)': ['cross-entropy = entropy + KL', 'H of p comma q', 'level 7 loss is this'] },
+        read: ['VAEs penalise D_KL(q_φ(z|x) ‖ N(0, I)): the reverse direction'],
+        try: 'Set **SD of q** to 0.7: now the reverse KL is the smaller one (1.18 vs 0.60).' } }
+  ],
+  draw(g, k, t, p) {
+    const m = p.m, s = p.s, P = x => Proff.stat.normPdf(x), Q = x => Proff.stat.normPdf(x, m, s), kl1 = Math.log(s) + (1 + m * m) / (2 * s * s) - 0.5, kl2 = -Math.log(s) + (s * s + m * m) / 2 - 0.5;
+    const A = g.axes({ x: 120, y: 90, w: 980, h: 440, xd: [-5, 5], yd: [-0.2, 1.1], xt: [-4, -2, 0, 2, 4], yt: [-0.2, 0, 0.2, 0.4, 0.6, 0.8, 1.0], xl: 'x', yl: 'density' });
+    g.line(A.x, A.sy(0), A.x + A.w, A.sy(0), { stroke: 'muted', sw: 1.5 });
+    if (k >= 1) g.fade(on(k, 1, t), () => { const f = x => P(x) * Math.log(P(x) / Q(x));
+      const xs = Proff.range(-5, 5, 300); g.poly([[A.sx(-5), A.sy(0)], ...xs.map(x => [A.sx(x), A.sy(Proff.clamp(f(x), -0.2, 1.1))]), [A.sx(5), A.sy(0)]], { fill: 'f3', stroke: 'none', close: true, free: true });
+      g.tex(A.x + 20, A.y + 55, `D_{\\mathrm{KL}}(p\\|q) = ${f2(kl1)}`, { size: 26, w: 300, anchor: 'start', fill: 'c3' }); });
+    g.curve(P, A, -5, 5, { stroke: 'c1', sw: 3.5 });
+    g.curve(Q, A, -5, 5, { stroke: 'c4', sw: 3.5, dash: true });
+    g.tex(A.x + 20, A.y + 10, `p = \\mathcal{N}(0,1),\\ q = \\mathcal{N}(${f1(m)}, ${f1(s)}^2)`, { size: 24, w: 420, anchor: 'start', fill: 'ink' });
+    if (k >= 2) g.fade(on(k, 2, t), () => g.tex(A.x + 20, A.y + 100, `D_{\\mathrm{KL}}(q\\|p) = ${f2(kl2)}`, { size: 26, w: 300, anchor: 'start', fill: 'c4' }));
+  }
+});
+
+Proff.compare(
+  ['notation', 'read aloud', 'meaning', 'example'],
+  [
+    ['∝', 'proportional to', 'equal up to a constant factor', 'posterior ∝ likelihood × prior'],
+    ['∫ f(x) dx', 'integral of f d x', 'area under f; the continuous Σ', '∫ p(x) dx = 1'],
+    ['≜, :=, ≡', 'is defined as', 'a definition, not a result', 'σ(x) ≜ 1/(1 + e⁻ˣ)'],
+    ['H(p), H(p, q)', 'entropy, cross-entropy', 'average surprise; cost of coding p with q', 'cross-entropy loss'],
+    ['D_KL(p ‖ q)', 'KL of p from q', 'extra surprise from using q for p', 'VAE penalty, t-SNE objective'],
+    ['I(X; Y)', 'mutual information', 'D_KL(p(x,y) ‖ p(x)p(y)); 0 ⇔ independent', 'feature selection, gene networks'],
+    ['sup, inf', 'supremum, infimum', 'least upper / greatest lower bound (max/min that may not be reached)', 'sup over x of |F̂(x) − F(x)| (KS test)'],
+    ['lim_{n→∞}, →ᵖ, →ᵈ', 'limit; converges in probability; in distribution', 'what happens as n grows', 'x̄ →ᵖ μ (LLN); √n(x̄ − μ) →ᵈ N(0, σ²) (CLT)'],
+    ['O(·), o(·), Θ(·)', 'big O, little o, big theta', 'growth rate up to constants', 'SE = O(1/√n); attention costs O(L²)'],
+    ['H = ∇²ℓ, 𝓘(θ) = −E[∇²ℓ]', 'Hessian, Fisher information', 'curvature of the log-likelihood', 'SE ≈ 1/√𝓘 (level 4)'],
+    ['J = ∂f/∂x', 'Jacobian', 'matrix of all first derivatives of a vector function', 'normalising flows, change of variables'],
+    ['f ∘ g', 'f composed with g', 'apply g, then f', 'a network = f_L ∘ … ∘ f_1'],
+    ['δ(x), δᵢⱼ', 'Dirac delta, Kronecker delta', 'point mass; 1 if i = j else 0', 'Σᵢ δᵢⱼ xᵢ = xⱼ'],
+    ['Γ(a)', 'gamma function', '(a − 1)! extended to real numbers', 'appears in Beta, Gamma, t, NB densities']
+  ]
+);
+
+// ======================= DECODE =======================
+Proff.section('decode real formulas: read each one aloud, left to right');
+Proff.compare(
+  ['formula', 'read it like this', 'level'],
+  [
+    ['S = {g : padj_g ≤ 0.05, |log₂FC_g| ≥ 1}', 'S is the set of genes g such that adjusted p is at most 0.05 and absolute log fold change is at least 1', '1, 5, 6'],
+    ['X ∈ ℝⁿˣᵖ, Xᵢ· = cell i, X·ⱼ = gene j', 'X is an n by p real matrix; row i is a cell; column j is a gene', '2'],
+    ['K_ij ∼ NB(μ_ij, α_i), log₂ q_ij = x_jᵀβ_i', 'count of gene i in sample j is negative binomial; its log mean is a linear model', '3, 6'],
+    ['θ̂ = arg max_θ Σᵢ log p(xᵢ | θ)', 'theta hat is the theta that maximises the summed log-likelihood', '1, 4'],
+    ['β̂ ± t_{0.975, n−p} · SE(β̂)', 'estimate plus or minus the t quantile times its standard error', '4'],
+    ['P(Y = 1 | x) = σ(wᵀx + b)', 'probability of class 1 given x is the sigmoid of a weighted sum plus a bias', '2, 7'],
+    ['𝓛(θ) = −(1/N) Σᵢ log p_θ(yᵢ | xᵢ) + λ‖θ‖²₂', 'average negative log-likelihood plus lambda times the squared L2 norm of the weights', '1, 2, 7'],
+    ['ELBO = E_{q_φ(z|x)}[log p_θ(x|z)] − D_KL(q_φ(z|x) ‖ p(z))', 'expected reconstruction log-likelihood minus the KL from encoder to prior', '3, 7, 8'],
+    ['Attn(Q, K, V) = softmax(QKᵀ / √d) V', 'attention: softmax of scaled query–key dot products, used to weight the values', '2, 7']
+  ]
+);
+
+Proff.quiz([
+  { tag: 'level 1', q: 'x = (3, 8, 1, 6) and τ = 5. What is |{i : xᵢ ≥ τ}|?', a: '2. The set is {2, 4}, because x₂ = 8 and x₄ = 6 are at least 5. The bars |·| count its members.' },
+  { tag: 'level 2', q: 'X ∈ ℝ¹⁰⁰⁰⁰ˣ²⁰⁰⁰ holds cells × genes. What shape is X·₇?', a: 'A column: 10 000 numbers, the expression of gene 7 in every cell.' },
+  { tag: 'level 3', q: 'X ∼ N(10, 4). What is the SD?', a: '2. The second number is the variance σ² = 4, so σ = 2. Some papers write N(μ, σ) instead: check.' },
+  { tag: 'level 4', q: 'β̂ = 1.2, SE = 0.3. What is the Wald z, and roughly the 95% interval?', a: 'z = 1.2 / 0.3 = 4. The interval is 1.2 ± 1.96 × 0.3 = [0.61, 1.79].' },
+  { tag: 'level 5', q: 'm = 1000 tests, q = 0.05. What is the BH threshold for the 10th smallest p?', a: '(10 / 1000) × 0.05 = 0.0005. Bonferroni would use 0.05 / 1000 = 0.00005 for every rank.' },
+  { tag: 'level 7', q: 'The model gives ŷ_c = 0.25 to the true class. What is the cross-entropy loss?', a: '−log 0.25 = 1.39 (natural log).' },
+  { tag: 'level 8', q: 'Is D_KL(p ‖ q) = D_KL(q ‖ p)?', a: 'Not in general. KL is not symmetric, so it is not a distance. With p = N(0,1) and q = N(1, 1.5²) the two values are 0.35 and 0.72.' }
+]);
+
+</script>
+</body></html>

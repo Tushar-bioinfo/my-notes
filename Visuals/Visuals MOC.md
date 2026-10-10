@@ -25,6 +25,7 @@ This hub tracks interactive visualizations and visual reference pages across all
 - [[Reading Deep Learning Notation - Visual]] — *From x_ij to softmax(QKᵀ/√d)V: what each symbol says and how the numbers move. Key stages:...*
 ## 📐 Mathematics & Statistics Visuals
 
+- [[Reading the maths in methods sections - Visual]] — *An A–Z course in statistics and deep-learning notation, from the first subscript to KL div...*
 - [[Statistical Notation - Visual]] — *Testing a metabolic drug in mice: from raw bench data to statistical proof. Key stages: Be...*
 - [[What a t-test Sees - Visual]] — *Two groups of cells, one treated. Is the treated group really higher, or is it noise?. Key...*
 - [[Testing 20,000 Genes at Once - Visual]] — *FDR, Bonferroni and Benjamini–Hochberg. Key stages: The BH line on sorted p-values....*
