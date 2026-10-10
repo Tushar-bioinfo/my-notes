@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A CRISPR knockout screen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>/* Proff visual kit. BlockFrame chrome (thick borders, hard offset shadows, heavy Inter, Space Grotesk labels)
+   around clean figures. Every colour is a token, so dark/light switch live. Authors never edit this file. */
+:root,[data-theme=dark]{   /* default palette "harbor": strong cyan, honey, blaze orange, baltic blue, charcoal blue (user palette).
+     Dark: the two dark blues become the ground; accents are the bright three plus lifted tints. Every accent >= 4.5:1 on --fig.
+     c2 and c3 differ mostly in lightness for colour-blind readers: never let them carry a contrast alone (add a label or dash). */
+  --bg:#0d161d;--fig:#111c24;--surf:#15232d;--surf2:#2f4858;--line:#e9eef2;--line-dim:#2f4858;--grid:#1c2b36;
+  --ink:#eef3f6;--muted:#a09a92;--dim:#6d7a83;--on:#0d161d;
+  --c1:#55dde0;--c2:#f6ae2d;--c3:#f26419;--c4:#6fa3d0;--c5:#f5d491;--c6:#b9c7d0;--mix:22%;
+}
+[data-theme=light]{   /* light: baltic and charcoal blue are accents; bright hues darkened to read on paper */
+  --bg:#f4f1ea;--fig:#fdfbf6;--surf:#ffffff;--surf2:#e6ecef;--line:#2f4858;--line-dim:#d3d9dc;--grid:#ece8df;
+  --ink:#1c2a33;--muted:#66625c;--dim:#8d8a84;--on:#ffffff;
+  --c1:#0b7376;--c2:#9a6200;--c3:#a3330a;--c4:#33658a;--c5:#76601f;--c6:#2f4858;--mix:15%;
+}
+[data-palette=lab][data-theme=dark]{   /* preset "lab": Okabe-Ito hues */
+  --bg:#0e1116;--fig:#12161c;--surf:#171c23;--surf2:#1e242d;--line:#e8ecf2;--line-dim:#343c48;--grid:#222934;
+  --ink:#eef2f7;--muted:#9aa5b5;--dim:#6a7584;--on:#0e1116;
+  --c1:#5cb8f0;--c2:#f0b43c;--c3:#f2694a;--c4:#3ccf9e;--c5:#c98ae6;--c6:#cfdc5a;--mix:22%;
+}
+[data-palette=lab][data-theme=light]{
+  --bg:#f5f3ee;--fig:#fffdf9;--surf:#ffffff;--surf2:#efece4;--line:#1a1d24;--line-dim:#d8d4ca;--grid:#ebe7de;
+  --ink:#1a1d24;--muted:#545966;--dim:#858995;--on:#ffffff;
+  --c1:#0b6fb4;--c2:#9a6a00;--c3:#c2441c;--c4:#0a7d5e;--c5:#8645ae;--c6:#5f6b00;--mix:15%;
+}
+/* palette "neon" (the original proff look): Proff.page({palette:'neon'}) */
+[data-palette=neon][data-theme=dark]{--bg:#0a0a0b;--fig:#111113;--surf:#161618;--surf2:#1d1d20;--line:#ececee;--line-dim:#3a3a3f;--grid:#26262b;
+  --ink:#f4f4f5;--muted:#a1a1aa;--dim:#6b6b72;--on:#0a0a0b;--c1:#56c2ff;--c2:#ffc531;--c3:#ff6363;--c4:#59d499;--c5:#b98cff;--c6:#ff8f4a}
+[data-palette=neon][data-theme=light]{--bg:#f6f7fb;--fig:#ffffff;--surf:#ffffff;--surf2:#eef0f7;--line:#14123a;--line-dim:#d6d8e6;--grid:#e9ebf3;
+  --ink:#14123a;--muted:#55547a;--dim:#8a89a6;--on:#ffffff;--c1:#1f78c8;--c2:#a87600;--c3:#d23a3a;--c4:#0f8a55;--c5:#6f45cf;--c6:#cc5a12}
+/* soft fills are mixed where data-theme is set, so they follow the live palette (a :root-only rule would freeze them to dark) */
+:root,[data-theme]{--f-disp:'Inter',system-ui,-apple-system,sans-serif;--f-mono:'Space Grotesk',ui-monospace,Menlo,monospace;
+  --f1:color-mix(in srgb,var(--c1) var(--mix),var(--fig));--f2:color-mix(in srgb,var(--c2) var(--mix),var(--fig));
+  --f3:color-mix(in srgb,var(--c3) var(--mix),var(--fig));--f4:color-mix(in srgb,var(--c4) var(--mix),var(--fig));
+  --f5:color-mix(in srgb,var(--c5) var(--mix),var(--fig));--f6:color-mix(in srgb,var(--c6) var(--mix),var(--fig));
+  --acc:var(--c1);--stage-w:min(1240px,calc(100vw - 32px))}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-disp);font-size:18px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  padding:28px 16px 64px;transition:background .2s,color .2s}
+b,strong{font-weight:700}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+a{color:var(--c1)}
+
+/* header: compact so the stage owns the screen */
+.top{max-width:var(--stage-w);margin:0 auto 22px;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;
+  border-bottom:3px solid var(--line);padding-bottom:16px}
+.top .tx{flex:1;min-width:260px}
+.eyebrow{display:inline-block;font-family:var(--f-mono);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--on);background:var(--acc);border:2px solid var(--line);box-shadow:3px 3px 0 var(--line);padding:3px 10px;margin-bottom:12px}
+h1{font-size:clamp(26px,3.4vw,40px);font-weight:900;text-transform:uppercase;letter-spacing:-.025em;line-height:1}
+.sub{font-family:var(--f-mono);font-size:14px;color:var(--muted);margin-top:8px}.sub::before{content:"// ";color:var(--acc)}
+.tog{display:flex;border:2px solid var(--line);box-shadow:3px 3px 0 var(--line-dim)}
+.tog button{font:700 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border:0;background:var(--surf);color:var(--ink);cursor:pointer}
+.tog button[aria-pressed=true]{background:var(--line);color:var(--bg)}
+
+/* the stage card: the figure is the hero */
+.card{position:relative;max-width:var(--stage-w);margin:0 auto 40px;background:var(--surf);border:3px solid var(--line);
+  box-shadow:8px 8px 0 var(--acc);padding:20px 22px 18px}
+.head{display:flex;align-items:baseline;gap:14px;min-height:34px;padding-right:44px;margin-bottom:12px}
+.phase{font:700 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--on);background:var(--acc);border:2px solid var(--line);padding:2px 8px;white-space:nowrap}
+.stitle{font-size:clamp(18px,2vw,24px);font-weight:850;letter-spacing:-.01em;line-height:1.15}
+.fig{position:relative;background:var(--fig);border:2px solid var(--line);overflow:hidden}
+.fig svg,.fig canvas{display:block;width:100%;height:auto;max-height:70vh;margin:0 auto}
+.fig svg text{font-family:var(--f-disp)}
+.fig svg .mono{font-family:var(--f-mono)}
+.cap{min-height:2.9em;margin:12px auto 0;max-width:62ch;text-align:center;font-size:clamp(15px,1.5vw,18px);color:var(--ink)}
+.cap .k{font-family:var(--f-mono);color:var(--muted);font-size:.85em;margin-right:.5em}
+.ib{position:absolute;top:16px;right:18px;width:32px;height:32px;border:2px solid var(--line);background:var(--acc);color:var(--on);
+  font:900 15px var(--f-mono);cursor:pointer;box-shadow:3px 3px 0 var(--line)}
+.ib[aria-expanded=true]{background:var(--line);color:var(--bg)}
+
+/* step navigation: one line, 75% of the figure, centred */
+.nav{display:flex;align-items:center;gap:12px;width:75%;margin:12px auto 0;padding:6px 14px;border:2px solid var(--line);background:var(--surf);box-shadow:4px 4px 0 var(--line-dim)}
+.nav button{font:900 16px var(--f-mono);width:34px;height:30px;border:2px solid var(--line);background:var(--surf2);color:var(--ink);cursor:pointer;flex:none}
+.nav button:disabled{opacity:.35;cursor:default}
+.nav input[type=range]{flex:1;min-width:0;height:44px;accent-color:var(--acc);cursor:pointer}
+.nav .ctr{font:700 13px var(--f-mono);color:var(--muted);white-space:nowrap;min-width:52px;text-align:right}
+
+/* sliders for interactive figures */
+.ctl{display:flex;flex-wrap:wrap;gap:10px 28px;justify-content:center;margin:14px auto 0;max-width:94%}
+.ctl label{display:flex;align-items:center;gap:10px;font:700 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:240px;flex:1;max-width:420px}
+.ctl label span{white-space:nowrap}
+.ctl input[type=range]{flex:1;min-width:90px;height:36px;accent-color:var(--acc)}
+.ctl output{font:700 14px var(--f-mono);color:var(--ink);min-width:48px;text-align:right}
+.ctl .btn{font:700 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border:2px solid var(--line);background:var(--surf2);color:var(--ink);cursor:pointer;box-shadow:3px 3px 0 var(--line-dim)}
+
+/* info drawer: detail lives here, not on the figure */
+.drawer{display:none;margin:14px 0 0;padding:14px 18px;border:2px solid var(--line);background:var(--surf2);box-shadow:4px 4px 0 var(--line-dim);font-size:15px;line-height:1.55}
+.drawer.open{display:block}
+.drawer p+p,.drawer ul{margin-top:.5em}.drawer ul{padding-left:1.2em}
+.drawer h4{font:700 12px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--acc);margin-bottom:6px}
+
+/* article layout: short prose between wide figures */
+.prose{max-width:68ch;margin:0 auto 26px;font-size:19px}
+.prose p+p{margin-top:.8em}
+.prose h2{font-size:clamp(22px,2.6vw,30px);font-weight:900;text-transform:uppercase;letter-spacing:-.02em;margin:46px 0 14px;line-height:1.05}
+.prose ul{padding-left:1.2em}.prose li{margin:.25em 0}
+.acc1{--acc:var(--c1)}.acc2{--acc:var(--c2)}.acc3{--acc:var(--c3)}.acc4{--acc:var(--c4)}.acc5{--acc:var(--c5)}.acc6{--acc:var(--c6)}
+
+/* study page blocks */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;max-width:var(--stage-w);margin:0 auto 34px}
+.tile{background:var(--surf);border:3px solid var(--line);box-shadow:6px 6px 0 var(--acc);padding:18px 20px}
+.tile h3{font-size:17px;font-weight:850;text-transform:uppercase;letter-spacing:-.01em;margin-bottom:8px;line-height:1.15}
+.tile p,.tile li{font-size:16px}.tile ul{padding-left:1.1em}
+.tile .tag{font:700 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.big{font-size:44px;font-weight:900;letter-spacing:-.03em;line-height:1;color:var(--acc)}
+.flip{cursor:pointer}.flip .a{display:none;margin-top:10px;padding-top:10px;border-top:2px dashed var(--line-dim)}.flip.on .a{display:block}
+.flip .hint{font:700 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:8px}
+.flip.on .hint{display:none}
+table.cmp{width:100%;max-width:var(--stage-w);margin:0 auto 34px;border-collapse:collapse;background:var(--surf);border:3px solid var(--line);box-shadow:6px 6px 0 var(--acc)}
+table.cmp th,table.cmp td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line-dim);font-size:16px;vertical-align:top}
+table.cmp th{font:700 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sec{display:block;max-width:var(--stage-w);margin:40px auto 16px;font:700 13px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--line-dim);padding-bottom:6px}
+
+/* calc engine extras */
+.fig .katex{font-size:1em}
+.fig foreignObject div{color:var(--ink);font-family:var(--f-disp);line-height:1.2}
+.foot{max-width:var(--stage-w);margin:30px auto 0;font:500 12px var(--f-mono);color:var(--dim)}
+
+@media (max-width:700px){
+  body{padding:18px 12px 48px;font-size:17px}
+  .card{padding:14px 12px;box-shadow:5px 5px 0 var(--acc)}
+  .nav{width:100%}
+  .fig.pan{overflow-x:auto}.fig.pan svg{min-width:720px;max-height:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head>
+<body data-theme="dark">
+<script>window.PROFF_DATA={"crispr": {"seq": "ATGGTACGCCCGTGGACAGAATTAAGGTCA", "t0": 4, "t1": 24, "pam": [24, 27], "cut": 21, "mut": "ATGGTACGCCCGTGGACAGATTAAGGTCA", "aa": "MVRPWTELRS", "aa_mut": "MVRPWTD*G", "rows": ["RPL3_1", "RPL3_2", "RPL3_3", "RPL3_4", "POLR2A_1", "POLR2A_2", "POLR2A_3", "POLR2A_4", "AAVS1_1", "AAVS1_2", "NT_1", "NT_2"], "d0": [581, 442, 591, 393, 606, 481, 590, 566, 609, 428, 568, 522], "d21": [83, 86, 89, 50, 79, 76, 85, 50, 728, 502, 547, 817], "lfc": [-3.09, -2.64, -3.01, -3.25, -3.22, -2.94, -3.07, -3.77, -0.03, -0.06, -0.34, 0.36], "kinds": ["essential", "essential", "essential", "essential", "essential", "essential", "essential", "essential", "safe cut", "safe cut", "no target", "no target"], "lib": [2127, 2594]}};window.PROFF_SVG={};window.PROFF_ASSETS={};</script>
+<script>/* Proff stage runtime: page shell, scenes, steps, controls, drawing kit, self-audit.
+   Authors call Proff.page / Proff.scene / Proff.prose in story.js; build.py inlines this file. Do not edit per topic. */
+(function () {
+  'use strict';
+  const P = window.Proff = { scenes: [], blocks: [], opts: {}, errors: [], plugins: {} };
+  const TOK = ['ink', 'muted', 'dim', 'line', 'grid', 'fig', 'surf', 'surf2', 'bg', 'on', 'line-dim'];
+  const col = c => c == null ? null : /^[cf][1-6]$/.test(c) || TOK.includes(c) ? `var(--${c})` : c;
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const md = s => esc(s || '').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/\*(.+?)\*/g, '<i>$1</i>').replace(/`(.+?)`/g, '<code>$1</code>');
+  const para = s => String(s || '').split(/\n\s*\n/).map(b => /^\s*- /.test(b)
+    ? '<ul>' + b.split('\n').filter(l => l.trim()).map(l => '<li>' + md(l.replace(/^\s*- /, '')) + '</li>').join('') + '</ul>'
+    : '<p>' + md(b) + '</p>').join('');
+  P.md = para;
+
+  // ---------- maths helpers ----------
+  P.lerp = (a, b, t) => a + (b - a) * t;
+  P.ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  P.seg = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));   // progress of t inside [a,b]
+  P.clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  P.range = (a, b, n) => Array.from({ length: n }, (_, i) => a + (b - a) * i / (n - 1));
+  P.fmt = (v, d) => v == null || isNaN(v) ? '–' : Math.abs(v) >= 1e5 || (Math.abs(v) < 1e-3 && v !== 0) ? v.toExponential(d ?? 1).replace('e+', 'e')
+    : (+v.toFixed(d ?? (Number.isInteger(v) ? 0 : 2))).toLocaleString('en-US', { maximumFractionDigits: d ?? 2 });
+  P.rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const lgamma = x => { const c = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, .1208650973866179e-2, -.5395239384953e-5];
+    let y = x, t = x + 5.5; t -= (x + .5) * Math.log(t); let s = 1.000000000190015; for (const k of c) s += k / ++y; return -t + Math.log(2.5066282746310005 * s / x); };
+  const erf = x => { const s = Math.sign(x); x = Math.abs(x); const t = 1 / (1 + .3275911 * x);
+    return s * (1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x)); };
+  P.stat = {
+    lgamma, erf,
+    normPdf: (x, m = 0, s = 1) => Math.exp(-.5 * ((x - m) / s) ** 2) / (s * Math.sqrt(2 * Math.PI)),
+    normCdf: (x, m = 0, s = 1) => .5 * (1 + erf((x - m) / (s * Math.SQRT2))),
+    tPdf: (x, v) => Math.exp(lgamma((v + 1) / 2) - lgamma(v / 2)) / Math.sqrt(v * Math.PI) * (1 + x * x / v) ** (-(v + 1) / 2),
+    binomPmf: (k, n, p) => Math.exp(lgamma(n + 1) - lgamma(k + 1) - lgamma(n - k + 1) + k * Math.log(p) + (n - k) * Math.log(1 - p)),
+    poisPmf: (k, l) => Math.exp(k * Math.log(l) - l - lgamma(k + 1)),
+    nbPmf: (k, mu, phi) => { const r = 1 / phi; return Math.exp(lgamma(k + r) - lgamma(r) - lgamma(k + 1) + r * Math.log(r / (r + mu)) + k * Math.log(mu / (r + mu))); },
+    gammaPdf: (x, a, b) => x <= 0 ? 0 : Math.exp(a * Math.log(b) - lgamma(a) + (a - 1) * Math.log(x) - b * x),
+    betaPdf: (x, a, b) => x <= 0 || x >= 1 ? 0 : Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + (a - 1) * Math.log(x) + (b - 1) * Math.log(1 - x)),
+    normal: r => () => Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r()),
+    mean: a => a.reduce((s, x) => s + x, 0) / a.length,
+    sd: a => { const m = P.stat.mean(a); return Math.sqrt(a.reduce((s, x) => s + (x - m) ** 2, 0) / (a.length - 1)); },
+  };
+
+  // ---------- text measuring (shared by both backends and the audit) ----------
+  const mctx = document.createElement('canvas').getContext('2d');
+  const font = o => `${o.italic ? 'italic ' : ''}${o.weight || 500} ${o.size}px ${o.mono ? "'Space Grotesk',monospace" : "Inter,system-ui,sans-serif"}`;
+  const runs = s => { const out = []; const re = /([_^])\{([^}]*)\}/g; let i = 0, m;   // x_{ij}, x^{2}
+    while ((m = re.exec(s))) { if (m.index > i) out.push([s.slice(i, m.index), 0]); out.push([m[2], m[1] === '_' ? 1 : -1]); i = re.lastIndex; }
+    if (i < s.length) out.push([s.slice(i), 0]); return out; };
+  const measure = (s, o) => { mctx.font = font(o); let w = 0; for (const [t, sh] of runs(s)) { mctx.font = font({ ...o, size: sh ? o.size * .7 : o.size }); w += mctx.measureText(t).width; } return w; };
+
+  // ---------- drawing kit: identical API on SVG and Canvas ----------
+  function Kit(W, H, backend, rng) {
+    const g = { W, H, rng, texts: [], boxes: [], segs: [], words: 0 };
+    let out = [], ctx = backend.ctx, alpha = [1], xf = [[0, 0, 1]];
+    const vars = backend.vars || (k => k);
+    const X = (x, y) => { const [tx, ty, s] = xf[xf.length - 1]; return [tx + x * s, ty + y * s]; };   // to stage units, for the audit
+    const S = () => xf[xf.length - 1][2];
+    const A = () => alpha[alpha.length - 1];
+    const C = c => ctx ? vars(c) : col(c);
+    const reg = (kind, a) => (A() > .05) && g[kind].push(a);
+    const box = (x, y, w, h, solid) => { const [a, b] = X(x, y), s = S(); reg('boxes', { x0: a, y0: b, x1: a + w * s, y1: b + h * s, solid }); };
+    const seg = (x1, y1, x2, y2) => { const [a, b] = X(x1, y1), [c, d] = X(x2, y2); reg('segs', [a, b, c, d]); };
+    const style = o => { const f = o.fill === undefined ? 'none' : col(o.fill), st = o.stroke === undefined ? (o.fill === undefined ? 'var(--ink)' : 'none') : col(o.stroke);
+      return `fill="${f}" stroke="${st}" stroke-width="${o.sw ?? 2}"${o.dash ? ` stroke-dasharray="${o.dash === true ? '7 6' : o.dash}"` : ''}${o.op != null ? ` opacity="${o.op}"` : ''} stroke-linecap="round" stroke-linejoin="round"${o.cls ? ` class="${o.cls}"` : ''}`; };
+    const cv = (o, path) => {  // canvas paint
+      ctx.save(); ctx.globalAlpha = A() * (o.op ?? 1);
+      if (o.fill !== undefined && o.fill !== 'none') { ctx.fillStyle = C(o.fill); ctx.fill(path); }
+      const st = o.stroke === undefined ? (o.fill === undefined ? 'ink' : null) : o.stroke;
+      if (st && st !== 'none') { ctx.strokeStyle = C(st); ctx.lineWidth = o.sw ?? 2; ctx.lineCap = ctx.lineJoin = 'round'; ctx.setLineDash(o.dash ? (o.dash === true ? [7, 6] : String(o.dash).split(/\s+/).map(Number)) : []); ctx.stroke(path); }
+      ctx.restore(); };
+    g.path = (d, o = {}) => { if (ctx) cv(o, new Path2D(d)); else out.push(`<path d="${d}" ${style(o)}/>`); if (o.reg) o.reg.forEach(p => seg(...p)); return g; };
+    g.rect = (x, y, w, h, o = {}) => { const r = o.r || 0;
+      if (ctx) { const p = new Path2D(); r ? p.roundRect(x, y, w, h, r) : p.rect(x, y, w, h); cv(o, p); }
+      else out.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}"${r ? ` rx="${r}"` : ''} ${style(o)}/>`);
+      if (!o.free) box(x, y, w, h, o.fill !== undefined && o.fill !== 'none'); return g; };
+    g.circle = (cx, cy, r, o = {}) => { if (ctx) { const p = new Path2D(); p.arc(cx, cy, r, 0, 7); cv(o, p); } else out.push(`<circle cx="${cx}" cy="${cy}" r="${r}" ${style(o)}/>`);
+      if (!o.free && r > 6) box(cx - r * .7, cy - r * .7, r * 1.4, r * 1.4, o.fill !== undefined && o.fill !== 'none'); return g; };
+    g.ellipse = (cx, cy, rx, ry, o = {}) => { if (ctx) { const p = new Path2D(); p.ellipse(cx, cy, rx, ry, 0, 0, 7); cv(o, p); } else out.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" ${style(o)}/>`); return g; };
+    g.line = (x1, y1, x2, y2, o = {}) => { o = { stroke: 'ink', ...o }; g.path(`M${x1} ${y1}L${x2} ${y2}`, o); if (!o.free) seg(x1, y1, x2, y2); return g; };
+    g.poly = (pts, o = {}) => { if (!pts.length) return g; g.path('M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + (o.close ? 'Z' : ''), o);
+      if (o.reg !== false && !o.free) { const k = Math.max(1, Math.floor(pts.length / 40)); for (let i = k; i < pts.length; i += k) seg(pts[i - k][0], pts[i - k][1], pts[i][0], pts[i][1]); } return g; };
+    g.arrow = (x1, y1, x2, y2, o = {}) => {  // o.bend curves it; o.pad trims both ends; o.head size
+      const pad = o.pad ?? 0, L = Math.hypot(x2 - x1, y2 - y1) || 1, ux = (x2 - x1) / L, uy = (y2 - y1) / L;
+      x1 += ux * pad; y1 += uy * pad; x2 -= ux * pad; y2 -= uy * pad;
+      const hs = o.head ?? 12, b = o.bend || 0, mx = (x1 + x2) / 2 - uy * b, my = (y1 + y2) / 2 + ux * b;
+      const ang = b ? Math.atan2(y2 - my, x2 - mx) : Math.atan2(uy, ux), c = o.stroke || 'ink';
+      const ex = x2 - Math.cos(ang) * hs * .8, ey = y2 - Math.sin(ang) * hs * .8;
+      g.path(b ? `M${x1} ${y1}Q${mx} ${my} ${ex} ${ey}` : `M${x1} ${y1}L${ex} ${ey}`, { ...o, stroke: c, fill: undefined });
+      g.path(`M${x2} ${y2}L${x2 - hs * Math.cos(ang - .45)} ${y2 - hs * Math.sin(ang - .45)}L${x2 - hs * Math.cos(ang + .45)} ${y2 - hs * Math.sin(ang + .45)}Z`, { fill: c, stroke: c, sw: 1, op: o.op });
+      if (!o.free) { if (b) { seg(x1, y1, mx, my); seg(mx, my, x2, y2); } else seg(x1, y1, x2, y2); } return g; };
+    g.text = (x, y, s, o = {}) => {
+      s = String(s); o = { size: 22, ...o }; const lines = s.split('\n'), lh = o.size * 1.22, anchor = o.anchor || 'start';
+      const fill = o.fill || 'ink', wmax = Math.max(...lines.map(l => measure(l, o)));
+      const y0 = y - (lines.length - 1) * lh / 2;
+      lines.forEach((l, i) => {
+        const yy = y0 + i * lh;
+        if (ctx) { let xx = x - (anchor === 'middle' ? measure(l, o) / 2 : anchor === 'end' ? measure(l, o) : 0);
+          ctx.save(); ctx.globalAlpha = A() * (o.op ?? 1); ctx.fillStyle = C(fill); ctx.textBaseline = 'middle';
+          if (o.halo) { ctx.strokeStyle = C('fig'); ctx.lineWidth = 6; ctx.lineJoin = 'round'; }
+          for (const [t, sh] of runs(l)) { ctx.font = font({ ...o, size: sh ? o.size * .7 : o.size }); const dy = sh * o.size * .3;
+            if (o.halo) ctx.strokeText(t, xx, yy + dy); ctx.fillText(t, xx, yy + dy); xx += ctx.measureText(t).width; }
+          ctx.restore(); }
+        else { const sp = runs(l).map(([t, sh]) => sh ? `<tspan font-size="${o.size * .7}" dy="${sh * o.size * .3}">${esc(t)}</tspan><tspan dy="${-sh * o.size * .3}">​</tspan>` : esc(t)).join('');
+          out.push(`<text x="${x}" y="${yy}" font-size="${o.size}" font-weight="${o.weight || 500}" text-anchor="${anchor}" dominant-baseline="central" fill="${col(fill)}"${o.mono ? ' class="mono"' : ''}${o.italic ? ' font-style="italic"' : ''}${o.op != null ? ` opacity="${o.op}"` : ''}${o.halo ? ` stroke="var(--fig)" stroke-width="6" paint-order="stroke" stroke-linejoin="round"` : ''}>${sp}</text>`); }
+      });
+      const bx = x - (anchor === 'middle' ? wmax / 2 : anchor === 'end' ? wmax : 0), by = y0 - o.size * .55, bh = (lines.length - 1) * lh + o.size * 1.1;
+      const [a, b] = X(bx, by), sc = S();
+      if (!o.free) reg('texts', { x0: a, y0: b, x1: a + wmax * sc, y1: b + bh * sc, s, px: o.size * sc, tick: o.tick });
+      if (A() > .05 && !o.free && !o.tick) g.words += s.split(/\s+/).filter(w => /[A-Za-z]{2,}/.test(w)).length;
+      return { w: wmax, h: bh, x0: bx, y0: by, x1: bx + wmax, y1: by + bh }; };
+    g.label = (x, y, s, o = {}) => {  // text with a leader line to the point it names: o.to=[x,y]
+      const r = g.text(x, y, s, o);
+      if (o.to) { const [tx, ty] = o.to, cx = P.clamp(tx, r.x0, r.x1), cy = P.clamp(ty, r.y0, r.y1);
+        const sx = Math.abs(tx - (r.x0 + r.x1) / 2) > Math.abs(ty - (r.y0 + r.y1) / 2) ? (tx > r.x1 ? r.x1 + 6 : r.x0 - 6) : cx;
+        const sy = sx === cx ? (ty > r.y1 ? r.y1 + 4 : r.y0 - 4) : cy;
+        g.line(sx, sy, tx, ty, { stroke: o.lc || 'muted', sw: 1.5, free: true }); g.circle(tx, ty, 3, { fill: o.lc || 'muted', stroke: 'none', free: true }); }
+      return r; };
+    g.tex = (x, y, tex, o = {}) => {  // LaTeX via KaTeX (SVG backend only); box centred at x,y unless o.anchor
+      const size = o.size || 26, w = o.w || Math.max(80, tex.length * size * .42), h = o.h || size * 2.2;
+      const x0 = o.anchor === 'start' ? x : o.anchor === 'end' ? x - w : x - w / 2;
+      if (ctx || !window.katex) { g.text(x, y, tex.replace(/\\[a-z]+/g, m => ({ '\\sum': 'Σ', '\\times': '×', '\\cdot': '·', '\\div': '÷', '\\sigma': 'σ', '\\mu': 'μ', '\\log': 'log' }[m] || '')).replace(/[{}]/g, ''), { ...o, size, mono: true }); return g; }
+      let html; try { html = katex.renderToString(tex, { throwOnError: false }); } catch (e) { html = esc(tex); }
+      out.push(`<foreignObject x="${x0}" y="${y - h / 2}" width="${w}" height="${h}"${o.op != null ? ` opacity="${o.op}"` : ''}><div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${size}px;height:100%;display:flex;align-items:center;justify-content:${o.anchor === 'start' ? 'flex-start' : o.anchor === 'end' ? 'flex-end' : 'center'};color:${col(o.fill || 'ink')}">${html}</div></foreignObject>`);
+      const [a, b] = X(x0, y - size * .7); reg('texts', { x0: a, y0: b, x1: a + w * S() * .9, y1: b + size * 1.4 * S(), s: tex, px: size * S(), tex: 1 }); return g; };
+    g.img = (href, x, y, w, h, o = {}) => { if (ctx) { const im = P.images[href]; if (im && im.complete) { ctx.save(); ctx.globalAlpha = A() * (o.op ?? 1); ctx.drawImage(im, x, y, w, h); ctx.restore(); } }
+      else out.push(`<image href="${P.assets[href] || href}" x="${x}" y="${y}" width="${w}" height="${h}"${o.op != null ? ` opacity="${o.op}"` : ''} preserveAspectRatio="xMidYMid meet"/>`); return g; };
+    g.raw = s => { if (!ctx) out.push(s); return g; };
+    g.svgfile = (name, x, y, w, h, o = {}) => {  // a figure from svg/<name>.svg (plot.py output), fitted into the box
+      const src = (window.PROFF_SVG || {})[name]; if (!src) throw new Error(`svg/${name}.svg not found`);
+      out.push(src.replace(/<svg\b[^>]*?(viewBox="[^"]*")[^>]*>/, (m, vb) => `<svg class="ext" x="${x}" y="${y}" width="${w}" height="${h}" ${vb} preserveAspectRatio="xMidYMid meet"${o.op != null ? ` opacity="${o.op}"` : ''}>`));
+      const side = (window.PROFF_DATA || {})[name + '_axes'], res = []; if (!side) return res;   // data-unit mappers per axes (plot.py sidecar)
+      const fw = Math.min(w, h * side.aspect), fh = fw / side.aspect, ox = x + (w - fw) / 2, oy = y + (h - fh) / 2;
+      side.axes.forEach(a => { const L = v => Math.log10(v), [x0, x1] = a.xlog ? a.xlim.map(L) : a.xlim, [y0, y1] = a.ylog ? a.ylim.map(L) : a.ylim;
+        const X0 = ox + a.x * fw, Y0 = oy + a.y * fh, AW = a.w * fw, AH = a.h * fh;
+        res.push({ x: X0, y: Y0, w: AW, h: AH, sx: v => X0 + ((a.xlog ? L(v) : v) - x0) / (x1 - x0) * AW, sy: v => Y0 + AH - ((a.ylog ? L(v) : v) - y0) / (y1 - y0) * AH }); });
+      box(ox, oy, fw, fh, false); return res; };
+    g.group = (o, fn) => {  // o: {x, y, s (scale), op}
+      const [tx, ty, s0] = xf[xf.length - 1], s = o.s ?? 1, x = o.x || 0, y = o.y || 0;
+      xf.push([tx + x * s0, ty + y * s0, s0 * s]); alpha.push(A() * (o.op ?? 1));
+      if (ctx) { ctx.save(); ctx.translate(x, y); ctx.scale(s, s); fn(g); ctx.restore(); }
+      else { out.push(`<g transform="translate(${x} ${y}) scale(${s})"${o.op != null ? ` opacity="${o.op}"` : ''}>`); fn(g); out.push('</g>'); }
+      xf.pop(); alpha.pop(); return g; };
+    g.fade = (op, fn) => g.group({ op }, fn);
+
+    // ---- charts ----
+    g.axes = (o) => {  // {x,y,w,h, xd:[a,b], yd:[a,b], xl, yl, xt:n|[..], yt, grid, fmtx, fmty, log}
+      const { x, y, w, h } = o, [xa, xb] = o.xd, [ya, yb] = o.yd;
+      const sx = v => x + (v - xa) / (xb - xa) * w, sy = v => y + h - (v - ya) / (yb - ya) * h;
+      const ticks = (t, a, b) => Array.isArray(t) ? t : nice(a, b, t ?? 5);
+      const xt = ticks(o.xt, xa, xb), yt = ticks(o.yt, ya, yb), fs = o.size || 18;
+      if (o.grid !== false) { yt.forEach(v => g.line(x, sy(v), x + w, sy(v), { stroke: 'grid', sw: 1, free: true })); }
+      g.line(x, y + h, x + w, y + h, { stroke: 'muted', sw: 2, free: true }); g.line(x, y, x, y + h, { stroke: 'muted', sw: 2, free: true });
+      xt.forEach(v => { g.line(sx(v), y + h, sx(v), y + h + 6, { stroke: 'muted', sw: 2, free: true }); g.text(sx(v), y + h + 8 + fs * .7, (o.fmtx || P.fmt)(v), { size: fs, anchor: 'middle', fill: 'muted', tick: 1 }); });
+      yt.forEach(v => g.text(x - 10, sy(v), (o.fmty || P.fmt)(v), { size: fs, anchor: 'end', fill: 'muted', tick: 1 }));
+      if (o.xl) g.text(x + w, y + h + fs * 2.6, o.xl, { size: fs + 1, anchor: 'end', fill: 'muted', weight: 600 });
+      if (o.yl) g.text(x, y - fs * 1.2, o.yl, { size: fs + 1, anchor: 'start', fill: 'muted', weight: 600 });
+      return { sx, sy, x, y, w, h }; };
+    g.curve = (f, ax, a, b, o = {}) => { const n = o.n || 200, pts = P.range(a, b, n).map(v => [ax.sx(v), ax.sy(f(v))]).filter(p => isFinite(p[1]));
+      return g.poly(pts.map(p => [p[0], P.clamp(p[1], ax.y - 4, ax.y + ax.h)]), { stroke: 'c1', sw: 3, ...o }); };
+    g.area = (f, ax, a, b, o = {}) => { const pts = P.range(a, b, o.n || 120).map(v => [ax.sx(v), P.clamp(ax.sy(f(v)), ax.y, ax.y + ax.h)]);
+      return g.poly([[ax.sx(a), ax.y + ax.h], ...pts, [ax.sx(b), ax.y + ax.h]], { fill: 'f1', stroke: 'none', close: true, reg: false, ...o }); };
+    g.bars = (vals, ax, o = {}) => { const bw = o.bw || 0.8; vals.forEach(([x, v], i) => { const x0 = ax.sx(x - bw / 2), x1 = ax.sx(x + bw / 2), y0 = ax.sy(Math.max(0, ax.yd0 || 0));
+      g.rect(x0, Math.min(ax.sy(v), y0), x1 - x0, Math.abs(y0 - ax.sy(v)), { fill: typeof o.fill === 'function' ? o.fill(x, v, i) : (o.fill || 'f1'), stroke: o.stroke || 'c1', sw: o.sw ?? 1.5, free: true }); }); return g; };
+    g.dots = (pts, ax, o = {}) => { pts.forEach((p, i) => g.circle(ax ? ax.sx(p[0]) : p[0], ax ? ax.sy(p[1]) : p[1], o.r || 6, { fill: typeof o.fill === 'function' ? o.fill(p, i) : (o.fill || 'c1'), stroke: o.stroke || 'none', op: o.op, free: true })); return g; };
+    g.brace = (x1, y1, x2, y2, s, o = {}) => {  // curly brace from (x1,y1) to (x2,y2), label on the outside (left side of travel)
+      const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, nx = uy, ny = -ux, d = o.depth || 14;
+      const p = (t, k) => [x1 + ux * L * t + nx * d * k, y1 + uy * L * t + ny * d * k];
+      const [a, b, c, e, f] = [p(0, 0), p(.25, 1), p(.5, 2), p(.75, 1), p(1, 0)];
+      g.path(`M${a}Q${p(0, 1)} ${b}L${p(.45, 1)}Q${p(.5, 1)} ${c}Q${p(.5, 1)} ${p(.55, 1)}L${e}Q${p(1, 1)} ${f}`.replace(/,/g, ' '), { stroke: o.stroke || 'muted', sw: 2, reg: [[...p(0, 1), ...p(1, 1)], [...p(.5, 1), ...p(.5, 2)]] });
+      if (s) { const [lx, ly] = p(.5, 2 + (o.gap || 1.2)); g.text(lx, ly, s, { size: o.size || 18, anchor: Math.abs(nx) > .5 ? (nx > 0 ? 'start' : 'end') : 'middle', fill: o.fill || 'muted', weight: 600 }); } return g; };
+    g.matrix = (x, y, data, o = {}) => {  // table of numbers; o: cw, ch, rows, cols, fmt, cell(i,j,v)->{fill,stroke,op,text}, title
+      const cw = o.cw || 74, ch = o.ch || 46, R = data.length, Cn = data[0].length, fs = o.size || Math.min(22, ch * .46);
+      const pos = (i, j) => ({ x: x + j * cw, y: y + i * ch, w: cw, h: ch, cx: x + j * cw + cw / 2, cy: y + i * ch + ch / 2 });
+      if (o.title) g.text(x + cw * Cn / 2, y - (o.cols ? fs * 2.6 : fs * 1.3), o.title, { size: fs, anchor: 'middle', weight: 750 });
+      if (o.cols) o.cols.forEach((c, j) => g.text(pos(0, j).cx, y - fs * .9, c, { size: fs * .8, anchor: 'middle', fill: o.colFill ? o.colFill(j) : 'muted', mono: true }));
+      if (o.rows) o.rows.forEach((r, i) => g.text(x - 10, pos(i, 0).cy, r, { size: fs * .8, anchor: 'end', fill: o.rowFill ? o.rowFill(i) : 'muted', mono: true }));
+      for (let i = 0; i < R; i++) for (let j = 0; j < Cn; j++) {
+        const p = pos(i, j), st = (o.cell && o.cell(i, j, data[i][j])) || {};
+        g.rect(p.x, p.y, cw, ch, { fill: st.fill || 'surf', stroke: st.stroke || 'line-dim', sw: st.sw || 1.5, op: st.op, free: true });
+        const v = st.text ?? (data[i][j] == null ? '' : (o.fmt || P.fmt)(data[i][j]));
+        if (v !== '') g.text(p.cx, p.cy, v, { size: fs, anchor: 'middle', mono: true, weight: st.weight || 600, fill: st.color || 'ink', op: st.top, tick: 1 });
+      }
+      if (o.frame !== false) g.rect(x, y, cw * Cn, ch * R, { stroke: 'line', sw: 2.5, free: true });
+      box(x, y, cw * Cn, ch * R, false);
+      return { pos, w: cw * Cn, h: ch * R, x, y }; };
+    if (P.plugins) for (const k in P.plugins) g[k] = (...a) => P.plugins[k](g, ...a);
+    g._svg = () => out.join('');
+    return g;
+  }
+  const nice = (a, b, n) => { const span = b - a, step0 = span / Math.max(1, n), mag = 10 ** Math.floor(Math.log10(step0)), err = step0 / mag;
+    const st = (err >= 7.5 ? 10 : err >= 3.5 ? 5 : err >= 1.5 ? 2 : 1) * mag, out = []; for (let v = Math.ceil(a / st) * st; v <= b + st * 1e-9; v += st) out.push(+v.toFixed(10)); return out; };
+  P.nice = nice; P.measure = (s, o = {}) => measure(String(s), { size: 22, ...o }); P.images = {}; P.assets = window.PROFF_ASSETS || {};
+
+  // ---------- page API ----------
+  P.page = o => Object.assign(P.opts, o);
+  P.scene = s => { s.steps = (s.steps || ['']).map(x => typeof x === 'string' ? { cap: x } : x); s.params = {}; (s.controls || []).forEach(c => s.params[c.name] = c.value ?? c.min); s.defaults = { ...s.params };
+    s.W = s.w || 1200; s.H = s.h || 675; s.seed = s.seed || 7; s.i = P.scenes.length; P.scenes.push(s); P.blocks.push({ scene: s }); return s; };
+  P.prose = (text, o = {}) => P.blocks.push({ prose: text, ...o });
+  P.html = (html) => P.blocks.push({ html });
+  // study blocks (layout 'article'): section heading, tiles, flip questions, comparison table. Text is markdown-lite (**b**, *i*, `code`).
+  P.section = (name) => P.html(`<h2 class="sec">${esc(name)}</h2>`);
+  P.tiles = (items, o = {}) => P.html(`<div class="grid">${items.map((t, i) => `<div class="tile acc${t.acc || o.acc || (i % 6) + 1}">${t.tag ? `<span class="tag">${esc(t.tag)}</span>` : ''}${t.big ? `<div class="big">${esc(t.big)}</div>` : ''}${t.h ? `<h3>${md(t.h)}</h3>` : ''}${t.text ? para(t.text) : ''}</div>`).join('')}</div>`);
+  P.quiz = (items) => P.html(`<div class="grid">${items.map((q, i) => `<div class="tile flip acc${q.acc || (i % 6) + 1}" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle('on');this.setAttribute('aria-expanded',this.classList.contains('on'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"><span class="tag">${esc(q.tag || 'question ' + (i + 1))}</span><h3>${md(q.q)}</h3><div class="hint">tap to reveal</div><div class="a">${para(q.a)}</div></div>`).join('')}</div>`);
+  P.compare = (head, rows) => P.html(`<table class="cmp"><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, j) => j ? `<td>${md(c)}</td>` : `<td><b>${md(c)}</b></td>`).join('')}</tr>`).join('')}</tbody></table>`);
+
+  // ---------- rendering ----------
+  let cssVars = {};
+  const readVars = () => { const cs = getComputedStyle(document.body); cssVars = {};
+    for (const k of [...TOK, 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6']) cssVars[k] = cs.getPropertyValue('--' + k).trim(); };
+  const resolve = c => { if (c == null) return null; const m = /^var\(--([\w-]+)\)$/.exec(c); const k = m ? m[1] : c;
+    return k in cssVars ? resolveMix(k) : c; };
+  const mixCache = {}; const resolveMix = k => { const key = k + document.body.dataset.theme + (document.body.dataset.palette || ''); if (mixCache[key]) return mixCache[key];
+    const d = document.createElement('div'); d.style.color = `var(--${k})`; document.body.appendChild(d); const v = getComputedStyle(d).color; d.remove(); return mixCache[key] = v; };
+
+  function draw(s, k, t) {
+    s.k = k; s.t = t; const fig = s.el.fig;
+    let g;
+    try {
+      if (s.kind === 'canvas') {
+        const cv = fig.querySelector('canvas'), dpr = Math.min(2, window.devicePixelRatio || 1);
+        if (cv.width !== s.W * dpr) { cv.width = s.W * dpr; cv.height = s.H * dpr; }
+        const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, s.W, s.H);
+        g = Kit(s.W, s.H, { ctx, vars: resolve }, P.rng(s.seed)); s.draw(g, k, t, s.params, s);
+      } else {
+        g = Kit(s.W, s.H, {}, P.rng(s.seed)); s.draw(g, k, t, s.params, s);
+        fig.querySelector('svg').innerHTML = g._svg();
+      }
+      s.last = g; s.err = null;
+    } catch (e) { s.err = e.message; P.errors.push(`scene ${s.i + 1} step ${k + 1}: ${e.message}`); console.error(e);
+      fig.querySelector(s.kind === 'canvas' ? 'canvas' : 'svg').insertAdjacentHTML?.('afterend', ''); }
+    const st = s.steps[k] || {};
+    if (s.el.cap) s.el.cap.innerHTML = st.cap ? md(st.cap) : '';
+    if (s.el.title && (st.title || s.title)) s.el.title.textContent = st.title || s.title;
+    if (s.el.phase) { s.el.phase.textContent = st.phase || s.phase || ''; s.el.phase.style.display = (st.phase || s.phase) ? '' : 'none'; }
+    if (s.el.info) s.el.info.innerHTML = para(st.info || s.info || '');
+    if (s.el.ib) s.el.ib.style.display = (st.info || s.info) ? '' : 'none';
+  }
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function play(s, k, instant) {
+    cancelAnimationFrame(s.raf); const dur = s.anim ?? 700;
+    if (instant || reduce || !dur || P.static) return draw(s, k, 1);
+    const t0 = performance.now(); const tick = now => { const t = Math.min(1, (now - t0) / dur); draw(s, k, P.ease(t)); if (t < 1) s.raf = requestAnimationFrame(tick); };
+    s.raf = requestAnimationFrame(tick);
+  }
+
+  function figure(s) {
+    const svg = s.kind === 'canvas' ? `<canvas width="${s.W}" height="${s.H}" role="img" aria-label="${esc(s.alt || s.title || '')}"></canvas>`
+      : `<svg viewBox="0 0 ${s.W} ${s.H}" role="img" aria-label="${esc(s.alt || s.title || '')}"></svg>`;
+    return `<div class="fig${s.pan ? ' pan' : ''}">${svg}</div>`;
+  }
+  function controls(s) {
+    if (!s.controls || !s.controls.length) return '';
+    return `<div class="ctl">${s.controls.map(c => c.type === 'button' ? `<button class="btn" data-b="${c.name}">${esc(c.label)}</button>`
+      : `<label><span>${esc(c.label || c.name)}</span><input type="range" name="${c.name}" min="${c.min}" max="${c.max}" step="${c.step ?? 1}" value="${c.value ?? c.min}"><output>${esc((c.fmt ? c.fmt(c.value ?? c.min) : P.fmt(+(c.value ?? c.min))) + (c.unit || ''))}</output></label>`).join('')}</div>`;
+  }
+  function syncControls(s) {   // show the live params on the sliders (check.py sets params directly)
+    document.querySelectorAll(`[data-s="${s.i}"] .ctl input`).forEach(inp => { if (!(inp.name in s.params)) return; const c = s.controls.find(c => c.name === inp.name);
+      inp.value = s.params[inp.name]; inp.nextElementSibling.textContent = (c.fmt ? c.fmt(+inp.value) : P.fmt(+inp.value)) + (c.unit || ''); }); }
+  function bindControls(s, root) {
+    root.querySelectorAll('.ctl input').forEach(inp => inp.addEventListener('input', () => {
+      const c = s.controls.find(c => c.name === inp.name); s.params[inp.name] = +inp.value;
+      inp.nextElementSibling.textContent = (c.fmt ? c.fmt(+inp.value) : P.fmt(+inp.value)) + (c.unit || ''); draw(s, s.k || 0, 1); }));
+    root.querySelectorAll('.ctl [data-b]').forEach(b => b.addEventListener('click', () => { const c = s.controls.find(c => c.name === b.dataset.b);
+      if (c.name === 'reseed') s.seed++; if (c.on) c.on(s.params, s); draw(s, s.k || 0, 1); }));
+  }
+  const infoBtn = `<button class="ib" aria-expanded="false" aria-label="details" title="details (i)">i</button>`;
+  function bindInfo(root) { const b = root.querySelector('.ib'), d = root.querySelector('.drawer'); if (!b) return;
+    b.onclick = () => { const o = d.classList.toggle('open'); b.setAttribute('aria-expanded', o); }; }
+  function stepNav(n) { return n > 1 ? `<div class="nav"><button data-d="-1" aria-label="previous">‹</button><input type="range" min="0" max="${n - 1}" step="0.001" value="0" aria-label="step"><span class="ctr"></span><button data-d="1" aria-label="next">›</button></div>` : ''; }
+
+  // walk: one stage, one slider over every step of every scene
+  function buildWalk(root) {
+    const flat = []; P.scenes.forEach(s => s.steps.forEach((_, k) => flat.push([s, k])));
+    root.innerHTML = `<section class="card"><div class="head"><span class="phase"></span><span class="stitle"></span></div>${infoBtn}
+      <div class="stagewrap">${P.scenes.map(s => `<div class="sc" data-s="${s.i}" hidden>${figure(s)}${controls(s)}</div>`).join('')}</div>
+      <p class="cap" aria-live="polite"></p>${stepNav(flat.length)}<div class="drawer"></div></section>`;
+    const card = root.querySelector('.card'), nav = card.querySelector('.nav'), rng = nav && nav.querySelector('input'), ctr = nav && nav.querySelector('.ctr');
+    P.scenes.forEach(s => { const sc = card.querySelector(`.sc[data-s="${s.i}"]`); s.el = { fig: sc.querySelector('.fig'), cap: card.querySelector('.cap'), title: card.querySelector('.stitle'), phase: card.querySelector('.phase'), info: card.querySelector('.drawer'), ib: card.querySelector('.ib') }; bindControls(s, sc); });
+    bindInfo(card);
+    let cur = -1, dragging = false;
+    const go = (i, instant) => { i = P.clamp(Math.round(i), 0, flat.length - 1); const [s, k] = flat[i], prev = cur >= 0 ? flat[cur][0] : null;
+      card.querySelectorAll('.sc').forEach(e => e.hidden = +e.dataset.s !== s.i);
+      card.className = 'card ' + (s.acc ? 'acc' + s.acc : '');
+      const fwd = i === cur + 1 && prev === s; cur = i; play(s, k, instant || dragging || !fwd);
+      if (rng && !dragging) rng.value = i; if (ctr) ctr.textContent = `${i + 1} / ${flat.length}`;
+      if (nav) { nav.querySelector('[data-d="-1"]').disabled = i === 0; nav.querySelector('[data-d="1"]').disabled = i === flat.length - 1; } };
+    if (nav) { nav.querySelectorAll('button').forEach(b => b.onclick = () => go(cur + +b.dataset.d));
+      rng.addEventListener('input', () => { dragging = true; const i = Math.round(+rng.value); if (i !== cur) go(i, true); });
+      rng.addEventListener('change', () => { dragging = false; rng.value = cur; }); }
+    addEventListener('keydown', e => { if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(cur + 1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
+      else if (e.key === 'Home') go(0, true); else if (e.key === 'End') go(flat.length - 1, true); else if (e.key === 'i') card.querySelector('.ib')?.click(); });
+    P.states = () => flat.map(([s, k], i) => ({ i, scene: s.i, step: k }));
+    P.show = st => { const s = P.scenes[st.scene]; Object.assign(s.params, s.defaults, st.params || {}); syncControls(s); go(st.i, true); draw(s, st.step, 1); };
+    go(0, true);
+  }
+  // article: prose between wide figures, each with its own steps and controls
+  function buildArticle(root) {
+    root.innerHTML = P.blocks.map((b, bi) => b.prose != null ? `<div class="prose">${b.h ? `<h2>${esc(b.h)}</h2>` : ''}${para(b.prose)}</div>`
+      : b.html != null ? b.html
+      : `<section class="card ${b.scene.acc ? 'acc' + b.scene.acc : ''}" data-s="${b.scene.i}">${(b.scene.title || b.scene.phase) ? `<div class="head">${b.scene.phase ? `<span class="phase">${esc(b.scene.phase)}</span>` : ''}<span class="stitle"></span></div>` : ''}${b.scene.info ? infoBtn : ''}
+         ${figure(b.scene)}${controls(b.scene)}<p class="cap" aria-live="polite"></p>${stepNav(b.scene.steps.length)}<div class="drawer"></div></section>`).join('');
+    P.scenes.forEach(s => { const card = root.querySelector(`.card[data-s="${s.i}"]`);
+      s.el = { fig: card.querySelector('.fig'), cap: card.querySelector('.cap'), title: card.querySelector('.stitle'), info: card.querySelector('.drawer'), ib: card.querySelector('.ib') };
+      bindControls(s, card); bindInfo(card);
+      const nav = card.querySelector('.nav'); let k = 0;
+      const go = (j, instant) => { j = P.clamp(Math.round(j), 0, s.steps.length - 1); const fwd = j === k + 1; k = j; play(s, j, instant || !fwd);
+        if (nav) { nav.querySelector('input').value = j; nav.querySelector('.ctr').textContent = `${j + 1} / ${s.steps.length}`;
+          nav.querySelector('[data-d="-1"]').disabled = j === 0; nav.querySelector('[data-d="1"]').disabled = j === s.steps.length - 1; } };
+      s.go = go;
+      if (nav) { nav.querySelectorAll('button').forEach(b => b.onclick = () => go(k + +b.dataset.d)); nav.querySelector('input').addEventListener('input', e => go(+e.target.value, true)); }
+      go(0, true); });
+    P.states = () => { const out = []; let i = 0; P.scenes.forEach(s => s.steps.forEach((_, k) => out.push({ i: i++, scene: s.i, step: k }))); return out; };
+    P.show = st => { const s = P.scenes[st.scene]; Object.assign(s.params, s.defaults, st.params || {}); syncControls(s); s.go(st.step, true); draw(s, st.step, 1); };
+  }
+
+  // ---------- self audit: run on the drawn state; check.py calls it for every step and control extreme ----------
+  P.audit = (sceneIndex) => {
+    const s = P.scenes[sceneIndex], g = s && s.last, out = [], where = `scene ${s.i + 1} "${(s.steps[s.k] && s.steps[s.k].title) || s.title || ''}" step ${s.k + 1}`;
+    if (s.err) out.push(`${where}: draw error: ${s.err}`);
+    if (!g) return out;
+    const fig = s.el.fig.getBoundingClientRect(), px = fig.width / s.W;
+    const T = g.texts.filter(a => a.x1 > a.x0), ov = (a, b, m = 0) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0) - m) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0) - m);
+    const short = s => `"${String(s).slice(0, 28)}"`;
+    for (let i = 0; i < T.length; i++) {
+      const a = T[i];
+      if (a.x0 < -2 || a.y0 < -2 || a.x1 > s.W + 2 || a.y1 > s.H + 2) out.push(`${where}: ${short(a.s)} leaves the figure`);
+      if (a.px * px < 11.5 && px > .5) out.push(`${where}: ${short(a.s)} renders at ${(a.px * px).toFixed(1)}px (<12px)`);
+      if (!a.tex && String(a.s).split(/\s+/).length > 7) out.push(`${where}: label ${short(a.s)} has >7 words; move detail to the caption or info`);
+      for (let j = i + 1; j < T.length; j++) if (ov(a, T[j], 1) > 6) out.push(`${where}: labels overlap ${short(a.s)} × ${short(T[j].s)}`);
+      for (const [x1, y1, x2, y2] of g.segs) if (segHit(x1, y1, x2, y2, a.x0 + 3, a.y0 + 3, a.x1 - 3, a.y1 - 3)) { out.push(`${where}: a line crosses ${short(a.s)}`); break; }
+      for (const b of g.boxes) { const inside = a.x0 >= b.x0 - 1 && a.x1 <= b.x1 + 1 && a.y0 >= b.y0 - 1 && a.y1 <= b.y1 + 1;
+        if (!inside && ov(a, b, 2) > 8 && b.solid) { out.push(`${where}: ${short(a.s)} sits across a shape edge`); break; } }
+    }
+    if (g.words > (s.wordBudget || 40)) out.push(`${where}: ${g.words} words on the figure (budget ${s.wordBudget || 40}); move text to caption/info`);
+    const cap = (s.steps[s.k] || {}).cap || ''; if (cap.split(/\s+/).length > 28) out.push(`${where}: caption has ${cap.split(/\s+/).length} words (max 28)`);
+    if (T.filter(a => !a.tick).length > (s.labelBudget || 24)) out.push(`${where}: ${T.length} text items on the figure; split the scene`);
+    return [...new Set(out)];
+  };
+  function segHit(x1, y1, x2, y2, l, t, r, b) {
+    if (r <= l || b <= t) return false;
+    const inside = (x, y) => x > l && x < r && y > t && y < b; if (inside(x1, y1) || inside(x2, y2)) return true;
+    const cr = (ax, ay, bx, by, cx, cy, dx, dy) => { const d = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx); if (!d) return false;
+      const u = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / d, v = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d; return u > 0 && u < 1 && v > 0 && v < 1; };
+    return cr(x1, y1, x2, y2, l, t, r, t) || cr(x1, y1, x2, y2, r, t, r, b) || cr(x1, y1, x2, y2, l, b, r, b) || cr(x1, y1, x2, y2, l, t, l, b);
+  }
+
+  // ---------- boot ----------
+  function boot() {
+    const o = P.opts, theme = new URLSearchParams(location.search).get('theme') || o.theme || 'dark';
+    document.body.dataset.theme = theme; if (o.palette) document.body.dataset.palette = o.palette; if (o.acc) document.body.classList.add('acc' + o.acc);
+    document.title = o.title || 'Proff';
+    const head = `<header class="top"><div class="tx">${o.eyebrow ? `<span class="eyebrow">${esc(o.eyebrow)}</span>` : ''}<h1>${esc(o.title || '')}</h1>${o.sub ? `<p class="sub">${esc(o.sub)}</p>` : ''}</div>
+      <div class="tog" role="group" aria-label="theme"><button data-t="dark">Dark</button><button data-t="light">Light</button></div></header>`;
+    document.body.insertAdjacentHTML('afterbegin', head + '<main id="story"></main>' + (o.foot ? `<p class="foot">${md(o.foot)}</p>` : ''));
+    const setT = t => { document.body.dataset.theme = t; document.querySelectorAll('.tog button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t)); readVars(); P.scenes.forEach(s => s.el && draw(s, s.k || 0, 1)); };
+    document.querySelectorAll('.tog button').forEach(b => b.onclick = () => setT(b.dataset.t));
+    readVars();
+    const root = document.getElementById('story');
+    (o.layout === 'article' ? buildArticle : buildWalk)(root);
+    setT(theme);
+    P.ready = true;
+  }
+  const start = () => (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(() => {
+    const imgs = Object.entries(P.assets).map(([k, v]) => new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = v; P.images[k] = im; }));
+    return Promise.all(imgs); }).then(boot).catch(e => { P.errors.push('boot: ' + e.message); console.error(e); });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else setTimeout(start);
+  addEventListener('error', e => P.errors.push('page: ' + e.message));
+})();
+</script><script>/* Proff calc engine: replays a calctrace.py trace. Proff.calc(trace, {phase, acc}) adds one scene per operation.
+   Reads glow in their table's colour, the formula bar shows the numbers being combined, the output cell fills. */
+(function () {
+  'use strict';
+  const P = window.Proff, ST = P.stat;
+  const fcol = c => 'f' + c.slice(1);
+  const CAP_ALL = 'Same rule for every cell.';
+
+  P.calc = (tr, opt = {}) => {
+    const TS = tr.tensors;
+    tr.steps.forEach((st, si) => {
+      const n = st.cells.length, k = Math.min(st.expand || 0, n), plan = [];
+      for (let c = 0; c < k; c++) plan.push({ one: c });
+      if (n > k || !n) plan.push({ rest: k });
+      const steps = plan.map((p, j) => ({ cap: j === 0 ? st.cap : p.rest != null ? (st.cap_all || CAP_ALL) : `Next cell, same rule.`, info: st.info }));
+      P.scene({ title: st.title, phase: opt.phase || st.phase, labelBudget: 60, wordBudget: 60, acc: opt.acc, steps, info: st.info, anim: st.op === 'show' ? 450 : 900, w: 1200, h: 675,
+        draw: (g, j, t) => (st.op === 'dist' ? drawDist : drawOp)(g, st, plan[j], t, TS) });
+    });
+  };
+
+  // ---------- layout of the equation row ----------
+  function sizeOf(T, cw, ch) {
+    const R = T.data.length, C = T.data[0].length, fs = Math.min(28, ch * .44);
+    const lab = T.rows ? Math.max(...T.rows.map(r => String(r).length)) * fs * .5 + 16 : 0;
+    const top = (T.cols ? fs * 1.3 : 0) + fs * 1.6;
+    return { w: C * cw, h: R * ch, lab, top, fs };
+  }
+  function layoutRow(g, items, TS, cw, ch) {
+    const gap = 26, parts = [];
+    let x = 0;
+    for (const it of items) {
+      if (it == null) continue;
+      if (typeof it === 'string') { const w = Math.max(40, it.length * 17 + 24); parts.push({ op: it, x, w }); x += w + gap; continue; }
+      const T = TS[it.t], s = sizeOf(T, cw, ch);
+      const p = { t: it.t, x: x + s.lab, y: 0, s, below: it.below, right: it.right, sym: it.sym };
+      let w = s.lab + s.w, h = s.h;
+      if (it.right) { const V = TS[it.right], vs = sizeOf(V, cw, ch); p.rx = s.w + 70; w += 70 + vs.w; }
+      if (it.below) { p.by = s.h + ch * .9; h += ch * 1.9; }
+      p.W = w; p.Hh = h; parts.push(p); x += w + gap;
+    }
+    return { parts, width: x - gap };
+  }
+  function fit(g, st, TS) {
+    const top = st.tex ? 110 : 64, bottom = 120, availH = g.H - top - bottom, availW = g.W - 80;
+    for (let cw = 150; cw >= 40; cw -= 4) {
+      const ch = Math.round(cw * .56), L = layoutRow(g, st.layout, TS, cw, ch);
+      const H = Math.max(...L.parts.filter(p => p.t).map(p => p.s.top + (p.Hh || p.s.h)), 0);
+      if (L.width <= availW && H <= availH) return { cw, ch, L, H, top, x0: (g.W - L.width) / 2, y0: top + (availH - H) / 2 };
+    }
+    const cw = 40, ch = 24, L = layoutRow(g, st.layout, TS, cw, ch);
+    return { cw, ch, L, H: 0, top, x0: 40, y0: top + 10 };
+  }
+
+  // ---------- one operation ----------
+  function drawOp(g, st, pl, t, TS) {
+    const F = fit(g, st, TS), { cw, ch } = F, n = st.cells.length;
+    // which cells are done, which one is live
+    let live = null, done = 0, phase = 1;
+    if (pl.one != null) { live = st.cells[pl.one]; done = pl.one; phase = t; }
+    else if (n) { const k = pl.rest; const f = k + (n - k) * t; done = Math.floor(f); live = done < n ? st.cells[done] : null; if (t >= 1) { done = n; live = null; } }
+    const isDone = (i, j) => { for (let c = 0; c < done; c++) { const o = st.cells[c].out; if (o[0] === i && o[1] === j) return true; } return false; };
+    const reads = new Set((live ? live.reads : []).map(r => r.join(':')));
+    const outCell = live ? live.out.join(':') : null;
+    const showRead = pl.one != null ? P.seg(phase, 0, .25) : 1, showOut = pl.one != null ? P.seg(phase, .7, .95) : 1;
+
+    if (st.tex) g.tex(g.W / 2, 58, st.tex, { size: 36, w: 1000, h: 80 });
+    const y0 = F.y0;
+    for (const p of F.L.parts) {
+      const x = F.x0 + p.x;
+      if (p.op) { g.text(F.x0 + p.x + p.w / 2, y0 + F.H / 2 + 12, p.op, { size: p.op.length > 3 ? 24 : 40, anchor: 'middle', weight: 700, fill: 'muted' }); continue; }
+      const T = TS[p.t], top = y0 + p.s.top;
+      drawT(g, T, p.t, x, top, cw, ch, st, { reads, outCell, isDone, showRead, showOut, phase });
+      if (p.below) { const V = TS[p.below], vy = top + p.by;
+        g.text(x - 12, vy + ch / 2, p.sym, { size: 26, anchor: 'end', weight: 800, fill: V.color });
+        drawT(g, V, p.below, x, vy, cw, ch, st, { reads, outCell, isDone, showRead, showOut, phase, noTitle: true });
+        g.text(x + p.s.w + 12, vy + ch / 2, V.label, { size: 17, fill: V.color, weight: 650 }); }
+      if (p.right) { const V = TS[p.right], vx = x + p.rx;
+        g.text(vx - 35, top + p.s.h / 2, p.sym, { size: 26, anchor: 'middle', weight: 800, fill: V.color });
+        drawT(g, V, p.right, vx, top, cw, ch, st, { reads, outCell, isDone, showRead, showOut, phase }); }
+    }
+    // formula bar: the live cell's arithmetic, coloured by table
+    const ex = live ? live.expr : (n ? st.cells[n - 1].expr : null);
+    if (ex && st.op !== 'show') {
+      const fy = g.H - 62, size = 34, upto = pl.one != null ? Math.ceil(ex.length * P.seg(phase, .2, .75)) : ex.length;
+      const ws = ex.map(([s, name]) => P.measure(s, { size, mono: true, weight: name ? 750 : 500 })), w = ws.reduce((a, b) => a + b, 0);
+      let x = g.W / 2 - w / 2;
+      g.rect(g.W / 2 - w / 2 - 28, fy - 36, w + 56, 72, { fill: 'surf', stroke: 'line-dim', sw: 1.5, r: 4, free: true });
+      ex.slice(0, upto).forEach(([s, name], q) => { const c = name ? TS[name].color : 'muted';
+        g.text(x, fy, s, { size, fill: c, weight: name ? 750 : 500, mono: true, op: live ? 1 : .5 }); x += ws[q]; });
+    }
+  }
+
+  function drawT(g, T, name, x, y, cw, ch, st, s) {
+    const R = T.data.length, isOut = name === st.out;
+    if (!s.noTitle) g.text(x + T.data[0].length * cw / 2, y - (T.cols ? Math.min(28, ch * .44) * 2.4 : Math.min(28, ch * .44) * 1.1), T.label + (T.unit ? ` (${T.unit})` : ''), { size: 18, anchor: 'middle', weight: 750, fill: T.color });
+    g.matrix(x, y, T.disp, {
+      cw, ch, rows: T.rows, cols: T.cols, fmt: v => v, size: Math.min(28, ch * .44),
+      cell: (i, j) => {
+        const key = `${name}:${i}:${j}`;
+        if (isOut) {
+          const here = s.outCell === `${i}:${j}`;
+          if (here) return { fill: fcol(T.color), stroke: T.color, sw: 3, text: s.showOut > .5 ? T.disp[i][j] : '', top: s.showOut };
+          if (!s.isDone(i, j)) return { fill: 'fig', stroke: 'line-dim', text: '' };
+          return {};
+        }
+        if (s.reads.has(key)) return { fill: fcol(T.color), stroke: T.color, sw: 3, op: 1, top: 1, weight: 800, color: s.showRead > .3 ? T.color : 'ink' };
+        return { };
+      } });
+  }
+
+  // ---------- where a statistic falls on its distribution ----------
+  function drawDist(g, st, pl, t, TS) {
+    const prm = st.params, x = st.x, disc = ['pois', 'nb', 'binom'].includes(st.dist);
+    const left = st.src ? 420 : 90;
+    if (st.src) { const [nm, i, j] = st.src, T = TS[nm], cw = 66, ch = 40;
+      const R = T.data.length, C = T.data[0].length, mx = 60 + (T.rows ? 70 : 0), my = (g.H - R * ch) / 2;
+      g.text(mx + C * cw / 2, my - 48, T.label, { size: 18, anchor: 'middle', weight: 750, fill: T.color });
+      g.matrix(mx, my, T.disp, { cw, ch, rows: T.rows, cols: T.cols, fmt: v => v, size: 18, cell: (a, b) => a === i && b === j ? { fill: fcol(T.color), stroke: T.color, sw: 3, color: T.color } : { op: .5, top: .5 } }); }
+    let pdf, lo, hi;
+    if (st.dist === 'norm') { const m = prm.mu ?? 0, s = prm.sd ?? 1; pdf = v => ST.normPdf(v, m, s); lo = Math.min(m - 4 * s, x - s); hi = Math.max(m + 4 * s, x + s); }
+    else if (st.dist === 't') { pdf = v => ST.tPdf(v, prm.df); lo = Math.min(-5, x - 1); hi = Math.max(5, x + 1); }
+    else if (st.dist === 'chi2') { const k = prm.df; pdf = v => ST.gammaPdf(v, k / 2, .5); lo = 0; hi = Math.max(k + 5 * Math.sqrt(2 * k), x * 1.15); }
+    else { const pm = st.dist === 'pois' ? k => ST.poisPmf(k, prm.lam) : st.dist === 'nb' ? k => ST.nbPmf(k, prm.mu, prm.phi) : k => ST.binomPmf(k, prm.n, prm.p);
+      pdf = pm; const mu = prm.lam ?? prm.mu ?? prm.n * prm.p; lo = 0; hi = Math.max(Math.ceil(mu * 2.6 + 6), x + 3); if (st.dist === 'binom') hi = prm.n; }
+    const ymax = disc ? Math.max(...P.range(lo, hi, hi - lo + 1).map(k => pdf(Math.round(k)))) : Math.max(...P.range(lo, hi, 200).map(pdf));
+    const ax = g.axes({ x: left, y: 120, w: g.W - left - 80, h: 380, xd: [lo, hi], yd: [0, ymax * 1.15], xt: 6, yt: 3, xl: st.xlabel || 'value', yl: disc ? 'probability' : 'density', size: 17 });
+    const sh = P.seg(t, .3, 1), inTail = v => st.tail === 'upper' ? v >= x : st.tail === 'lower' ? v <= x : Math.abs(v) >= Math.abs(x);
+    if (disc) { const ks = []; for (let k = Math.ceil(lo); k <= hi; k++) ks.push(k);
+      g.bars(ks.map(k => [k, pdf(k)]), ax, { bw: .8, fill: (k) => inTail(k) && sh > 0 ? 'f3' : 'f1', stroke: 'c1' }); }
+    else {
+      g.area(pdf, ax, lo, hi, { fill: 'f1' });
+      if (sh > 0) { if (st.tail !== 'lower') g.area(pdf, ax, st.tail === 'two' ? Math.abs(x) : x, hi, { fill: 'c3', op: .55 * sh });
+        if (st.tail !== 'upper') g.area(pdf, ax, lo, st.tail === 'two' ? -Math.abs(x) : x, { fill: 'c3', op: .55 * sh }); }
+      g.curve(pdf, ax, lo, hi, { stroke: 'c1', sw: 3, free: true }); }
+    const X = ax.sx(x);
+    g.line(X, ax.y - 6, X, ax.y + ax.h, { stroke: 'c3', sw: 3, free: true });
+    g.text(X, ax.y - 22, `observed ${P.fmt(x)}`, { size: 20, anchor: X > g.W - 180 ? 'end' : 'middle', fill: 'c3', weight: 750 });
+    if (sh > .5) g.text(ax.x + ax.w, ax.y + 30, `p = ${P.fmt(st.p, 3)}`, { size: 28, anchor: 'end', weight: 800, fill: 'c3', mono: true });
+    if (st.tex) g.tex(g.W / 2, 50, st.tex, { size: 28, w: 900, h: 60 });
+  }
+})();
+</script><script>/* proff bio kit: native biology primitives drawn with the stage kit, so they follow the theme and the audit.
+   Included by build.py only when story.js calls one of them. Each returns anchor points so labels and arrows can attach.
+   Base colours: A c4, C c1, G c2, T/U c3 (fixed for the whole page). */
+(function () {
+  const P = window.Proff; P.plugins = P.plugins || {};
+  const BASE = { A: 'c4', C: 'c1', G: 'c2', T: 'c3', U: 'c3', N: 'muted' };
+  const COMP = { A: 'T', T: 'A', G: 'C', C: 'G', U: 'A', N: 'N' };
+  P.bio = { BASE, comp: s => [...s].map(b => COMP[b] || 'N').join(''), randSeq: (n, r) => Array.from({ length: n }, () => 'ACGT'[Math.floor((r || Math.random)() * 4)]).join('') };
+
+  // DNA double strand, base by base. o: seq (top strand 5'->3'), bw (base width), letters (default when bw>=22), rungs,
+  // hi: [[from,to,color,label?]] coloured spans, cut: index (cut between cut-1 and cut on both strands), open: [from,to] melted bubble
+  // (bottom strand pushed down), single: true (top strand only), ends: true (5'/3' marks). Returns {x(i), top, bot, w, h}.
+  P.plugins.dna = (g, x, y, o = {}) => {
+    const seq = o.seq || 'ACGT'.repeat(5), n = seq.length, bw = o.bw || 28, bh = o.bh || bw * .95, gap = o.gap ?? bh * .9, letters = o.letters ?? bw >= 22;
+    const cut = o.cut, cs = o.cutShift ?? 0, open = o.open, sep = o.sep ?? 0;   // cs: how far the two halves move apart (0..1)
+    const bx = i => x + i * bw + (cut != null && i >= cut ? cs * bw * 1.6 : 0);
+    const yb = i => y + bh + gap + (open && i >= open[0] && i < open[1] ? sep : 0);
+    const fs = Math.max(12, Math.min(bw * .62, 26));
+    const strand = (s, yy, ix, rev) => [...s].forEach((b, i) => { const X0 = bx(i), Y = typeof yy === 'function' ? yy(i) : yy, span = (o.hi || []).find(h => i >= h[0] && i < h[1]);
+      g.rect(X0 + 1, Y, bw - 2, bh, { fill: span ? span[2].replace(/^c/, 'f') : 'surf', stroke: span ? span[2] : BASE[b] || 'muted', sw: span ? 2.5 : 1.5, r: 3, free: true });
+      if (letters) g.text(X0 + bw / 2, Y + bh / 2, b, { size: fs, anchor: 'middle', weight: 800, mono: true, fill: BASE[b] || 'muted', free: true }); });
+    strand(seq, y);
+    if (!o.single) {
+      const bot = P.bio.comp(seq);
+      if (o.rungs !== false) for (let i = 0; i < n; i++) { const yy = yb(i); if (yy - (y + bh) < gap + 2) g.line(bx(i) + bw / 2, y + bh + 2, bx(i) + bw / 2, yy - 2, { stroke: 'line-dim', sw: 1.5, free: true }); }
+      strand(bot, yb);
+    }
+    if (o.ends) { const fsE = Math.max(13, fs * .7);
+      g.text(x - 8, y + bh / 2, "5'", { size: fsE, anchor: 'end', fill: 'muted', mono: true, free: true }); g.text(bx(n - 1) + bw + 8, y + bh / 2, "3'", { size: fsE, fill: 'muted', mono: true, free: true });
+      if (!o.single) { g.text(x - 8, yb(0) + bh / 2, "3'", { size: fsE, anchor: 'end', fill: 'muted', mono: true, free: true }); g.text(bx(n - 1) + bw + 8, yb(n - 1) + bh / 2, "5'", { size: fsE, fill: 'muted', mono: true, free: true }); } }
+    const H = o.single ? bh : bh * 2 + gap + sep;
+    g.rect(x, y, bx(n - 1) + bw - x, H, { stroke: 'none', fill: 'none' });   // registers the footprint for the audit only
+    return { x: i => bx(i), cx: i => bx(i) + bw / 2, top: y, bot: o.single ? y + bh : yb(0) + bh, mid: y + bh + gap / 2, w: bx(n - 1) + bw - x, h: H, bw, bh };
+  };
+
+  // sgRNA: 20-nt spacer as letters (matches the target) + scaffold drawn as a stem-loop tail that Cas9 grips.
+  // o: seq (spacer, 5'->3'), bw, color (spacer accent, default c5), scaffold (true), flip (draw spacer right-to-left)
+  P.plugins.guide = (g, x, y, o = {}) => {
+    const seq = (o.seq || 'GACGTTAGCCTAGGATCCAA').replace(/T/g, 'U'), bw = o.bw || 26, bh = o.bh || bw * .95, col = o.color || 'c1', n = seq.length, fs = Math.max(12, Math.min(bw * .6, 24));
+    [...seq].forEach((b, i) => { g.rect(x + i * bw + 1, y, bw - 2, bh, { fill: col.replace(/^c/, 'f'), stroke: col, sw: 2, r: 3, free: true });
+      if (o.letters ?? bw >= 20) g.text(x + i * bw + bw / 2, y + bh / 2, b, { size: fs, anchor: 'middle', weight: 800, mono: true, fill: BASE[b], free: true }); });
+    const ex = x + n * bw;
+    if (o.scaffold !== false) {   // scaffold: a backbone that runs on and folds into three hairpins
+      const s = o.ss || bw / 26, c = o.scol || 'c1', st = { stroke: c, sw: 4 * Math.max(.6, s), fill: undefined };
+      g.path(`M${ex} ${y + bh / 2} h${18 * s} c${10 * s} 0 ${14 * s} ${-36 * s} ${26 * s} ${-36 * s} s${16 * s} ${36 * s} ${26 * s} ${36 * s} h${12 * s} c${8 * s} 0 ${12 * s} ${-28 * s} ${22 * s} ${-28 * s} s${12 * s} ${28 * s} ${22 * s} ${28 * s} h${10 * s} c${8 * s} 0 ${10 * s} ${-22 * s} ${18 * s} ${-22 * s} s${10 * s} ${22 * s} ${18 * s} ${22 * s} h${16 * s}`, st);
+    }
+    g.rect(x, y, n * bw, bh, { stroke: 'none', fill: 'none' });
+    return { x: i => x + i * bw, cx: i => x + i * bw + bw / 2, end: ex, w: n * bw + (o.scaffold !== false ? 230 * (o.ss || bw / 26) : 0), y, bh };
+  };
+
+  // Cas9: two-lobed protein outline (recognition lobe + nuclease lobe) with a channel. o: w, fill, op, cut (show scissors marks at x offset)
+  P.plugins.cas9 = (g, cx, cy, o = {}) => {   // one soft body the DNA runs through. o: w, h, label, fill, stroke
+    const w = o.w || 300, h = o.h || w * .5, f = o.fill || 'f6', st = o.stroke || 'c6', x = cx - w / 2, y = cy - h / 2;
+    g.rect(x, y, w, h, { fill: f, stroke: st, sw: 3, r: Math.min(60, h * .3), op: o.op, free: true });   // container: text inside is intended
+    if (o.label !== false) g.text(x + 8, y - 16, 'Cas9', { size: 24, weight: 900, fill: st });
+    return { cx, cy, w, h, top: y, bot: y + h, left: x, right: x + w };
+  };
+
+  // Cell with membrane, cytoplasm and nucleus. o: rx, ry (default r), nucleus (true), fill, stroke, dna (draw chromatin squiggle), op
+  P.plugins.cell = (g, cx, cy, r, o = {}) => {
+    const rx = o.rx || r, ry = o.ry || r * .82, nr = r * .38;
+    g.ellipse(cx, cy, rx, ry, { fill: o.fill || 'surf2', stroke: o.stroke || 'c4', sw: o.sw || 3, op: o.op });
+    if (o.nucleus !== false) { g.ellipse(cx + rx * .12, cy + ry * .05, nr * 1.15, nr, { fill: o.nfill || 'f5', stroke: o.nstroke || 'c5', sw: 2.5, op: o.op });
+      if (o.dna) { const pts = P.range(0, 1, 40).map(t => [cx + rx * .12 - nr * .8 + t * nr * 1.6, cy + ry * .05 + Math.sin(t * 18) * nr * .25]); g.poly(pts, { stroke: 'c5', sw: 2, free: true }); } }
+    g.rect(cx - rx, cy - ry, rx * 2, ry * 2, { stroke: 'none', fill: 'none' });
+    return { cx, cy, rx, ry, nx: cx + rx * .12, ny: cy + ry * .05, nr };
+  };
+  P.plugins.nucleus = (g, cx, cy, r, o = {}) => { g.ellipse(cx, cy, r * 1.15, r, { fill: o.fill || 'f5', stroke: o.stroke || 'c5', sw: 2.5, op: o.op }); return { cx, cy, r }; };
+
+  // Lentivirus particle: envelope, spikes, capsid cone with two RNA strands. o: op, color
+  P.plugins.virus = (g, cx, cy, r, o = {}) => {
+    const c = o.color || 'c3';
+    for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, x1 = cx + Math.cos(a) * r, y1 = cy + Math.sin(a) * r, x2 = cx + Math.cos(a) * r * 1.22, y2 = cy + Math.sin(a) * r * 1.22;
+      g.line(x1, y1, x2, y2, { stroke: c, sw: 2.5, free: true }); g.circle(x2, y2, Math.max(2.5, r * .07), { fill: c, stroke: 'none', free: true }); }
+    g.circle(cx, cy, r, { fill: 'surf2', stroke: c, sw: 3, op: o.op, free: true });
+    g.path(`M${cx - r * .45} ${cy - r * .35} L${cx + r * .5} ${cy - r * .18} L${cx + r * .5} ${cy + r * .18} L${cx - r * .45} ${cy + r * .35} Z`, { fill: o.cfill || 'f2', stroke: 'c2', sw: 2 });
+    [-1, 1].forEach(sg => g.poly(P.range(0, 1, 20).map(t => [cx - r * .32 + t * r * .7, cy + sg * r * .08 + Math.sin(t * 12) * r * .05]), { stroke: 'c1', sw: 2, free: true }));
+    g.rect(cx - r * 1.2, cy - r * 1.2, r * 2.4, r * 2.4, { stroke: 'none', fill: 'none' });
+    return { cx, cy, r };
+  };
+
+  // Plasmid ring with coloured parts. parts: [{from, to, color}] in fractions of the ring (0 = top, clockwise). Returns at(f, k) -> point at radius k*r.
+  P.plugins.plasmid = (g, cx, cy, r, o = {}) => {
+    g.circle(cx, cy, r, { stroke: 'line', sw: o.sw || 6, free: true });
+    const at = (f, k = 1) => [cx + Math.sin(f * 2 * Math.PI) * r * k, cy - Math.cos(f * 2 * Math.PI) * r * k];
+    (o.parts || []).forEach(p => { const pts = P.range(p.from, p.to, 40).map(f => at(f)); g.poly(pts, { stroke: p.color || 'c1', sw: (o.sw || 6) * 2.2, free: true }); });
+    g.rect(cx - r, cy - r, r * 2, r * 2, { stroke: 'none', fill: 'none' });
+    return { cx, cy, r, at };
+  };
+
+  // Lab ware. tube(x, y, h, {level 0..1, fill}) is a microcentrifuge tube with its top-left at x,y; dish(cx, cy, r, {cells, seed, color})
+  P.plugins.tube = (g, x, y, h, o = {}) => {
+    const w = h * .36, body = h * .72, lv = o.level ?? .45;
+    const shape = `M${x} ${y} h${w} v${body} l${-w * .3} ${h - body} h${-w * .4} l${-w * .3} ${-(h - body)} Z`;
+    if (lv > 0) { const ly = y + h - lv * h; g.path(`M${x} ${Math.max(y, ly)} h${w} v${Math.max(0, y + body - Math.max(y, ly))} l${-w * .3} ${h - body} h${-w * .4} l${-w * .3} ${-(h - body)} Z`, { fill: o.fill || 'f1', stroke: 'none' }); }
+    g.path(shape, { stroke: 'ink', sw: 2.5 }); g.rect(x - 6, y - 10, w + 12, 10, { fill: 'surf2', stroke: 'ink', sw: 2.5, r: 3, free: true });
+    g.rect(x - 6, y - 10, w + 12, h + 10, { stroke: 'none', fill: 'none' });
+    return { x, y, w, h, cx: x + w / 2, bot: y + h };
+  };
+  P.plugins.dish = (g, cx, cy, r, o = {}) => {
+    g.ellipse(cx, cy, r, r * .34, { fill: 'surf2', stroke: 'ink', sw: 2.5 }); g.ellipse(cx, cy - 6, r * .94, r * .3, { fill: o.media || 'fig', stroke: 'line-dim', sw: 1.5 });
+    const rr = P.rng(o.seed || 3), n = o.cells ?? 30, cr = o.cr || Math.max(5, r * .055), col = o.color;
+    for (let i = 0; i < n; i++) { const a = rr() * Math.PI * 2, d = Math.sqrt(rr()) * .82; const c = typeof col === 'function' ? col(i) : (col || 'c4');
+      g.ellipse(cx + Math.cos(a) * r * .9 * d, cy - 6 + Math.sin(a) * r * .27 * d, cr, cr * .6, { fill: c.replace(/^c/, 'f'), stroke: c, sw: 1.5 }); }
+    g.rect(cx - r, cy - r * .34, r * 2, r * .68, { stroke: 'none', fill: 'none' });
+    return { cx, cy, r };
+  };
+
+  // Sequencing flow cell lane with clusters; clusters coloured by a function (i) -> color. o: lanes, n, color
+  P.plugins.flowcell = (g, x, y, w, h, o = {}) => {
+    g.rect(x, y, w, h, { fill: 'surf2', stroke: 'ink', sw: 2.5, r: 12, free: true });
+    const L = o.lanes || 4, lh = (h - 24) / L, rr = P.rng(o.seed || 9), n = o.n || 40;
+    for (let l = 0; l < L; l++) { g.rect(x + 14, y + 12 + l * lh + 4, w - 28, lh - 8, { fill: 'fig', stroke: 'line-dim', sw: 1.5, r: 6, free: true });
+      for (let i = 0; i < n; i++) { const c = o.color ? o.color(l * n + i) : ['c1', 'c2', 'c3', 'c4'][Math.floor(rr() * 4)]; g.circle(x + 24 + rr() * (w - 48), y + 12 + l * lh + 10 + rr() * (lh - 20), 4, { fill: c, stroke: 'none', free: true }); } }
+    g.rect(x, y, w, h, { stroke: 'none', fill: 'none' });
+    return { x, y, w, h };
+  };
+
+  // One sequencing read drawn as labelled segments: parts [{len, color, text}] with total width w. Returns segment centres.
+  P.plugins.read = (g, x, y, o = {}) => {
+    const parts = o.parts || [{ len: 1, color: 'c1' }], tot = parts.reduce((s, p) => s + p.len, 0), w = o.w || 600, h = o.h || 34, out = []; let xx = x;
+    parts.forEach(p => { const pw = p.len / tot * w; const pc = p.color || 'c1', soft = /^c[1-6]$/.test(pc) ? pc.replace('c', 'f') : 'surf2'; g.rect(xx, y, pw, h, { fill: soft, stroke: pc, sw: 2, free: true });
+      if (p.text) g.text(xx + pw / 2, y + h / 2, p.text, { size: Math.max(13, Math.min(18, h * .5)), anchor: 'middle', mono: true, weight: 700, fill: p.color || 'ink', tick: 1 });
+      out.push({ x0: xx, x1: xx + pw, cx: xx + pw / 2 }); xx += pw; });
+    g.rect(x, y, w, h, { stroke: 'none', fill: 'none' });
+    return { parts: out, x, y, w, h };
+  };
+  P.plugins.rna = (g, x, y, o = {}) => P.plugins.dna(g, x, y, { ...o, single: true, seq: (o.seq || 'ACGU').replace(/T/g, 'U') });
+})();
+</script>
+<script>
+// Biology walk exemplar: a pooled CRISPR knockout screen, from DNA letters to the count matrix. Layout 'walk': one stage, one slider.
+// All sequences and counts come from make_data.py (data/crispr.json). Identity colours hold across scenes:
+// guide spacer c1, PAM c2, cut c3; essential-gene guides warm (RPL3 c3, POLR2A c5), control guides cool (AAVS1 c4, NT c6).
+const D = PROFF_DATA.crispr, P_ = Proff;
+P_.page({ title: 'A CRISPR knockout screen', sub: 'From 20 letters of DNA to a count matrix', eyebrow: 'biology walk' });
+const on = (k, j, t) => k > j ? 1 : k === j ? t : 0;
+const GENE_COL = { RPL3: 'c3', POLR2A: 'c5', AAVS1: 'c4', NT: 'c6' }, gcol = r => GENE_COL[r.split('_')[0]];
+const BW = 30, X0 = (1200 - D.seq.length * BW) / 2, T = [D.t0, D.t1], PAM = D.pam;
+const hi = [[T[0], T[1], 'c1'], [PAM[0], PAM[1], 'c2']];
+const guideSeq = D.seq.slice(T[0], T[1]);
+
+P_.scene({ title: 'The target: 20 letters in a gene', phase: 'design', acc: 1,
+  steps: [{ cap: 'The start of a gene: two DNA strands, paired letter by letter (A with T, C with G).', info: 'The sequence is made up for this page. Real guides are picked by design tools that score on-target cutting and off-target matches.' },
+    { cap: 'Pick 20 letters that sit right before **AGG**. That AGG is the **PAM**, the tag Cas9 must find first.', info: '**PAM** = protospacer adjacent motif. The common Cas9 (SpCas9) needs **NGG** (any letter, then GG) right after the target. No PAM, no cut.' }],
+  draw(g, k, t) {
+    const d = g.dna(X0, 290, { seq: D.seq, bw: BW, hi: k >= 1 ? hi : [], ends: true });
+    g.label(d.cx(1), d.bot + 70, 'ATG: the gene starts here', { to: [d.cx(1), d.bot + 4], size: 20, fill: 'muted', weight: 600, anchor: 'start' });
+    if (k >= 1) g.fade(t, g => { g.brace(d.x(T[0]), 252, d.x(T[1]), 252, '20-letter target', { stroke: 'c1', fill: 'c1', size: 22 });
+      g.label(d.cx(PAM[0] + 1), 480, 'PAM', { to: [d.cx(PAM[0] + 1), d.bot + 6], size: 22, weight: 800, anchor: 'middle', fill: 'c2', lc: 'c2' }); });
+  } });
+
+P_.scene({ title: 'The guide RNA carries those letters', phase: 'design', acc: 1,
+  steps: [{ cap: 'The **sgRNA** (single guide RNA): the same 20 letters, with U in place of T, plus a folded tail.' },
+    { cap: 'The **spacer** finds the target. The **scaffold** is the handle Cas9 holds.', info: 'The spacer reads like the top strand, so it base-pairs with the bottom strand. The scaffold is identical in every guide of the library; only the 20-letter spacer changes.' }],
+  draw(g, k, t) {
+    const d = g.dna(X0, 360, { seq: D.seq, bw: BW, hi, ends: true });
+    const gd = g.guide(d.x(T[0]), 190, { seq: guideSeq, bw: BW });
+    if (k >= 1) g.fade(t, g => { g.brace(gd.x(0), 180, gd.x(20), 180, 'spacer', { stroke: 'c1', fill: 'c1', size: 22 });
+      g.text(gd.end + 150, 108, 'scaffold', { size: 22, weight: 800, fill: 'c1', anchor: 'middle' }); });
+  } });
+
+P_.scene({ title: 'Cas9 opens the DNA and cuts', phase: 'cut', acc: 5,
+  steps: [{ cap: 'Cas9 protein holds the guide and slides along DNA, checking every NGG.' },
+    { cap: 'At the match the strands part. The guide pairs with one strand, letter by letter.' },
+    { cap: 'Cas9 cuts **both** strands, 3 letters before the PAM.' },
+    { cap: 'A **double-strand break**. The cell has to repair it.' }],
+  draw(g, k, t) {
+    const sep = k === 1 ? 74 * t : k === 2 ? 74 : k === 3 ? 74 * (1 - t) : 0, cs = k === 3 ? t : 0, y = 290;
+    const casOp = k <= 2 ? 1 : 1 - t, cx = X0 + (T[0] + 10) * BW;
+    const dy = k === 0 ? (1 - t) * -30 : 0;
+    const top = y - 120, bot = y + BW * .95 * 2.9 + sep + 40;   // body spans guide, both strands and the bubble
+    if (casOp > .02) g.fade(casOp, g => g.cas9(X0 + 15 * BW, (top + bot) / 2 + dy, { w: 28 * BW, h: bot - top }));
+    const d = g.dna(X0, y, { seq: D.seq, bw: BW, hi, open: [T[0], T[1]], sep, cut: k >= 2 ? D.cut : null, cutShift: cs });
+    // the guide settles onto the strand it pairs with
+    if (casOp > .02) g.fade(casOp, g => { const low = y + BW * .95 * 1.9 + sep, gy = k === 0 ? y - 90 : P_.lerp(y - 90, low - BW * .95 - 6, k === 1 ? t : 1); g.guide(d.x(T[0]), gy, { seq: guideSeq, bw: BW, scaffold: false }); });
+    if (k >= 2) g.fade(k === 2 ? t : 1, g => { const x = (d.x(D.cut - 1) + BW + d.x(D.cut)) / 2;
+      [y - 18, y + BW * .95 * 2.9 + sep + 18].forEach((yy, i) => g.poly([[x - 11, yy + (i ? 14 : -14)], [x + 11, yy + (i ? 14 : -14)], [x, yy]], { fill: 'c3', stroke: 'c3', close: true }));
+      g.text(x, y - 56, 'cut', { size: 22, weight: 800, fill: 'c3', anchor: 'middle' }); });
+  } });
+
+P_.scene({ title: 'Sloppy repair breaks the gene', phase: 'knockout', acc: 3,
+  steps: [{ cap: 'Repair often adds or loses a few letters. Here one letter is lost at the cut.' },
+    { cap: 'Read in threes, every codon after the gap shifts. A **stop** appears early, so the protein is cut short.', info: 'The cell joins the ends by **NHEJ** (non-homologous end joining), which often leaves small insertions or deletions. Two out of three indel sizes shift the reading frame. An in-frame indel can leave a working protein, so a cut is not always a knockout; that is one reason libraries use ~4 guides per gene.' }],
+  draw(g, k, t) {
+    const row = (seq, aa, y, label, mark) => {
+      const d = g.dna(X0, y, { seq, bw: BW, single: true });
+      g.text(X0 - 14, y + 14, label, { size: 18, anchor: 'end', fill: 'muted', weight: 700 });
+      for (let c = 0; c * 3 + 2 < seq.length; c++) g.rect(d.x(c * 3) + 1, y - 3, BW * 3 - 2, BW * .95 + 6, { stroke: 'line', sw: 2, r: 4, fill: 'none', free: true });
+      if (k >= 1) g.fade(t, g => [...aa.slice(0, (aa.indexOf('*') + 1) || aa.length)].forEach((a, c) => g.text(d.x(c * 3) + BW * 1.5, y + 66, a === '*' ? 'STOP' : a, { size: a === '*' ? 18 : 26, anchor: 'middle', weight: 900, mono: true, fill: a === '*' ? 'c3' : (mark && c * 3 + 3 > D.cut - 1 ? 'c5' : 'ink') })));
+      return d; };
+    row(D.seq, D.aa, 170, 'before');
+    const d2 = row(D.mut, D.aa_mut, 400, 'after', true);
+    const x = d2.x(D.cut - 1);
+    g.label(x, 520, 'letter lost', { to: [x, 434], size: 20, weight: 800, anchor: 'middle', fill: 'c3', lc: 'c3' });
+  } });
+
+const cellsIn = (g, cx, cy, rx, ry, n, colOf, opOf, seed) => { const r = P_.rng(seed);
+  for (let i = 0; i < n; i++) { const a = r() * 6.283, q = Math.sqrt(r()) * .86, c = colOf(i, r);
+    g.ellipse(cx + Math.cos(a) * rx * q, cy + Math.sin(a) * ry * q, 11, 7, { fill: c.replace(/^c/, 'f'), stroke: c, sw: 2, op: opOf ? opOf(i, c) : 1 }); } };
+const pick = (r, w) => { let x = r() * w.reduce((a, b) => a + b[1], 0); for (const [c, v] of w) if ((x -= v) < 0) return c; return w[0][0]; };
+
+P_.scene({ title: 'One guide per cell', phase: 'library', acc: 6,
+  steps: [{ cap: 'Each guide sits in a **plasmid** (a ring of DNA). A genome-wide library holds ~4 guides for every gene.' },
+    { cap: 'Packaging cells turn the plasmids into **lentivirus** that can deliver a guide into a cell’s genome.' },
+    { cap: 'Infect at a low dose (**MOI** ≈ 0.3), so an infected cell almost always gets just one guide.', info: '**MOI** = multiplicity of infection: viruses per cell. At 0.3, most cells get none, and of the infected ones about 85% get exactly one. Screens also keep **coverage**, often ≥ 500 cells per guide, so no guide is lost by chance.' },
+    { cap: 'An antibiotic (**puromycin**) kills cells with no guide. Every survivor carries one.' }],
+  draw(g, k, t) {
+    const pl = g.plasmid(200, 330, 110, { parts: [{ from: .03, to: .12, color: 'c1' }, { from: .4, to: .62, color: 'c6' }] });
+    g.label(...pl.at(.075, 1.45), 'guide', { to: pl.at(.075, 1.08), size: 20, weight: 800, fill: 'c1', lc: 'c1', anchor: 'start' });
+    g.label(...pl.at(.51, 1.42), 'puro resistance', { to: pl.at(.51, 1.08), size: 18, weight: 700, fill: 'c6', lc: 'c6', anchor: 'middle' });
+    if (k >= 1) g.fade(on(k, 1, t), g => { g.arrow(340, 330, 440, 330, { stroke: 'muted', sw: 3 }); [[520, 250], [560, 360], [500, 450]].forEach(([x, y]) => g.virus(x, y, 38)); });
+    if (k >= 2) g.fade(on(k, 2, t), g => { g.arrow(610, 340, 680, 340, { stroke: 'muted', sw: 3 });
+      g.dish(930, 360, 230, { cells: 0 });
+      cellsIn(g, 930, 354, 205, 64, 46, (i, r) => i % 3 === 0 ? pick(r, [['c3', 1], ['c5', 1], ['c4', 1], ['c6', 1]]) : 'muted', (i, c) => c === 'muted' && k >= 3 ? 1 - on(k, 3, t) : 1, 21); });
+  } });
+
+const share = arr => { const s = {}; D.rows.forEach((r, i) => { const gname = r.split('_')[0]; s[gname] = (s[gname] || 0) + arr[i]; }); const tot = Object.values(s).reduce((a, b) => a + b, 0); for (const k in s) s[k] /= tot; return s; };
+const S0 = share(D.d0), S21 = share(D.d21);
+
+P_.scene({ title: 'Weeks later, some guides drop out', phase: 'screen', acc: 3,
+  steps: [{ cap: 'Grow the cells for about three weeks, keeping enough cells for every guide.' },
+    { cap: 'Cells whose guide broke an **essential gene** (RPL3, POLR2A) stop dividing. Their share shrinks.' }],
+  draw(g, k, t) {
+    const dish = (cx, S, label, seed) => { g.dish(cx, 300, 250, { cells: 0 }); const w = Object.entries(S).map(([gname, v]) => [GENE_COL[gname], v]);
+      cellsIn(g, cx, 294, 225, 70, 60, (i, r) => pick(r, w), null, seed); g.text(cx, 420, label, { size: 22, weight: 800, anchor: 'middle' }); };
+    dish(320, S0, 'day 0', 5); dish(880, k >= 1 ? S21 : S0, 'day 21', 5);
+    const bar = (x, S, y) => { let xx = x; ['RPL3', 'POLR2A', 'AAVS1', 'NT'].forEach(gname => { const w = S[gname] * 440; g.rect(xx, y, w, 34, { fill: GENE_COL[gname].replace('c', 'f'), stroke: GENE_COL[gname], sw: 2, free: true });
+      if (w > 60) g.text(xx + w / 2, y + 17, `${Math.round(S[gname] * 100)}%`, { size: 16, anchor: 'middle', weight: 700, mono: true, fill: GENE_COL[gname], free: true }); xx += w; }); };
+    bar(100, S0, 470); bar(660, k >= 1 ? S21 : S0, 470);
+    [['RPL3', 'c3'], ['POLR2A', 'c5'], ['AAVS1', 'c4'], ['NT (no target)', 'c6']].forEach(([n, c], i) => { g.rect(150 + i * 250, 572, 22, 22, { fill: c.replace('c', 'f'), stroke: c, sw: 2 }); g.text(182 + i * 250, 583, n, { size: 18, weight: 700, fill: c }); });
+  } });
+
+P_.scene({ title: 'Read the guides back', phase: 'sequence', acc: 4,
+  steps: [{ cap: 'Harvest DNA from each sample. Each cell’s guide is now part of its genome.' },
+    { cap: '**PCR** copies just the guide region, millions of times. It copies DNA, not cells.' },
+    { cap: 'A sequencer reads the copies: billions of short reads.' },
+    { cap: 'Each read = adapter + sample tag + the 20-letter spacer. The spacer names the guide.' }],
+  draw(g, k, t) {
+    const tb = g.tube(110, 140, 220, { level: .45, fill: 'f1' }); g.text(tb.cx, 400, 'genomic DNA', { size: 20, weight: 700, anchor: 'middle' });
+    if (k >= 1) g.fade(on(k, 1, t), g => { g.arrow(220, 250, 300, 250, { stroke: 'muted', sw: 3 });
+      const r = P_.rng(4); for (let i = 0; i < 9; i++) for (let j = 0; j < 2; j++) { const c = ['c3', 'c5', 'c4', 'c6'][Math.floor(r() * 4)]; g.rect(330 + j * 120, 150 + i * 24, 100, 14, { fill: c.replace('c', 'f'), stroke: c, sw: 1.5, r: 3, free: true }); }
+      g.text(440, 400, 'guide copies', { size: 20, weight: 700, anchor: 'middle' }); });
+    if (k >= 2) g.fade(on(k, 2, t), g => { g.arrow(580, 250, 660, 250, { stroke: 'muted', sw: 3 }); g.flowcell(690, 130, 420, 240, { lanes: 4, n: 34 }); g.text(900, 400, 'sequencer flow cell', { size: 20, weight: 700, anchor: 'middle' }); });
+    if (k >= 3) g.fade(on(k, 3, t), g => { const rd = g.read(110, 480, { w: 1000, h: 44, parts: [{ len: 3, color: 'muted', text: 'adapter' }, { len: 2.4, color: 'c2', text: 'sample tag' }, { len: 10, color: 'c1', text: guideSeq }, { len: 2.4, color: 'muted', text: 'scaffold' }] });
+      g.brace(rd.parts[2].x1, 534, rd.parts[2].x0, 534, 'the guide we designed', { stroke: 'c1', fill: 'c1', size: 20 }); });
+  } });
+
+P_.scene({ title: 'The count matrix', phase: 'analysis', acc: 2,
+  steps: [{ cap: 'Count reads for every guide in every sample. Rows are guides, columns are samples.' },
+    { cap: 'Scale to the control guides, then take **log₂ fold change**: −3 means 8× fewer cells.', info: 'LFC = log₂( (day 21 count / control total at day 21) ÷ (day 0 count / control total at day 0) ). Scaling to control guides (AAVS1, non-targeting) is MAGeCK’s *control* normalisation; scaling to all guides also works when most guides are neutral, as in a real genome-wide library.' },
+    { cap: 'Guides of the same gene agree. Tools like **MAGeCK** turn that agreement into a gene-level score.' }],
+  draw(g, k, t) {
+    const cw = 120, ch = 38, x = 380, y = 110;
+    const M = g.matrix(x, y, D.rows.map((r, i) => [D.d0[i], D.d21[i]]), { cw, ch, cols: ['day 0', 'day 21'], rows: D.rows, rowFill: i => gcol(D.rows[i]), size: 19,
+      cell: (i, j) => j === 1 && k >= 1 ? { fill: gcol(D.rows[i]).replace('c', 'f') } : {} });
+    if (k >= 1) g.fade(on(k, 1, t), g => { g.text(x + 2 * cw + 30, y + ch * 6, '→', { size: 34, anchor: 'middle', fill: 'muted', weight: 800 });
+      g.matrix(x + 2 * cw + 60, y, D.lfc.map(v => [v]), { cw: 130, ch, cols: ['log₂ FC'], size: 19, fmt: v => (v > 0 ? '+' : '') + v.toFixed(2),
+        cell: (i, j, v) => ({ fill: v < -1 ? 'f3' : 'surf', color: v < -1 ? 'c3' : 'ink' }) }); });
+    if (k >= 2) g.fade(on(k, 2, t), g => { const gx = x + 2 * cw + 210, mean = (a, b) => D.lfc.slice(a, b).reduce((s, v) => s + v, 0) / (b - a);
+      [['RPL3', 0, 4], ['POLR2A', 4, 8]].forEach(([n, a, b]) => g.brace(gx, y + a * ch + 4, gx, y + b * ch - 4, `${n} ${mean(a, b).toFixed(1)}`, { stroke: GENE_COL[n], fill: GENE_COL[n], size: 22 }));
+      g.brace(gx, y + 8 * ch + 4, gx, y + 12 * ch - 4, 'controls ≈ 0', { stroke: 'c4', fill: 'c4', size: 22 }); });
+  } });
+
+</script>
+</body></html>

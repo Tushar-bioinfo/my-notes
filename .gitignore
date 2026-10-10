@@ -10,3 +10,10 @@
 .obsidian/cache/
 .obsidian/plugins/obsidian-git/obsidian_askpass.sh
 .trash/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+

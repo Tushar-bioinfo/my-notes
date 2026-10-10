@@ -13,6 +13,11 @@ status: permanent
 
 - Add deep learning notes here: neural networks, CNNs, transformers, self-supervised learning, segmentation, and model training.
 
+## Visuals & Walkthroughs
+
+- [[Reading Deep Learning Notation (Opus Edition) - Visual]] *(Interactive Visual)*
+- [[Reading Deep Learning Notation - Visual]] *(Interactive Visual)*
+
 ## Bridges
 
 - [[ML MOC]]

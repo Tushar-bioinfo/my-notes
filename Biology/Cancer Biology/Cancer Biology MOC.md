@@ -47,6 +47,11 @@ status: permanent
 - [[Cancer Biology Glossary]]
 - [[Cancer Biology References]]
 
+## Visuals & Walkthroughs
+
+- [[A CRISPR Knockout Screen - Visual]] *(Interactive Visual)*
+- [[Counts to log-CPM Calculation - Visual]] *(Interactive Visual)*
+
 ## Bridges
 
 - [[Digital Pathology MOC]]

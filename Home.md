@@ -17,6 +17,7 @@ status: permanent
 - [[Maths MOC]]
 - [[Stats MOC]]
 - [[Projects MOC]]
+- [[Visuals MOC]]
 - [[Inbox/test|Inbox]]
 
 ## Active Project Maps

@@ -14,6 +14,12 @@ status: permanent
 - [[Cancer Biology MOC]]
 - [[Digital Pathology MOC]]
 
+## Visuals & Walkthroughs
+
+- [[Counts to log-CPM Calculation - Visual]] *(Interactive Visual)*
+- [[CRISPR Knockout Screen (Standalone) - Visual]] *(Interactive Visual)*
+- [[A CRISPR Knockout Screen - Visual]] *(Interactive Visual)*
+
 ## Cross-Topic Bridges
 
 - [[Computational Pathology MOC]] connects biology notes with ML, DL, maths, and stats.

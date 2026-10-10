@@ -13,6 +13,13 @@ status: permanent
 
 - Add probability, distributions, hypothesis testing, regression, Bayesian methods, survival analysis, and study design here.
 
+## Visuals & Walkthroughs
+
+- [[Statistical Notation - Visual]] *(Interactive Visual)*
+- [[What a t-test Sees - Visual]] *(Interactive Visual)*
+- [[Testing 20,000 Genes at Once - Visual]] *(Interactive Visual)*
+- [[Why Counts Get Logged - Visual]] *(Interactive Visual)*
+
 ## Bridges
 
 - [[Maths MOC]]
