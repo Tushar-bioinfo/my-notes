@@ -14,6 +14,8 @@ This hub tracks interactive visualizations and visual reference pages across all
 
 ## 🧬 Biology & Digital Pathology Visuals
 
+- [[MAGeCK RRA, step by step - Visual]] — *A toy knockout screen: 5 genes × 3 guides, day 0 vs day 21. Every number is computed.. Key...*
+- [[MAGeCK-MLE, step by step - Visual]] — *One gene, 3 guides, 3 samples. Watch each number get made.. Key stages: Where z falls if G...*
 - [[Counts to log-CPM Calculation - Visual]] — *3 genes × 4 samples. Watch each cell change....*
 - [[CRISPR Knockout Screen (Standalone) - Visual]] — *A CRISPR knockout screen...*
 - [[A CRISPR Knockout Screen - Visual]] — *A CRISPR knockout screen...*

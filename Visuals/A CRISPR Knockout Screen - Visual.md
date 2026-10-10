@@ -41,6 +41,8 @@ source: "/Users/tusharsingh/Work/Project/proff-viz/skills/proff-viz/examples/wal
 
 ## Related Notes
 
+- [[MAGeCK RRA, step by step - Visual]]
+- [[MAGeCK-MLE, step by step - Visual]]
 - [[DNA Genes and Central Dogma]]
 - [[Mutations and Genomic Alterations]]
 - [[Cancer Biology MOC]]

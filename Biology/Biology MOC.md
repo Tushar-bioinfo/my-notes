@@ -16,6 +16,8 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
+- [[MAGeCK RRA, step by step - Visual]] *(Interactive Visual)*
+- [[MAGeCK-MLE, step by step - Visual]] *(Interactive Visual)*
 - [[Counts to log-CPM Calculation - Visual]] *(Interactive Visual)*
 - [[CRISPR Knockout Screen (Standalone) - Visual]] *(Interactive Visual)*
 - [[A CRISPR Knockout Screen - Visual]] *(Interactive Visual)*

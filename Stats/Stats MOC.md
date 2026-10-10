@@ -15,6 +15,8 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
+- [[MAGeCK RRA, step by step - Visual]] *(Interactive Visual)*
+- [[MAGeCK-MLE, step by step - Visual]] *(Interactive Visual)*
 - [[Statistical Notation - Visual]] *(Interactive Visual)*
 - [[What a t-test Sees - Visual]] *(Interactive Visual)*
 - [[Testing 20,000 Genes at Once - Visual]] *(Interactive Visual)*
