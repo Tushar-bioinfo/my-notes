@@ -8,7 +8,7 @@ tags:
 aliases:
   - Maximum likelihood, from zero
   - Maximum likelihood, from coins to neural nets
-date: 2026-10-10
+date: 2026-10-11
 status: permanent
 type: visual
 source: "/Users/tusharsingh/Library/Application Support/Claude/scratch-workspaces/bf2976b3-c611-4908-a1b7-2a76e30bf37d/b3e94359-2125-48c0-ae0c-a521c85df5fd/scratch-2026-10-11-01a510/mle/page.html"
