@@ -840,7 +840,437 @@ const SAY = {
 const sayRows = nt => { if (!nt) return; for (const key of Object.keys(nt)) { const v = nt[key]; if (!Array.isArray(v)) continue;
   const [m, a, b] = v.length === 3 ? v : [v[0], SAY[key], v[1]];
   nt[key] = [m, a ? `say “${a}” · ${b}` : b]; } };
-const scene = o => { [o.info, ...o.steps.map(x => x && x.info)].forEach(inf => inf && sayRows(inf.notation)); return Proff.scene(o); };
+// L2-style breakdown for the i sidebar, one entry per step, keyed by scene phase:
+// { p: predict question, a: answer tied to the figure, c: the calculation, k: key concepts (term — meaning — why), v: caveat, x: exam angle }
+const EXPLAIN = {
+  operators: [
+    { p: 'Cell 4 has the tallest bar. Is "4" the measurement, or something else?',
+      a: 'Something else. **4 is the index i**: it says *which* cell. The measurement is the bar height, x₄ = 45 reads. Every bar has both: a position under it and a value on top. Bold **x** packs all six values into one object.',
+      c: 'i = 1 … 6 (positions) → x = (12, 30, 7, 45, 20, 16) (values) → x₄ = 45',
+      k: ['**index i** — a counter that points at one item — tells you what the formula loops over', '**xᵢ** — the value at position i — the data itself', '**bold x** — the whole list as one object (a vector) — methods that act on all entries at once write **x**'],
+      v: 'Papers reuse letters. i is usually a cell or sample and j a gene, but read the methods: some swap them.',
+      x: 'Q: What is x₃ here? A: 7. Not 3: the subscript is the position, the value is the bar height.' },
+    { p: 'Σ with i = 1 below and k = 4 above. Which bars get added?',
+      a: 'Bars 1, 2, 3 and 4: the ones under the brace. **Σ is a loop.** Below it: where the counter starts. Above it: where it stops. To its right: what to add at each stop. Drag k and the brace and the total move together.',
+      c: 'k = 4: 12 + 30 + 7 + 45 = 94 · k = 6: 94 + 20 + 16 = 130 · mean x̄ = 130 ÷ 6 = 21.67',
+      k: ['**Σ (capital sigma)** — add up a list — the most common symbol in any methods section', '**limits i = 1 … k** — start and stop of the loop — no limits means "over every i"', '**x̄ (x bar)** — the mean: a Σ divided by n — a bar over a letter hides a Σ'],
+      v: 'Capital Σ also names a covariance matrix, as in N(μ, Σ). If it has no limits and nothing to its right, it is a matrix, not a sum.',
+      x: 'Q: What is Σᵢ (xᵢ − x̄)? A: Always 0. The mean is the balance point, so the deviations cancel.' },
+    { p: 'You multiply six probabilities, each below 1. Does the product grow or shrink?',
+      a: '**It shrinks, fast.** Each bar is a probability pᵢ that the model gave one observation. The dots are the running product. Every factor below 1 pulls the line down. This product is a likelihood: the chance of seeing all the data together.',
+      c: '0.9 → × 0.8 = 0.72 → × 0.7 = 0.504 → × 0.95 = 0.479 → × 0.6 = 0.287 → × 0.85 = 0.244',
+      k: ['**Π (capital pi)** — multiply a list — used whenever independent events must all happen', '**pᵢ** — probability of observation i under the model — one factor per data point', '**likelihood** — a product of pᵢ over all data — the score every fitting method maximises'],
+      v: 'Multiplying is only right if the observations are independent. Cells from one mouse are not independent across mice.',
+      x: 'Q: Why does software never compute this product directly for 20,000 genes? A: It underflows to exactly 0 on a computer. The next step fixes it.' },
+    { p: 'Take the log of each probability. Will the bars point up or down?',
+      a: '**Down.** A number between 0 and 1 has a negative log. The rule log(a × b) = log a + log b turns the falling product into a falling **sum**. Same information, but the numbers stay a sensible size.',
+      c: 'log 0.9 + log 0.8 + log 0.7 + log 0.95 = −0.105 − 0.223 − 0.357 − 0.051 = −0.736 = log 0.479',
+      k: ['**log of a product = sum of logs** — the one rule behind every log-likelihood', '**ℓ (curly l)** — the log-likelihood, Σᵢ log pᵢ — what papers actually maximise', '**monotone** — log keeps the order of numbers — so the best parameter is the same for L and ℓ'],
+      v: '"log" can mean natural log, log₂ or log₁₀. Fold changes use log₂; likelihoods use natural log. Check the methods.',
+      x: 'Q: Why is maximising ℓ the same as maximising L? A: log is strictly increasing, so the peak sits at the same place.' }
+  ],
+  sets: [
+    { p: 'Twelve bars, one per gene. How many numbers does it take to describe this whole picture?',
+      a: '**Twelve.** Each bar is one gene’s log₂ fold change (log₂FC): above 0 went up, below 0 went down. Together they are one vector **x** ∈ ℝ¹². That tag says: real numbers, and 12 of them.',
+      c: 'gene 6: log₂FC = 2.8 → 2^2.8 ≈ 7-fold up · gene 9: −2.2 → about 4.6-fold down',
+      k: ['**∈ (is in)** — membership — "x ∈ ℝ¹²" means x is a list of 12 reals', '**ℝ** — all real numbers, negative or positive decimals — tells you what kind of values to expect', '**ℝⁿ** — lists of length n — the superscript is a length, not a power'],
+      v: 'ℝ¹² is also a 12-dimensional space. Each gene is one axis, and the whole profile is one point. Level 2 uses that picture.',
+      x: 'Q: Counts are whole numbers. Which set would a strict paper use? A: ℕ (natural numbers), not ℝ.' },
+    { p: 'The dashed line is at τ = 1.0. Gene 10 sits at 0.9. Does it pass?',
+      a: '**No.** The rule is xᵢ ≥ τ, so a bar must reach the line. Five genes pass: 2, 4, 6, 8 and 11. Gene 8 just makes it at 1.1. τ is your choice, not something the data give you.',
+      c: 'x = (0.4, **2.1**, −1.3, **1.6**, 0.2, **2.8**, −0.5, **1.1**, −2.2, 0.9, **1.9**, −0.1) → 5 pass',
+      k: ['**τ (tau)** — a cut-off you set — changes the result, so report it', '**≥ vs >** — at-least vs strictly-more — matters for whole-number rules such as "≥ 3 reads"', '**threshold** — splits a list into pass and fail — the start of every filter'],
+      v: 'A gene list depends on τ. Two papers with different cut-offs can disagree with no biology involved.',
+      x: 'Q: Set τ = 0. How many pass? A: 8. Drag the slider to check.' },
+    { p: 'S = {i : xᵢ ≥ τ}. Does S hold fold changes or gene numbers?',
+      a: '**Gene numbers.** Read the braces as "the set of", the colon as "such that". Left of the colon is what you collect (i, the index). Right of it is the rule. The bars |S| count the members.',
+      c: 'S = {2, 4, 6, 8, 11} → |S| = 5 · {xᵢ : xᵢ ≥ τ} would give the values {2.1, 1.6, 2.8, 1.1, 1.9} instead',
+      k: ['**{ · : · }** — set-builder: collect what matches a rule — a filter written as maths', '**|S|** — size of a set — how many genes pass', '**∅** — the empty set — what S becomes if τ is too strict'],
+      v: '|·| has two meanings. Around a set it is a count; around a number it is absolute value, |−2.2| = 2.2.',
+      x: 'Q: Write "genes with |log₂FC| ≥ 1" in set-builder. A: {i : |xᵢ| ≥ 1}. Here that is {2, 3, 4, 6, 8, 9, 11}.' },
+    { p: 'Write 1 under each passing gene and 0 under each failing one. What does the row add up to?',
+      a: '**5, the size of S.** The indicator 𝟙[rule] is 1 when the rule is true and 0 when false. Adding indicators counts. Dividing the count by n gives a proportion.',
+      c: '0+1+0+1+0+1+0+1+0+0+1+0 = 5 → 5 ÷ 12 = 0.42 of genes pass',
+      k: ['**𝟙[·] (indicator)** — 1 if true, 0 if false — turns a yes/no rule into arithmetic', '**Σ of indicators** — a count — accuracy, recall and FDR are built this way', '**mean of an indicator** — a proportion — an empirical p-value is one'],
+      v: 'Some papers write the indicator as I(·), 1{·} or δ. Same meaning.',
+      x: 'Q: Accuracy as a formula? A: (1/n) Σᵢ 𝟙[ŷᵢ = yᵢ]: the mean of "prediction equals truth".' }
+  ],
+  'linear algebra': [
+    { p: 'The tag says ℝ⁶ˣ⁸. How many numbers are in the table, and what is a row?',
+      a: '**48 numbers; a row is one cell.** n = 6 rows (cells), p = 8 columns (genes). Read the shape before any formula. It tells you what a row and a column mean and which products are allowed.',
+      c: '6 rows × 8 columns = 48 entries · row = one cell · column = one gene',
+      k: ['**n × p** — rows × columns, always in that order — the first thing to read', '**n** — samples or cells — the "how many observations" letter', '**p** — features (genes, pixels) — "p > n" is the high-dimensional case'],
+      v: 'Orientation differs by tool. Scanpy stores cells × genes; DESeq2 and limma store genes × samples. Formulas look transposed for that reason alone.',
+      x: 'Q: A 32 × 3 × 224 × 224 tensor? A: 32 RGB images of 224 × 224 pixels (batch × channels × height × width).' },
+    { p: 'X₂₃: row 2 or row 3?',
+      a: '**Row 2, column 3.** First subscript is the row, second the column. The lit cell holds 7: cell 2 has 7 reads of gene 3. Drag the sliders and the highlight follows.',
+      c: 'X₂₃ → row 2 = cell 2, column 3 = gene 3 → 7 reads',
+      k: ['**Xᵢⱼ** — one entry — a single number (a scalar)', '**row first, column second** — always — "RC" like the car', '**commas** — X₁₂,₃ — added when indices have two digits'],
+      v: 'Software counts from 0 in Python and from 1 in R and in maths. X₂₃ is X[1, 2] in Python.',
+      x: 'Q: In a genes × samples matrix, what is X₅₁? A: Gene 5 in sample 1.' },
+    { p: 'Light up all of row 2. What does that row describe?',
+      a: '**One cell’s whole profile**: its count for all 8 genes, a vector in ℝ⁸. The dot in **x**ᵢ· means "every column". Each cell is a point in gene space.',
+      c: 'x₂· = (14, 3, 7, 0, 11, 4, 2, 6) ∈ ℝ⁸',
+      k: ['**xᵢ· or xᵢ** — row i — one cell', '**· or :** — "all values of this index" — X[i, :] in Python', '**point in gene space** — a cell as coordinates — what PCA, clustering and UMAP use'],
+      v: 'Real data have ~20,000 genes, so each cell is a point in ℝ²⁰⁰⁰⁰. Distances behave oddly in so many dimensions, which is why PCA comes first.',
+      x: 'Q: Distance between two cells uses rows or columns? A: Rows.' },
+    { p: 'Now light up column 3. Same kind of object as the row?',
+      a: '**Same kind (a vector), different meaning.** Column 3 is one gene across all 6 cells, in ℝ⁶. Rows compare cells; columns compare genes. The transpose Xᵀ flips the table.',
+      c: 'X·₃ = (0, 7, 15, 3, 4, 1) ∈ ℝ⁶ · Xᵀ is 8 × 6',
+      k: ['**X·ⱼ** — column j — one gene in every cell', '**Xᵀ (transpose)** — rows ↔ columns — how papers switch orientation', '**column vector by default** — maths treats **x** as tall — **x**ᵀ is the wide version'],
+      v: 'Gene–gene correlation uses columns; cell–cell similarity uses rows. Mixing them up gives a valid-looking but wrong matrix.',
+      x: 'Q: Shape of XᵀX here? A: 8 × 8, one entry per gene pair.' },
+    { p: 'Multiply the 6 × 8 table by an 8 × 1 weight list. What shape comes out?',
+      a: '**6 × 1: one number per cell.** For each row, multiply entry by entry with β and add. β = +1 for genes 1, 2, 4, −1 for gene 7, 0 elsewhere: a simple signature score.',
+      c: 'cell 2: 14·1 + 3·1 + 7·0 + 0·1 + 11·0 + 4·0 + 2·(−1) + 6·0 = 15 · all cells: (16, 15, 10, 9, 12, 23)',
+      k: ['**inner sizes must match** — (6 × **8**)(**8** × 1) — otherwise the product is undefined', '**outer sizes give the result** — (**6** × 8)(8 × **1**) → 6 × 1', '**Xβ** — a linear model, a network layer Wx + b, a signature score — all the same operation'],
+      v: 'Signature scores on raw counts favour deep cells. Normalise first, or the score tracks library size.',
+      x: 'Q: Shape of Wx when W is 64 × 2000 and x ∈ ℝ²⁰⁰⁰? A: 64 × 1: a layer that compresses 2000 genes to 64 features.' }
+  ],
+  geometry: [
+    { p: 'u = (3, 1). Where does its arrow end, and how long is it?',
+      a: '**At the point 3 across, 1 up; length 3.16.** A vector with two entries can be drawn as an arrow from the origin. Its length comes from Pythagoras. With 20,000 entries you cannot draw it, but length and angle work the same way.',
+      c: '‖u‖ = √(3² + 1²) = √10 = 3.16 · start v = (1.61, 1.92), ‖v‖ = 2.50',
+      k: ['**vector as arrow** — a list read as a direction and a length — the picture behind embeddings', '**‖·‖ (double bars)** — length (a norm) — the next scene compares three kinds', '**ᵀ on (3, 1)ᵀ** — "make it a column" — keeps shapes consistent'],
+      v: 'Length mixes two things in expression data: how strong a profile is and how deep the sequencing was.',
+      x: 'Q: Length of (6, 8)? A: √(36 + 64) = 10.' },
+    { p: 'Turn v until it is at a right angle to u. What is u·v then?',
+      a: '**0.** The dot product multiplies matching entries and adds. In the picture, drop v straight onto u (dashed line): the thick stripe is v’s shadow. The dot product is shadow length × ‖u‖. At a right angle there is no shadow.',
+      c: 'uᵀv = 3 × 1.61 + 1 × 1.92 = 6.74 · positive: same side · 0: right angle · negative: shadow falls behind the origin (angle of v ≥ 110°)',
+      k: ['**uᵀv = u·v = ⟨u, v⟩** — three spellings of the dot product — same number', '**projection (shadow)** — how much v points along u — the geometric meaning', '**orthogonal** — dot product 0 — "uncorrelated directions", as in PCA axes'],
+      v: 'The dot product grows with both lengths. Two deep cells get a big dot product even if their patterns differ.',
+      x: 'Q: (1, 2)·(2, −1)? A: 2 − 2 = 0: they are orthogonal.' },
+    { p: 'Double the length of v. Does cos θ change?',
+      a: '**No.** Cosine similarity divides the dot product by both lengths, so only the angle θ is left (the arc). It runs from +1 (same way) through 0 (right angle) to −1 (opposite).',
+      c: 'cos θ = 6.74 ÷ (3.16 × 2.50) = 0.85 · θ = 50° − 18° = 32°',
+      k: ['**cos θ** — similarity of direction only — ignores scale', '**θ (theta)** — angle between the arrows — 0° = identical pattern', '**QKᵀ in attention** — a table of dot products — transformers compare tokens this way'],
+      v: 'Cosine ignores magnitude on purpose. If total expression matters biologically, cosine throws it away.',
+      x: 'Q: Two cells with the same pattern but 2× depth: cosine similarity? A: 1.' }
+  ],
+  norms: [
+    { p: 'v = (2, 1.5). If you fly straight from the origin to the tip, how far is it?',
+      a: '**2.5.** The dashed legs (2 across, 1.5 up) and the arrow make a right triangle. Pythagoras gives the long side. This straight-line length is the **L2 norm**, ‖v‖₂. With more entries: square each, add, take the root.',
+      c: '‖v‖₂ = √(2² + 1.5²) = √(4 + 2.25) = √6.25 = 2.50',
+      k: ['**L2 norm ‖v‖₂** — straight-line length — the default when no subscript is given', '**v₁, v₂** — the legs of the triangle — the entries of the vector', '**Euclidean distance** — ‖a − b‖₂ — what k-means and most clustering use'],
+      v: 'Squaring makes L2 sensitive to one large entry: a single outlier gene can dominate a distance.',
+      x: 'Q: ‖(1, 1, 1, 1)‖₂? A: √4 = 2.' },
+    { p: 'You may only move along grid lines, like city blocks. How far now?',
+      a: '**3.5.** Walk 2 across, then 1.5 up (the highlighted path). This is the **L1 norm**: add the absolute sizes of the entries. It is never shorter than L2, because the straight line is the shortest route.',
+      c: '‖v‖₁ = |2| + |1.5| = 3.50 ≥ ‖v‖₂ = 2.50 · equal only when one entry is 0',
+      k: ['**L1 norm ‖v‖₁** — city-block length — Σᵢ |vᵢ|', '**|vᵢ|** — absolute value — a step of −2 still costs 2', '**L1 = L2 only on an axis** — when all but one entry is 0 — keep this for the lasso steps'],
+      v: 'L1 grows in a straight line with each entry, so it is less sensitive to one big outlier than L2.',
+      x: 'Q: ‖(3, −4)‖₁ and ‖(3, −4)‖₂? A: 7 and 5.' },
+    { p: 'Keep only the single biggest leg. What length is left?',
+      a: '**2.** The **L∞ norm** keeps the largest absolute entry and ignores the rest. The name comes from the general Lp norm: as p grows, the biggest entry swamps the others.',
+      c: '‖v‖∞ = max(|2|, |1.5|) = 2.00 · always ‖v‖∞ ≤ ‖v‖₂ ≤ ‖v‖₁: 2.00 ≤ 2.50 ≤ 3.50',
+      k: ['**L∞ norm** — the worst single entry — max over i of |vᵢ|', '**Lp norm** — add |vᵢ|ᵖ, then take the p-th root — p = 1, 2, ∞ are the common ones', '**worst-case bound** — "no pixel changes by more than ε" — adversarial-attack papers use L∞'],
+      v: 'The ordering L∞ ≤ L2 ≤ L1 always holds. Check it when a paper reports several norms.',
+      x: 'Q: ‖(0.1, −5, 2)‖∞? A: 5.' },
+    { p: 'Under L1, which points are exactly 1 away from the origin: a circle, a diamond or a square?',
+      a: '**A diamond.** Each outline holds every point of length 1 under one rule: L2 gives the circle, L1 the diamond, L∞ the square. The line through the dots points along v. Walking out on it, you reach L1 = 1 first, then L2 = 1, then L∞ = 1. **The diamond’s corners sit on the axes**, where one coordinate is exactly 0.',
+      c: 'v / 3.5 = (0.57, 0.43) on the diamond · v / 2.5 = (0.80, 0.60) on the circle · v / 2 = (1.00, 0.75) on the square',
+      k: ['**unit ball** — all points of length ≤ 1 — the shape of a norm', '**corners on the axes** — only the L1 ball has them — the reason lasso gives exact zeros', '**normalising a vector** — divide by its norm — the dots are v at length 1'],
+      v: 'In many dimensions the L1 ball has a corner on every axis, and edges and faces where several coordinates are 0.',
+      x: 'Q: Is (0.5, 0.5) inside the L2 unit ball? A: Yes, its L2 length is 0.71. It sits exactly on the L1 diamond.' },
+    { p: 'Lasso caps |β₁| + |β₂| at t. Where will the best allowed fit land: on a corner or a side?',
+      a: '**Usually on a corner.** The axes are now two regression weights, one per gene. β̂ is the best fit with no limit. The ellipses are contours of the error, like a map: each ring is a bit worse. Grow the rings from β̂ until one first touches the diamond. That touch is the lasso answer. It lands on the corner, so **β₂ = 0**: gene 2 drops out.',
+      c: 'β̂ = (2.0, 0.6), ‖β̂‖₁ = 2.6 > t = 1.0 → lasso answer (1.00, 0.00)',
+      k: ['**β̂ (beta hat)** — unpenalised best fit — the centre of the rings', '**constraint ‖β‖₁ ≤ t** — the diamond — same as adding λ‖β‖₁ to the loss', '**sparsity** — many weights exactly 0 — lasso picks a short gene list'],
+      v: 'With strongly correlated genes, lasso keeps one more or less at random and drops the rest. The chosen gene is not "the" biology.',
+      x: 'Q: Raise t above 2.6. What happens? A: β̂ is inside the diamond, so the penalty no longer changes anything.' },
+    { p: 'Swap the diamond for a circle (ridge). Will gene 2 still drop to exactly 0?',
+      a: '**No.** The circle has no corners, so the rings touch it at a smooth point off the axes. Both weights shrink toward 0, but neither reaches it. This is ridge regression, the L2 penalty, called weight decay in deep learning.',
+      c: 'same β̂ = (2.0, 0.6), t = 1.0 → ridge answer (0.87, 0.49): both genes kept, both shrunk',
+      k: ['**ridge / weight decay** — ‖β‖₂ ≤ t, or + λ‖β‖₂² in the loss — smooth shrinkage', '**shrinkage** — weights pulled toward 0 — less variance, a little bias', '**elastic net** — L1 + L2 together — sparse but stable with correlated genes'],
+      v: 'Penalties depend on scale. Standardise genes first, or high-variance genes are penalised differently.',
+      x: 'Q: You expect 5 driver genes out of 2,000. Lasso or ridge? A: Lasso: you want most weights exactly 0.' }
+  ],
+  distributions: [
+    { p: 'Squeeze σ to 0.5. Does the peak height go above 0.4, and is that a probability?',
+      a: '**It doubles to 0.80, and no, it is not a probability.** The curve is a density p(x). The area under it is always 1, so a narrower curve must be taller. μ sets the centre (dashed line); σ sets the spread.',
+      c: 'N(0, 1): p(0) = 0.40 · N(0, 0.5²): p(0) = 0.80 · about 68% of draws fall within μ ± σ',
+      k: ['**X vs x** — capital: random, not yet seen; lower-case: one observed value', '**∼ (tilde)** — "is distributed as" — X ∼ N(μ, σ²)', '**density p(x)** — height of the curve — only areas are probabilities'],
+      v: 'The 2nd slot of N(·, ·) is the **variance** in most papers, but some write the SD. N(0, 4) has σ = 2.',
+      x: 'Q: Can a density be 3? A: Yes, for a very narrow curve. A probability cannot.' },
+    { p: 'Cut at a = 1.5. What fraction of draws land left of the line?',
+      a: '**0.93.** The shaded area is P(X ≤ a). Total area is 1, so any area under the curve is a probability. The integral ∫ is how you write that area.',
+      c: 'P(X ≤ 1.5) = 0.93 under N(0, 1) → P(X > 1.5) = 1 − 0.93 = 0.07',
+      k: ['**P(X ≤ a)** — probability of a draw at or below a — an area', '**∫ … dx** — area under a curve — a Σ over thin strips of width dx', '**−∞ to a** — the limits — start far left, stop at the cut'],
+      v: 'For a continuous X, P(X = exactly 1.5) is 0. Only intervals have probability.',
+      x: 'Q: P(−1 ≤ X ≤ 1) for N(0, 1)? A: About 0.68.' },
+    { p: 'Plot the shaded area for every possible cut. What shape do you get?',
+      a: '**An S-curve rising from 0 to 1**: the cumulative distribution function F. Go up from a to the curve and across: 0.93, the same area as before. Run it backwards (across, then down) and you get a quantile F⁻¹.',
+      c: 'F(1.5) = 0.93 · F⁻¹(0.975) = 1.96 → the 1.96 in every 95% interval',
+      k: ['**CDF F(x)** — area so far — always rises from 0 to 1', '**quantile F⁻¹(q)** — the x where the area reaches q — medians and cut-offs', '**steepest where the bell is tallest** — the slope of F is the density p'],
+      v: 'QQ-plots compare quantiles of data with quantiles of a model. Their logic is this curve.',
+      x: 'Q: Median of N(μ, σ²)? A: F⁻¹(0.5) = μ.' },
+    { p: 'Set σ = 2 and a = 3. Does the shaded probability change from the start?',
+      a: '**No, still 0.93.** z = (a − μ)/σ counts how many SDs a sits from the centre. Any normal question reduces to the standard normal N(0, 1), whose CDF is Φ.',
+      c: 'start: z = (1.5 − 0)/1 = 1.5 · now: z = (3 − 0)/2 = 1.5 → Φ(1.5) = 0.93 both times',
+      k: ['**z-score** — distance in SD units — compares across scales', '**Φ (capital phi)** — CDF of N(0, 1) — the table in every stats book', '**φ (small phi)** — density of N(0, 1) — φ(0) = 0.399'],
+      v: 'z-scoring a gene across cells (scaling) also removes real differences in variance between genes.',
+      x: 'Q: A test gives z = −1.96. Two-sided p? A: 0.05.' }
+  ],
+  'conditional probability': [
+    { p: '40 of 400 squares are filled. What is P(D)?',
+      a: '**0.10.** Each square is a patient; filled means diseased. P(D) is the share filled before any test, the prior. ¬D marks the 360 healthy ones. Any probability here can be checked by counting squares.',
+      c: 'P(D) = 40 ÷ 400 = 0.10 · P(¬D) = 360 ÷ 400 = 0.90',
+      k: ['**P(D)** — probability of an event — a number in [0, 1]', '**prior / prevalence** — the rate before new evidence — drives everything that follows', '**¬D or Dᶜ** — "not D" — the complement'],
+      v: 'A prior from a referral clinic is much higher than one from population screening. The same test then behaves very differently.',
+      x: 'Q: P(D) + P(¬D)? A: Always 1.' },
+    { p: 'The test catches 90% of the sick. How many of the 40 get a ring?',
+      a: '**36.** Ringed squares tested positive. P(+ | D) looks only inside the sick group: 36 of 40. Separately, 18 of the 360 healthy are ringed by mistake. The bar | means "given": first shrink the world to what follows the bar, then count.',
+      c: 'P(+ | D) = 36 ÷ 40 = 0.90 (sensitivity) · P(+ | ¬D) = 18 ÷ 360 = 0.05 (false-positive rate)',
+      k: ['**| (given)** — restrict to the condition first — read right to left', '**sensitivity** — P(+ | D) — how often the sick are caught', '**false-positive rate** — P(+ | ¬D) — how often the healthy are flagged'],
+      v: 'Sensitivity and specificity come from validation studies. Your population may differ.',
+      x: 'Q: Specificity here? A: 1 − 0.05 = 0.95.' },
+    { p: 'A patient tests positive. Is the chance they are sick 90%?',
+      a: '**No: 67%.** Keep only the ringed squares: 54 patients. Of these, 36 are sick. P(D | +) counts inside the positives; P(+ | D) counted inside the sick. Swapping the sides of the bar changes the question.',
+      c: 'P(D | +) = 36 ÷ (36 + 18) = 0.67 · at 1% prevalence: 4 ÷ (4 + 20) = 0.17',
+      k: ['**P(D | +)** — the posterior — what a patient wants to know', '**P(A | B) ≠ P(B | A)** — the most common probability error — "the transposed conditional"', '**base rate** — low prevalence — makes most positives false'],
+      v: 'Rounding hides this at small numbers. Use the slider: with few sick patients, false positives dominate.',
+      x: 'Q: Why do screening programmes confirm positives with a second test? A: Because P(D | +) is low when prevalence is low.' },
+    { p: 'Can you get 0.67 without counting any squares?',
+      a: '**Yes, with Bayes’ rule.** Top: P(+ | D) P(D) is the share of all patients who are sick and positive. Bottom: P(+) is the share who are positive at all. Divide.',
+      c: 'top 0.90 × 0.10 = 0.09 (= 36/400) · bottom (36 + 18)/400 = 0.135 · 0.09 ÷ 0.135 = 0.67',
+      k: ['**joint P(D, +)** — both happen — = P(+ | D) P(D)', '**P(+) = Σ over D and ¬D** — law of total probability — adds both worlds', '**Bayes’ rule** — turns P(+ | D) into P(D | +) — needs the prior'],
+      v: 'A p-value is P(data | H₀), not P(H₀ | data). Reading one as the other is this same error.',
+      x: 'Q: Prior 0.5, sensitivity 0.9, FPR 0.05. P(D | +)? A: 0.45 ÷ 0.475 = 0.95.' }
+  ],
+  expectation: [
+    { p: 'Is the average of this skewed curve at its peak?',
+      a: '**No: the peak is at 1.5, the average at 3.0.** E[X] is the balance point: cut the curve from card and it balances at the triangle. The long right tail pulls the balance point right.',
+      c: 'Gamma(shape 2, scale 1.5): E[X] = 2 × 1.5 = 3.0 · mode = (2 − 1) × 1.5 = 1.5 · Var = 2 × 1.5² = 4.5',
+      k: ['**𝔼[X]** — expectation: values weighted by how likely they are — ∫ x p(x) dx', '**mode** — the peak — most common value', '**Var(X)** — expected squared distance from the mean — spread'],
+      v: 'For skewed data the mean and median differ. Means of raw counts are pulled by a few high cells.',
+      x: 'Q: E of a fair die? A: (1 + … + 6)/6 = 3.5, a value the die never shows.' },
+    { p: 'Average 5 random draws, then 300. Which average is closer to 3.0?',
+      a: '**300, usually.** Each dot is one draw; the line is the running average. Early on it jumps; later each new draw moves it less, and it settles near 3.0. This is a Monte Carlo estimate.',
+      c: 'μ̂_N = (1/N) Σₛ x⁽ˢ⁾ → close to 3.0 at N = 300',
+      k: ['**x⁽ˢ⁾** — draw number s — a label, not a power', '**μ̂_N** — average of N draws — an estimate of 𝔼[X]', '**i.i.d.** — independent draws from one distribution — what makes averaging work'],
+      v: 'Correlated draws (MCMC, cells from one animal) average more slowly than i.i.d. ones.',
+      x: 'Q: Why do VAEs need sampling? A: Their expectations have no closed form, so they average draws.' },
+    { p: 'To halve the typical error of the average, how many more draws do you need?',
+      a: '**Four times as many.** The band is μ ± 2σ/√N. The error shrinks with the square root of N, not with N itself.',
+      c: 'σ = 2.12, N = 300 → SE = 2.12 ÷ √300 = 0.12 · N = 1,200 → 0.06',
+      k: ['**σ/√N** — standard error of a mean — the 1/√N rule', '**→ᵖ** — converges in probability — the law of large numbers', '**O(1/√N)** — "of order": shrinks like 1/√N — ignores constants'],
+      v: 'The 1/√N rule assumes independent draws. Technical replicates of one sample do not reduce biological error.',
+      x: 'Q: 10× smaller SE needs how many more replicates? A: 100×.' }
+  ],
+  estimation: [
+    { p: 'Counts 4, 7, 5, 9, 6, 5. Which Poisson rate λ fits best?',
+      a: '**Around 6.** The bars are the Poisson model’s probability for each count at the current λ. At λ = 4 the bars peak left of most dots. Drag λ until the bars sit under the dots.',
+      c: 'mean of the counts = (4 + 7 + 5 + 9 + 6 + 5) ÷ 6 = 36 ÷ 6 = 6.0',
+      k: ['**p(x | λ)** — chance of count x at rate λ — the model', '**λ (lambda)** — Poisson rate = mean = variance — one number sets the shape', '**x!** — factorial — 4! = 24'],
+      v: 'Real RNA-seq counts vary more than Poisson allows. That is why DESeq2 uses the negative binomial (level 6).',
+      x: 'Q: Poisson mean 6. Variance? A: Also 6.' },
+    { p: 'Score each λ by how probable it makes all six counts. Where is the score highest?',
+      a: '**Near λ = 6.** The curve is the log-likelihood ℓ(λ): the sum of log-probabilities of the six counts. The dot is your λ. Higher means the data are more probable.',
+      c: 'ℓ(4) = −14.75 · ℓ(6) = −12.16',
+      k: ['**L(λ) = Πᵢ p(xᵢ | λ)** — likelihood — data fixed, λ varies', '**ℓ = log L** — log-likelihood — a sum, numerically stable', '**two readings of p(x | λ)** — vary x: a probability; vary λ: a likelihood'],
+      v: 'A likelihood is not a probability distribution over λ. Its area is not 1.',
+      x: 'Q: Is L(λ) = 0.3 "a 30% chance λ is right"? A: No.' },
+    { p: 'argmax ℓ vs max ℓ: which one is the estimate?',
+      a: '**argmax: the location.** The top of the curve sits at λ̂ = 6.0 (dashed line). max ℓ is the height there, −12.16. Papers report the location.',
+      c: 'slope 0 at the top: Σxᵢ/λ − n = 0 → λ̂ = Σxᵢ/n = x̄ = 6.0',
+      k: ['**θ̂ = argmax ℓ(θ)** — maximum-likelihood estimate (MLE) — the hat means "from data"', '**∂ℓ/∂λ = 0** — flat slope at the top — the equation solved', '**argmin of −ℓ** — the same thing as a loss — how networks are trained'],
+      v: 'Most models have no formula for the top. Software climbs numerically and can stop at a local peak.',
+      x: 'Q: MLE of a Bernoulli p from 7 yes in 10? A: 0.7.' },
+    { p: 'A sharp peak or a flat peak: which gives a more precise estimate?',
+      a: '**A sharp peak.** Nearby λ values fit much worse, so λ is pinned down. Curvature is the Fisher information 𝓘. The standard error is 1/√𝓘. The bar shows the likelihood-ratio interval where ℓ is within 1.92 of the top.',
+      c: '𝓘 = n/λ̂ = 6/6 = 1 → SE = 1.0 → Wald 6 ± 1.96 = [4.04, 7.96] · likelihood-ratio [4.25, 8.18]',
+      k: ['**Fisher information** — curvature at the top — more data, sharper peak', '**SE** — standard error — 1/√𝓘', '**Wald vs LR interval** — symmetric vs follows the curve — differ when the curve is lopsided'],
+      v: 'With six counts the curve is lopsided, so the two intervals differ. Both are approximations.',
+      x: 'Q: 24 replicates instead of 6, same mean. SE? A: 𝓘 = 24/6 = 4, SE = 0.5.' }
+  ],
+  uncertainty: [
+    { p: 'n = 8 mice. Should the 95% multiplier be 1.96 or larger?',
+      a: '**Larger: 2.36.** The interval is x̄ ± t × s/√n. s is estimated from only 8 values, so the t distribution adds width to pay for that extra doubt.',
+      c: 'n = 8 → 7 degrees of freedom → t = 2.36 · s/√n is the standard error of the mean',
+      k: ['**x̄ ± t·s/√n** — t-interval — the default for a mean', '**degrees of freedom ν = n − 1** — how much data is left to estimate s', '**SEM** — s/√n — wobble of the mean, not of mice'],
+      v: 'Error bars labelled SD, SEM or 95% CI look alike and mean very different things. Read the legend.',
+      x: 'Q: Large n: t → ? A: 1.96.' },
+    { p: 'Repeat the experiment 30 times. Does the true μ move, or the intervals?',
+      a: '**The intervals.** Each row is one experiment: its mean and interval. The dashed line, μ = 10, never moves. Most intervals cross it; the highlighted ones miss.',
+      c: 'expected misses at 95%: 0.05 × 30 = 1.5',
+      k: ['**μ** — the true mean — fixed and unknown', '**coverage** — share of intervals that catch μ — a property of the recipe', '**1 − α** — confidence level — 0.95 for α = 0.05'],
+      v: 'Wrong: "95% chance μ is in this interval". Right: "95% of intervals built this way catch μ".',
+      x: 'Q: You have one interval [8.5, 11.9]. Probability μ is inside? A: Either 0 or 1; the 95% is about the procedure.' },
+    { p: 'More mice per experiment: does the hit rate rise above 95%?',
+      a: '**No.** The intervals get shorter, but about 95% still hit. More data buys precision, not more coverage.',
+      c: '95% of 30 = 28.5 expected hits · 26–30 is normal luck',
+      k: ['**precision** — interval width — shrinks with n', '**coverage** — stays at the confidence level — by design', '**confidence vs width trade-off** — 80% gives shorter intervals and more misses'],
+      v: 'Coverage holds only if the model is right. With skewed or dependent data, real coverage can be lower.',
+      x: 'Q: Set confidence to 80%. Expected misses of 30? A: 6.' }
+  ],
+  testing: [
+    { p: 'If the treatment does nothing, where will the test statistic Z usually land?',
+      a: '**Near 0, mostly between −2 and 2.** The curve is the null distribution: how Z spreads if H₀ is true. Every test is a statistic plus its null curve.',
+      c: 'Z = (difference in means) ÷ (its standard error) → under H₀, Z ∼ N(0, 1)',
+      k: ['**H₀ (H naught)** — no effect — the scenario you try to reject', '**H₁ or H_A** — a real effect — here one-sided, an increase', '**null distribution** — the statistic’s shape under H₀ — the yardstick'],
+      v: 'You never "accept" H₀. A non-significant result can mean no effect or too little data.',
+      x: 'Q: What changes between a t-test and a χ² test? A: The statistic and its null curve.' },
+    { p: 'α = 0.05. Where is the one-sided cut-off?',
+      a: '**At 1.64.** The shaded tail holds 5% of the null curve. If Z lands past it, call it significant. If H₀ is true, that happens 5% of the time by chance.',
+      c: 'z₁₋α = Φ⁻¹(0.95) = 1.64 · two-sided: Φ⁻¹(0.975) = 1.96 · Z = 2.0 → p = 0.023',
+      k: ['**α** — false-positive rate you accept — fixed before the data', '**critical value** — the cut-off — Φ⁻¹(1 − α)', '**p-value** — tail area beyond your Z — p < α ⇔ Z past the cut-off'],
+      v: 'Choosing one-sided after seeing the direction halves the p-value dishonestly.',
+      x: 'Q: Z = 1.8, one-sided α = 0.05: significant? A: Yes (1.8 > 1.64). Two-sided: no.' },
+    { p: 'The effect is real (shift δ = 2.5). How often does the experiment detect it?',
+      a: '**80% of the time.** The second curve is Z when the effect is real. Its area past the cut-off is the power. The area left of the cut-off is β, the miss rate.',
+      c: 'power = 1 − Φ(1.64 − 2.5) = 0.80 · β = 0.20 · at α = 0.01: power = 0.57',
+      k: ['**β** — type II error, missed effect — not the regression β', '**power 1 − β** — chance to detect a real effect — plan for ≥ 0.8', '**δ = effect × √n / σ** — the shift — grows with sample size'],
+      v: 'Power is about the true effect, which you do not know. Planning with an optimistic effect gives underpowered studies.',
+      x: 'Q: δ = 0. Power? A: α. There is nothing to find, so only false positives remain.' }
+  ],
+  'multiple testing': [
+    { p: '200 genes, none truly changed. How many p-values fall below 0.05?',
+      a: '**About 10, by luck alone.** Under H₀ p-values spread evenly between 0 and 1. The plot shows the 40 smallest, sorted. Filled dots truly changed in this simulation; open dots did not.',
+      c: '200 × 0.05 = 10 false hits expected · 20,000 genes → 1,000',
+      k: ['**p₍ₖ₎** — the k-th smallest p — brackets mean "sorted"', '**m** — number of tests — 200 here', '**p₇ vs p₍₇₎** — gene 7 vs 7th smallest — usually different genes'],
+      v: 'Null p-values are uniform only if the test’s assumptions hold. A skewed histogram of p-values is a warning.',
+      x: 'Q: p₍₁₎ of 200 null tests: typical value? A: Around 1/200 = 0.005.' },
+    { p: 'BH compares the 10th smallest p to what threshold?',
+      a: '**(10/200) × 0.05 = 0.0025.** The sloped line rises with rank. Find the last rank whose dot is under it; call every gene up to there (shaded). On average at most a fraction q of calls are false.',
+      c: 'rank 1: 0.00025 · rank 10: 0.0025 · rank 40: 0.01',
+      k: ['**BH line (k/m)·q** — threshold grows with rank — lenient for later ranks', '**k̂** — last rank under the line — number of calls', '**FDR = E[V/R]** — expected share of false calls — what q controls'],
+      v: 'BH assumes independent or positively dependent tests. Strong negative correlations can break the guarantee.',
+      x: 'Q: What is DESeq2’s padj? A: A BH-adjusted p. Call genes with padj ≤ q.' },
+    { p: 'Bonferroni uses one flat line at q/m. More calls or fewer than BH?',
+      a: '**Fewer.** Bonferroni controls the chance of even one false call (FWER), a stricter promise. Compare the two counts on the plot.',
+      c: 'q/m = 0.05 ÷ 200 = 0.00025 at every rank',
+      k: ['**FWER = P(V ≥ 1)** — chance of any false call — strict', '**Bonferroni** — divide α by m — simple, conservative', '**FDR vs FWER** — share wrong vs any wrong — screens vs confirmatory tests'],
+      v: 'Neither method fixes a biased test. Garbage p-values in give garbage calls out.',
+      x: 'Q: 3 pre-planned endpoints in a trial: BH or Bonferroni? A: Bonferroni (or another FWER method).' }
+  ],
+  GLM: [
+    { p: 'A treated sample’s row is (1, 1). With β = (5, 1.5), what is its η?',
+      a: '**6.5.** The design matrix has one row per sample: a column of 1s (baseline) and a treated flag. Row times β gives η, the linear predictor on the log₂ scale.',
+      c: 'control: 1 × 5 + 0 × 1.5 = 5 · treated: 1 × 5 + 1 × 1.5 = 6.5',
+      k: ['**design matrix X** — samples × model terms — built by ~ condition in R', '**β₀** — intercept: log₂ level in controls', '**β₁** — treatment effect: extra log₂ level'],
+      v: 'The baseline group is whichever level R sorts first, unless you set it. β₁’s sign depends on that.',
+      x: 'Q: ~ batch + condition with 2 batches adds how many columns? A: One.' },
+    { p: 'η = 5 for S1. Its expected count is 2⁵ = 32, right?',
+      a: '**Not quite: 25.6.** The link maps back from log₂ to counts (2^η), and the size factor s₁ = 0.8 scales for S1’s shallower sequencing.',
+      c: 'μ₁ = s₁ × 2^η₁ = 0.8 × 32 = 25.6 · S5: s = 1.2, 20% deeper',
+      k: ['**link g(μ) = η** — joins the linear part to the mean — log₂ here, logit for yes/no', '**size factor sⱼ** — library depth relative to typical — removes depth effects', '**additive on log, multiplicative on counts** — 5 + 1.5 ↔ 32 × 2.83'],
+      v: 'Size factors assume most genes do not change. Global shifts (e.g. transcription shutdown) break that.',
+      x: 'Q: logit(0.5)? A: log(0.5/0.5) = 0.' },
+    { p: 'The two group lines are 1.5 apart on a log₂ axis. How many times higher is treated?',
+      a: '**2.83 times.** Dots are counts divided by size factor. The lines are the fitted group levels. The gap is β₁, the log₂ fold change.',
+      c: '2^1.5 = 2.83 · log₂FC +1 = doubling · −1 = halving',
+      k: ['**Kⱼ/sⱼ** — normalised count — what DESeq2’s normalised counts show', '**log₂FC = β₁** — the effect size you report', '**symmetry** — +1 and −1 are equal-size changes in opposite directions'],
+      v: 'A large log₂FC from a low-count gene is unreliable. Shrunken fold changes fix this for ranking.',
+      x: 'Q: log₂FC = −2? A: Treated is ¼ of control.' },
+    { p: 'In Kᵢⱼ, which index is the gene and which is the sample?',
+      a: '**i is the gene, j the sample.** The count is drawn from a negative binomial with mean μᵢⱼ and per-gene dispersion αᵢ. The log₂ normalised mean is a linear model, xⱼᵀβᵢ.',
+      c: 'Kᵢⱼ ∼ NB(μᵢⱼ, αᵢ) · μᵢⱼ = sⱼ qᵢⱼ · log₂ qᵢⱼ = xⱼᵀβᵢ · report β̂ᵢ₁',
+      k: ['**NB (negative binomial)** — counts with extra spread — biological variation', '**αᵢ (dispersion)** — extra spread per gene — Var = μ + αμ²', '**β̂ᵢ₁** — the log2FoldChange column — tested with Wald z = β̂/SE'],
+      v: 'This matches the DESeq2-style model as commonly written. Check the tool’s methods for its exact form.',
+      x: 'Q: α = 0? A: The NB becomes Poisson.' }
+  ],
+  'classifier output': [
+    { p: 'The network outputs (2.0, 1.0, 0.2, −0.5). Are these probabilities?',
+      a: '**No.** They are logits: raw scores, one per class. They can be negative and do not sum to 1. Higher means "more like this class".',
+      c: 'z = f_θ(x) = (2.0, 1.0, 0.2, −0.5) for (T cell, B cell, NK, monocyte)',
+      k: ['**f_θ(x)** — the network with weights θ applied to input x', '**logit zₖ** — raw score for class k — any real number', '**θ** — all trainable weights — millions of numbers'],
+      v: 'Logits from different models are not on comparable scales.',
+      x: 'Q: Add 10 to every logit. Do the probabilities change? A: No; softmax ignores a shared shift.' },
+    { p: 'Exponentiate each logit. Which becomes the smallest positive number?',
+      a: '**Monocyte, e^−0.5 = 0.61.** eᶻ is always positive. It stretches gaps: a 1-point logit lead becomes a 2.7-fold lead. T divides the logits first: large T flattens, small T sharpens.',
+      c: 'e² = 7.39 · e¹ = 2.72 · e^0.2 = 1.22 · e^−0.5 = 0.61 · total 11.94',
+      k: ['**exp(z/T)** — exponentiate the scaled logit — makes everything positive', '**temperature T** — sharpness knob — used in distillation and text sampling', '**exponential stretch** — small logit gaps become big ratio gaps'],
+      v: 'Very large logits overflow eᶻ. Software subtracts the largest logit first; the answer is unchanged.',
+      x: 'Q: T → ∞? A: All classes get 1/K.' },
+    { p: 'Divide each bar by the total 11.94. What do the four numbers add to?',
+      a: '**Exactly 1.** Now they form a probability vector ŷ. The hat marks a prediction; plain y is the truth.',
+      c: 'ŷ = (7.39, 2.72, 1.22, 0.61) ÷ 11.94 = (0.62, 0.23, 0.10, 0.05)',
+      k: ['**softmax** — exponentiate, then divide by the total', '**ŷ vs y** — prediction vs truth', '**simplex Δᴷ⁻¹** — all K numbers ≥ 0 summing to 1'],
+      v: 'Softmax outputs are often overconfident. 0.62 is not a calibrated 62% chance without checking.',
+      x: 'Q: Why Δ³ for 4 classes? A: Fix 3 numbers and the 4th is decided.' },
+    { p: 'The true class is T cell and ŷ = 0.62. What is the loss?',
+      a: '**0.48.** Cross-entropy is −log of the probability on the true class. Probability 1 → loss 0. Probability near 0 → loss shoots up: confident and wrong is punished hardest.',
+      c: '−log 0.62 = 0.48 · true class NK: −log 0.10 = 2.28',
+      k: ['**cross-entropy −log ŷ_c** — loss for one example', '**one-hot y** — 1 for the true class, 0 elsewhere — kills all but one term in −Σ yₖ log ŷₖ', '**𝔼 over 𝒟** — average loss over data — estimated by the batch mean'],
+      v: 'Mislabelled training cells give huge losses and can dominate training.',
+      x: 'Q: Loss for random guessing over 4 classes? A: −log 0.25 = 1.39.' }
+  ],
+  training: [
+    { p: 'At θ₀ = −1 the slope is −4. Which way is downhill?',
+      a: '**Right.** The curve is the loss for each value of one weight θ. The tangent at θ₀ has slope −4: loss falls as θ increases. The network only knows the slope where it stands, not the whole curve.',
+      c: 'L(θ) = ½(θ − 3)² + 1 → ∇L = θ − 3 → at θ₀ = −1: −4',
+      k: ['**∇L (gradient)** — vector of slopes, one per weight', '**∂L/∂θₖ** — slope along one weight with the others frozen', '**minimum θ* = 3** — where the slope is 0'],
+      v: 'Real losses have many dips. Gradient descent finds a nearby low point, not the lowest one.',
+      x: 'Q: Slope at θ = 5? A: 2. Downhill is left.' },
+    { p: 'η = 0.3. Where does one step take θ from −1?',
+      a: '**To 0.2.** Subtract η times the slope. The gradient points uphill; the minus sign sends you downhill.',
+      c: 'θ₁ = θ₀ − η∇L = −1 − 0.3 × (−4) = −1 + 1.2 = 0.2',
+      k: ['**θ ← θ − η∇L** — the update — "←" means "replace with"', '**η (eta)** — learning rate (step size)', '**steep slope, big step** — steps shrink near the bottom on their own'],
+      v: 'η is the most important training knob. Most failed trainings are a bad η.',
+      x: 'Q: θ₀ = 7, η = 0.5? A: 7 − 0.5 × 4 = 5.' },
+    { p: 'Raise η to 1.9. Does training still reach θ* = 3?',
+      a: '**Yes, but zigzagging.** Each step jumps past the minimum. Above η = 2 each jump lands higher and θ flies off: training diverges.',
+      c: 'distance to 3 multiplies by (1 − η) each step: η = 0.3 → × 0.7 · η = 1.9 → × −0.9 · η > 2 → grows',
+      k: ['**θ* = argmin L** — the target', '**t (iteration)** — step counter', '**SGD** — gradient from a mini-batch — a noisy slope'],
+      v: 'The η = 2 limit is specific to this curve. Steeper curves diverge at smaller η.',
+      x: 'Q: η = 1 here? A: One step lands exactly on 3.' }
+  ],
+  Bayesian: [
+    { p: 'Before any data, Beta(2, 2). Where is it centred, and how sure is it?',
+      a: '**At 0.5, and not very sure.** The dashed hill is the prior on π, the unknown fraction of mutated cells. Larger a = b gives a taller, narrower hill: a stronger belief.',
+      c: 'Beta(a, b) mean = a/(a + b) = 2/4 = 0.5',
+      k: ['**π** — a proportion here, not 3.14', '**prior p(π)** — belief before data', '**π ∼ Beta(a, b)** — the parameter gets a distribution — the Bayesian move'],
+      v: 'A strong prior can override real data. Report it and check how much it matters.',
+      x: 'Q: Beta(1, 1)? A: Flat: every π equally likely.' },
+    { p: '14 of 20 cells carry the mutation. Which π fits best?',
+      a: '**0.70.** The new curve is the likelihood: for each π, how probable is 14 of 20? It peaks at k/n. It is drawn rescaled to area 1 to share the axes.',
+      c: 'k | π ∼ Bin(20, π) → peak at 14/20 = 0.70',
+      k: ['**k | π ∼ Bin(n, π)** — data model given π', '**likelihood p(k | π)** — a function of π, data fixed', '**k/n** — the MLE — where the likelihood peaks'],
+      v: 'The binomial assumes cells are independent. Clonal cells are not.',
+      x: 'Q: 0 of 20 mutated: MLE? A: 0. A prior avoids that extreme.' },
+    { p: 'Combine prior (0.5) and data (0.7). Where does the posterior mean land?',
+      a: '**0.67: between, nearer the data.** Multiply prior and likelihood point by point and rescale to area 1. With 20 cells, the data outweigh a weak prior.',
+      c: 'Beta(2 + 14, 2 + 6) = Beta(16, 8) → mean 16/24 = 0.67 · prior strength 30 → Beta(44, 36), mean 0.55',
+      k: ['**∝** — proportional to — hides the dividing constant', '**evidence p(k)** — the integral that makes area 1', '**conjugate prior** — posterior has the same family — Beta in, Beta out'],
+      v: '∝ is fine for finding the shape. Comparing models needs the full p(k).',
+      x: 'Q: Prior Beta(1, 1), 3 of 3 successes. Posterior? A: Beta(4, 1), mean 0.8.' },
+    { p: 'The shaded middle 95%. May you say "π is inside with probability 0.95"?',
+      a: '**Yes, here you may.** This is a credible interval, and π has a distribution. That is the statement people wrongly make about confidence intervals.',
+      c: '95% CrI of Beta(16, 8) = [0.47, 0.84] · posterior mean 0.67',
+      k: ['**credible interval** — probability about π given data and prior', '**𝔼[π | k]** — posterior mean', '**CI vs CrI** — statement about the procedure vs about π'],
+      v: 'The credible interval depends on the prior. With weak priors and enough data, CI and CrI are often close in number.',
+      x: 'Q: More cells, same 70% rate: the interval? A: Narrower.' }
+  ],
+  information: [
+    { p: 'q is shifted and wider than p. Is D_KL(p‖q) zero, positive or negative?',
+      a: '**Positive.** p = N(0, 1) is the truth (solid); q is an approximation (dashed). KL measures what is lost using q for p. It is 0 only when q = p.',
+      c: 'q = N(1, 1.5²) → D_KL(p‖q) = 0.35 · set q to mean 0, SD 1 → 0',
+      k: ['**p, q** — truth and approximation on one variable', '**D_KL(p‖q)** — expected log-ratio under p — always ≥ 0', '**‖ here** — separates the arguments — not a norm'],
+      v: 'Order matters: the reference p goes first.',
+      x: 'Q: D_KL(p‖p)? A: 0.' },
+    { p: 'Where on the x-axis does most of the KL come from?',
+      a: '**Left of 0, near −0.5.** The shaded curve is p(x) · log(p(x)/q(x)) at each x. It is large where p has mass but the shifted q has less. It dips slightly below 0 on the right, where q is higher; the dips never outweigh the bumps.',
+      c: 'D_KL(p‖q) = log s + (1 + m²)/(2s²) − ½ = log 1.5 + 2/4.5 − 0.5 = 0.35',
+      k: ['**p log(p/q)** — contribution at x', '**log-ratio** — how much likelier x is under p than q', '**weighted by p** — only where the truth puts mass counts'],
+      v: 'If q is 0 where p is not, KL is infinite. Approximations must cover the truth.',
+      x: 'Q: Can the integrand be negative? A: Yes; the total cannot.' },
+    { p: 'Swap the order: D_KL(q‖p). Same number?',
+      a: '**No: 0.72 vs 0.35.** q is wider, so under q many draws land in tails where p is tiny, and log(q/p) is large there. KL is not a distance.',
+      c: 'D_KL(q‖p) = −log s + (s² + m²)/2 − ½ = −0.41 + 1.63 − 0.5 = 0.72',
+      k: ['**asymmetry** — D_KL(p‖q) ≠ D_KL(q‖p)', '**entropy H(p)** — spread of p — 1.42 nats for N(0, 1)', '**cross-entropy H(p, q) = H(p) + D_KL(p‖q)** — the level 7 loss'],
+      v: 'VAEs and scVI use D_KL(q_φ‖prior): q first. That choice makes q under-cover the truth.',
+      x: 'Q: Minimising cross-entropy is minimising what? A: KL to the true labels, since H(p) is fixed.' }
+  ]
+};
+const explain = o => { const ex = EXPLAIN[o.phase]; if (!ex) return;
+  o.steps = o.steps.map((st, i) => { const e = ex[i]; if (!e) return st; const s2 = typeof st === 'string' ? { cap: st } : { ...st }, old = s2.info || {};
+    s2.info = { notation: old.notation, see: old.see, try: old.try,
+      text: `**Predict.** ${e.p}\n\n**Answer.** ${e.a}`, example: e.c, read: e.k,
+      more: `**Caveat.** ${e.v}\n\n**Exam angle.** ${e.x}` + (old.more ? `\n\n${old.more}` : '') };
+    return s2; }); };
+const scene = o => { explain(o); [o.info, ...o.steps.map(x => x && x.info)].forEach(inf => inf && sayRows(inf.notation)); return Proff.scene(o); };
+// reference tables are collected here and printed at the end of the page
+const REF = [], ref = (name, head, rows) => REF.push([name, head, rows]);
 // identity colours used on every scene: c1 = data / main object, c3 = selected or changed, c2 = the key number, c4 = reference/truth, c6 = background
 
 Proff.page({
@@ -858,7 +1288,7 @@ Proff.tiles([
   { big: 'x vs **x** vs X', h: 'font = shape', text: 'Plain *x* is one number. Bold lower-case **x** is a list (vector). Bold capital **X** is a table (matrix). ℝⁿ says how long the list is.' }
 ]);
 
-Proff.compare(
+ref('Greek letters and their usual jobs',
   ['symbol', 'say it', 'usual job in papers', 'example you will meet'],
   [
     ['α', 'alpha', 'significance level; Dirichlet/Gamma shape; learning rate in some papers', 'α = 0.05; Gamma(α, β)'],
@@ -985,7 +1415,7 @@ scene({
   }
 });
 
-Proff.compare(
+ref('sets, logic and number systems',
   ['notation', 'read aloud', 'meaning', 'bioinformatics example'],
   [
     ['{i : xᵢ ≥ τ}', 'indices i such that xᵢ ≥ τ', 'filter; returns positions', 'genes with log₂FC ≥ 1'],
@@ -1084,10 +1514,7 @@ scene({
     { cap: 'Cosine similarity divides out both lengths, leaving only direction: +1 same way, 0 at right angles, −1 opposite.',
       info: { notation: { '\\cos\\theta = \\frac{\\mathbf{u}^{\\top}\\mathbf{v}}{\\|\\mathbf{u}\\|\\|\\mathbf{v}\\|}': ['cosine similarity', 'drag the length of v: it does not change'], '\\theta': ['angle between the arrows', 'arc at the origin'] },
         read: ['Used to compare cell embeddings and in attention (QKᵀ is a table of dot products)'],
-        try: 'Change only **length of v**: cos θ stays fixed; the dot product changes.' } },
-    { cap: 'Different norms measure length differently. Shapes show every point of length 1 under L1, L2, and L∞.',
-      info: { notation: { '\\|\\mathbf{v}\\|_1 = \\sum_i |v_i|': ['L1: city-block distance', 'diamond shape; lasso penalty'], '\\|\\mathbf{v}\\|_2 = \\sqrt{\\sum_i v_i^2}': ['L2: straight-line distance', 'circle; ridge / weight decay'], '\\|\\mathbf{v}\\|_\\infty = \\max_i |v_i|': ['largest single entry', 'square'], '\\|\\mathbf{X}\\|_F': ['Frobenius norm: L2 of every matrix entry', 'used for reconstruction error'] },
-        read: ['L1 penalties push weights to exactly 0 (sparse gene sets); L2 shrinks them smoothly'] } }
+        try: 'Change only **length of v**: cos θ stays fixed; the dot product changes.' } }
   ],
   draw(g, k, t, p) {
     const u = [3, 1], ph = p.phi * Math.PI / 180, v = [p.r * Math.cos(ph), p.r * Math.sin(ph)];
@@ -1095,12 +1522,6 @@ scene({
     const A = g.axes({ x: 320, y: 70, w: 560, h: 480, xd: [-3.5, 3.5], yd: [-2.5, 3.5], xt: [-3, -2, -1, 0, 1, 2, 3], yt: [-2, -1, 0, 1, 2, 3], grid: true });
     const O = [A.sx(0), A.sy(0)];
     g.line(A.x, O[1], A.x + A.w, O[1], { stroke: 'muted', sw: 1, free: true }); g.line(O[0], A.y, O[0], A.y + A.h, { stroke: 'muted', sw: 1, free: true });
-    if (k === 3) {
-      const ring = (f, op) => g.poly(Proff.range(0, 2 * Math.PI, 160).map(a => { const c = [Math.cos(a), Math.sin(a)], s = f(c); return [A.sx(c[0] / s), A.sy(c[1] / s)]; }), op);
-      ring(c => Math.abs(c[0]) + Math.abs(c[1]), { stroke: 'c3', sw: 2.5, close: true });
-      ring(() => 1, { stroke: 'c1', sw: 2.5, close: true });
-      ring(c => Math.max(Math.abs(c[0]), Math.abs(c[1])), { stroke: 'c4', sw: 2.5, close: true, dash: true });
-    }
     g.arrow(O[0], O[1], A.sx(u[0]), A.sy(u[1]), { stroke: 'c1', sw: 4 });
     g.text(A.sx(u[0]) + 14, A.sy(u[1]) - 6, 'u', { size: 24, weight: 800, fill: 'c1', anchor: 'start' });
     g.arrow(O[0], O[1], A.sx(v[0]), A.sy(v[1]), { stroke: 'c2', sw: 4 });
@@ -1126,16 +1547,112 @@ scene({
       g.tex(R, 200, `\\theta = ${Math.round(Math.abs(p.phi - a0 * 180 / Math.PI))}^{\\circ}`, { size: 26, w: 200, anchor: 'start', fill: 'c3' });
       g.tex(R, 270, '\\cos\\theta = ' + f2(cos), { size: 30, w: 240, anchor: 'start', fill: 'c2' });
     }
-    if (k === 3) {
-      g.tex(R, 160, '\\|\\mathbf{v}\\|_1 = ' + f2(Math.abs(v[0]) + Math.abs(v[1])), { size: 24, w: 260, anchor: 'start', fill: 'c3' });
-      g.tex(R, 220, '\\|\\mathbf{v}\\|_2 = ' + f2(nv), { size: 24, w: 260, anchor: 'start', fill: 'c1' });
-      g.tex(R, 280, '\\|\\mathbf{v}\\|_\\infty = ' + f2(Math.max(Math.abs(v[0]), Math.abs(v[1]))), { size: 24, w: 260, anchor: 'start', fill: 'c4' });
-      g.text(A.x - 20, A.sy(1.3), 'unit balls', { size: 20, anchor: 'end', fill: 'muted' });
-    }
   }
 });
 
-Proff.compare(
+scene({
+  title: 'Three rulers for length: L2, L1 and L∞, and why the lasso sets weights to exactly 0',
+  phase: 'norms', acc: 3, h: 620,
+  panels: [{ id: 'legs', from: 0 }, { id: 'balls', from: 3 }, { id: 'lasso', from: 4 }, { id: 'ridge', from: 5 }],
+  controls: [{ name: 'v1', label: 'v₁', min: -3, max: 3, step: 0.1, value: 2 }, { name: 'v2', label: 'v₂', min: -3, max: 3, step: 0.1, value: 1.5 }, { name: 'tb', label: 'budget t', min: 0.4, max: 2.8, step: 0.1, value: 1 }],
+  steps: [
+    { cap: 'L2: the straight-line length. The arrow and its two dashed legs form a right triangle, so ‖v‖₂ = √(v₁² + v₂²).',
+      info: { notation: { '\\|\\mathbf{v}\\|_2 = \\sqrt{\\sum_i v_i^2}': ['L2 norm: straight-line length', '√(2² + 1.5²) = 2.50'], 'v_1, v_2': ['entries of v: the two legs', 'v = (2, 1.5)'] } } },
+    { cap: 'L1: walk along the grid only. Add the absolute legs: ‖v‖₁ = |v₁| + |v₂|. It is never shorter than L2.',
+      info: { notation: { '\\|\\mathbf{v}\\|_1 = \\sum_i |v_i|': ['L1 norm: city-block length', '|2| + |1.5| = 3.50'], '|v_i|': ['absolute value: drop the sign', '|−2| = 2'] } } },
+    { cap: 'L∞: keep only the single longest leg. Always ‖v‖∞ ≤ ‖v‖₂ ≤ ‖v‖₁.',
+      info: { notation: { '\\|\\mathbf{v}\\|_\\infty = \\max_i |v_i|': ['L∞ norm: the largest absolute entry', 'max(2, 1.5) = 2.00'], '\\|\\mathbf{v}\\|_p': ['Lp norm: add |vᵢ|ᵖ, then take the p-th root', 'p = 1, 2, ∞'] } } },
+    { cap: 'Every point of length exactly 1 under each ruler: L1 is a diamond, L2 a circle, L∞ a square. Dots show v rescaled to length 1.',
+      info: { notation: { '\\{\\mathbf{x} : \\|\\mathbf{x}\\|_p \\le 1\\}': ['unit ball: all points of length at most 1', 'L1 → diamond with corners on the axes'], '\\mathbf{v} / \\|\\mathbf{v}\\|_p': ['v rescaled to length 1 under norm p', 'v / 3.5 = (0.57, 0.43)'] } } },
+    { cap: 'Lasso: β̂ lies outside the L1 budget. Grow the error rings from β̂ until one touches the diamond. It touches a corner: β₂ = 0.',
+      info: { notation: { '\\hat{\\boldsymbol\\beta}': ['unpenalised best fit: centre of the rings', '(2.0, 0.6)'], '\\|\\boldsymbol\\beta\\|_1 \\le t': ['L1 budget: the diamond', 't = 1.0'], '\\min_{\\boldsymbol\\beta} \; \\mathcal{L}(\\boldsymbol\\beta) + \\lambda\\|\\boldsymbol\\beta\\|_1': ['the same lasso written with a penalty λ', 'larger λ ↔ smaller t'] },
+        try: 'Raise **budget t** to 1.4: the answer stays on the corner. Past that it slides along an edge, and above 2.6 it is β̂ itself.' } },
+    { cap: 'Ridge: same β̂, but an L2 budget (a circle). No corners, so the rings touch off the axes. Both weights shrink; neither hits 0.',
+      info: { notation: { '\\|\\boldsymbol\\beta\\|_2 \\le t': ['L2 budget: the circle', 't = 1.0'], '\\lambda\\|\\boldsymbol\\beta\\|_2^2': ['ridge penalty; called weight decay in deep learning', 'answer (0.87, 0.49)'] } } }
+  ],
+  draw(g, k, t, p) {
+    const v = [p.v1, p.v2], a1 = Math.abs(v[0]), a2 = Math.abs(v[1]);
+    const n1 = a1 + a2, n2 = Math.hypot(a1, a2), ni = Math.max(a1, a2);
+    // square axes inside a panel box, readouts to the right
+    const sq = (D, lo, hi, xl, yl) => { const s = Math.min(D.w - 330, D.h); return g.axes({ x: D.x, y: D.y + (D.h - s) / 2, w: s, h: s, xd: [lo[0], hi[0]], yd: [lo[1], hi[1]], xt: Proff.range(Math.ceil(lo[0]), Math.floor(hi[0]), Math.floor(hi[0]) - Math.ceil(lo[0]) + 1), yt: Proff.range(Math.ceil(lo[1]), Math.floor(hi[1]), Math.floor(hi[1]) - Math.ceil(lo[1]) + 1), xl, yl, grid: true }); };
+    const cross = A => { g.line(A.x, A.sy(0), A.x + A.w, A.sy(0), { stroke: 'muted', sw: 1.5, free: true }); g.line(A.sx(0), A.y, A.sx(0), A.y + A.h, { stroke: 'muted', sw: 1.5, free: true }); };
+    g.panel('legs', D => {
+      const A = sq(D, [-3.4, -3.4], [3.4, 3.4], 'v₁', 'v₂'); cross(A);
+      const O = [A.sx(0), A.sy(0)], C = [A.sx(v[0]), A.sy(0)], T = [A.sx(v[0]), A.sy(v[1])], R = A.x + A.w + 70;
+      const longX = a1 >= a2;
+      g.line(O[0], O[1], C[0], C[1], { stroke: k === 1 || (k === 2 && longX) ? (k === 1 ? 'c3' : 'c4') : 'muted', sw: k === 1 || (k === 2 && longX) ? 7 : 2, dash: k === 0 || (k === 2 && !longX) });
+      g.line(C[0], C[1], T[0], T[1], { stroke: k === 1 || (k === 2 && !longX) ? (k === 1 ? 'c3' : 'c4') : 'muted', sw: k === 1 || (k === 2 && !longX) ? 7 : 2, dash: k === 0 || (k === 2 && longX) });
+      if (n2 > 0.05) g.arrow(O[0], O[1], T[0], T[1], { stroke: 'c1', sw: k === 0 ? 5 : 3, op: k === 0 ? 1 : 0.5 });
+      if (a1 > 0.3) g.text((O[0] + C[0]) / 2, C[1] + (v[1] >= 0 ? 34 : -18), '|v₁| = ' + f1(a1), { size: 20, anchor: 'middle', fill: 'ink', halo: true });
+      // |v₂| label sits beside its leg, or above the tip when the leg is near the plot edge
+      if (a2 > 0.3) { if (a1 <= 2.2) g.text(C[0] + (v[0] >= 0 ? 14 : -14), (C[1] + T[1]) / 2, '|v₂| = ' + f1(a2), { size: 20, anchor: v[0] >= 0 ? 'start' : 'end', fill: 'ink', halo: true });
+        else g.text(T[0] + (v[0] >= 0 ? -10 : 10), T[1] + (v[1] >= 0 ? -22 : 36), '|v₂| = ' + f1(a2), { size: 20, anchor: v[0] >= 0 ? 'end' : 'start', fill: 'ink', halo: true }); }
+      g.tex(R, A.y + 40, `\\mathbf{v} = (${f1(v[0])},\\ ${f1(v[1])})`, { size: 24, w: 280, anchor: 'start', fill: 'ink' });
+      g.tex(R, A.y + 120, '\\|\\mathbf{v}\\|_2 = ' + f2(n2), { size: k === 0 ? 30 : 24, w: 280, anchor: 'start', fill: k === 0 ? 'c1' : 'muted' });
+      if (k >= 1) g.tex(R, A.y + 185, '\\|\\mathbf{v}\\|_1 = ' + f2(n1), { size: k === 1 ? 30 : 24, w: 280, anchor: 'start', fill: k === 1 ? 'c3' : 'muted' });
+      if (k >= 2) {
+        g.tex(R, A.y + 250, '\\|\\mathbf{v}\\|_\\infty = ' + f2(ni), { size: 30, w: 280, anchor: 'start', fill: 'c4' });
+        g.tex(R, A.y + 330, `${f2(ni)} \\le ${f2(n2)} \\le ${f2(n1)}`, { size: 24, w: 280, anchor: 'start', fill: 'ink' });
+      }
+    });
+    g.panel('balls', D => {
+      const A = sq(D, [-1.6, -1.6], [1.6, 1.6], 'x₁', 'x₂'); cross(A);
+      const ring = (f, o) => g.poly(Proff.range(0, 2 * Math.PI, 241).map(a => { const c = [Math.cos(a), Math.sin(a)], s = f(c); return [A.sx(c[0] / s), A.sy(c[1] / s)]; }), { close: true, sw: 3, ...o });
+      ring(c => Math.abs(c[0]) + Math.abs(c[1]), { stroke: 'c3' });
+      ring(() => 1, { stroke: 'c1' });
+      ring(c => Math.max(Math.abs(c[0]), Math.abs(c[1])), { stroke: 'c4', dash: true });
+      g.label(A.sx(-1.15), A.sy(-1.3), 'L1 = 1 (diamond)', { to: [A.sx(-0.5), A.sy(-0.5)], size: 20, fill: 'c3', anchor: 'middle' });
+      g.label(A.sx(-1.0), A.sy(1.42), 'L2 = 1 (circle)', { to: [A.sx(-0.707), A.sy(0.707)], size: 20, fill: 'c1', anchor: 'middle' });
+      g.label(A.sx(1.0), A.sy(-1.42), 'L∞ = 1 (square)', { to: [A.sx(1), A.sy(-1)], size: 20, fill: 'c4', anchor: 'middle' });
+      const R = A.x + A.w + 40;
+      if (n2 > 0.05) {
+        const u = [v[0] / n2, v[1] / n2], far = 1.12 / Math.max(Math.abs(u[0]), Math.abs(u[1]));
+        g.line(A.sx(0), A.sy(0), A.sx(u[0] * far), A.sy(u[1] * far), { stroke: 'c2', sw: 2, dash: true });
+        [[n1, 'c3', '_1'], [n2, 'c1', '_2'], [ni, 'c4', '_\\infty']].forEach(([n, c, sub], i) => {
+          g.circle(A.sx(v[0] / n), A.sy(v[1] / n), 9, { fill: c, stroke: 'fig', sw: 2 });
+          g.tex(R, A.y + 60 + i * 80, `\\mathbf{v}/\\|\\mathbf{v}\\|${sub} = (${f2(v[0] / n)},\\ ${f2(v[1] / n)})`, { size: 22, w: 330, anchor: 'start', fill: c });
+        });
+        g.text(R, A.y + 300, 'dashed line: the direction of v', { size: 18, anchor: 'start', fill: 'muted' });
+      }
+    });
+    // lasso / ridge: loss (β − β̂)ᵀ M (β − β̂), M = [[1, .5], [.5, 1]]
+    const b0 = [2, 0.6], loss = b => { const d0 = b[0] - b0[0], d1 = b[1] - b0[1]; return d0 * d0 + d1 * d1 + d0 * d1; };
+    const solve = norm => {
+      if (norm(b0) <= p.tb) return b0;
+      let best = null, bl = Infinity;
+      for (let i = 0; i < 4000; i++) { const a = i / 4000 * 2 * Math.PI, c = [Math.cos(a), Math.sin(a)], s = p.tb / norm(c), b = [c[0] * s, c[1] * s], l = loss(b); if (l < bl) { bl = l; best = b; } }
+      return best;
+    };
+    const fit = (id, norm, fillC, strokeC, name) => g.panel(id, D => {
+      const A = sq(D, [-1.2, -1.6], [3.4, 3.0], 'β₁ (gene 1 weight)', 'β₂ (gene 2 weight)'); cross(A);
+      const R = A.x + A.w + 40, sol = solve(norm), c = Math.max(loss(sol), 0.15);
+      g.poly(Proff.range(0, 2 * Math.PI, 241).map(a => { const u = [Math.cos(a), Math.sin(a)], s = p.tb / norm(u); return [A.sx(Proff.clamp(u[0] * s, -1.2, 3.4)), A.sy(Proff.clamp(u[1] * s, -1.6, 3.0))]; }), { close: true, fill: fillC, stroke: strokeC, sw: 3 });
+      const e1 = Math.SQRT1_2, inside = q => q[0] >= -1.2 && q[0] <= 3.4 && q[1] >= -1.6 && q[1] <= 3.0;
+      [0.25 * c, 0.6 * c, c].forEach((lv, j) => {
+        let run = [];
+        const flush = () => { if (run.length > 1) g.poly(run, { stroke: j === 2 ? 'c2' : 'muted', sw: j === 2 ? 3 : 1.5, dash: j !== 2 }); run = []; };
+        Proff.range(0, 2 * Math.PI, 241).forEach(f => {
+          const r1 = Math.sqrt(lv / 1.5) * Math.cos(f), r2 = Math.sqrt(lv / 0.5) * Math.sin(f), q = [b0[0] + e1 * (r1 + r2), b0[1] + e1 * (r1 - r2)];
+          if (inside(q)) run.push([A.sx(q[0]), A.sy(q[1])]); else flush();
+        });
+        flush();
+      });
+      g.circle(A.sx(b0[0]), A.sy(b0[1]), 9, { fill: 'ink', stroke: 'fig', sw: 2 });
+      g.label(A.sx(2.3), A.sy(2.7), 'β̂ (best fit)', { to: [A.sx(b0[0]) + 4, A.sy(b0[1]) - 8], size: 20, fill: 'ink', anchor: 'start' });
+      g.circle(A.sx(sol[0]), A.sy(sol[1]), 11, { fill: 'c2', stroke: 'fig', sw: 2 });
+      g.tex(R, A.y + 30, `\\hat{\\boldsymbol\\beta} = (2.0,\\ 0.6)`, { size: 24, w: 300, anchor: 'start', fill: 'ink' });
+      g.tex(R, A.y + 95, `${name} \\le t = ${f1(p.tb)}`, { size: 24, w: 300, anchor: 'start', fill: strokeC });
+      g.tex(R, A.y + 175, `\\text{answer} = (${f2(sol[0])},\\ ${f2(sol[1])})`, { size: 26, w: 320, anchor: 'start', fill: 'c2' });
+      const zero = Math.abs(sol[1]) < 0.005 || Math.abs(sol[0]) < 0.005;
+      g.text(R, A.y + 250, sol === b0 ? 'β̂ fits the budget: no shrinkage' : zero ? 'one weight is exactly 0' : 'both weights kept, both shrunk', { size: 20, anchor: 'start', fill: sol === b0 ? 'ink' : zero ? 'c3' : 'c1', weight: 700 });
+      g.text(R, A.y + 290, 'rings: equal error around β̂', { size: 18, anchor: 'start', fill: 'muted' });
+    });
+    fit('lasso', b => Math.abs(b[0]) + Math.abs(b[1]), 'f3', 'c3', '\\|\\boldsymbol\\beta\\|_1');
+    fit('ridge', b => Math.hypot(b[0], b[1]), 'f1', 'c1', '\\|\\boldsymbol\\beta\\|_2');
+  }
+});
+
+ref('vectors, matrices and tensors',
   ['notation', 'shape', 'meaning', 'where you see it'],
   [
     ['x, xᵢ (italic)', 'scalar', 'one number', 'a p-value, one count'],
@@ -1303,7 +1820,7 @@ scene({
   }
 });
 
-Proff.compare(
+ref('named distributions',
   ['notation', 'read aloud', 'what kind of data', 'parameters and their meaning', 'where in bio / DL'],
   [
     ['Bern(p)', 'Bernoulli p', 'one yes/no', 'p = chance of yes', 'one read maps or not; dropout mask'],
@@ -1322,7 +1839,7 @@ Proff.compare(
   ]
 );
 
-Proff.compare(
+ref('probability notation',
   ['notation', 'read aloud', 'meaning', 'watch out'],
   [
     ['P(A) vs p(x)', 'P of A / p of x', 'probability of an event / density or mass at a value', 'p(x) can exceed 1; P(A) cannot'],
@@ -1440,7 +1957,7 @@ scene({
   }
 });
 
-Proff.compare(
+ref('estimates, errors and intervals',
   ['notation', 'read aloud', 'what it measures', 'trap'],
   [
     ['θ, θ̂, θ*', 'theta, theta hat, theta star', 'true value, estimate, best or optimal value', 'θ* can also mean “true” in theory papers'],
@@ -1538,7 +2055,7 @@ scene({
   }
 });
 
-Proff.compare(
+ref('hypothesis testing',
   ['notation', 'read aloud', 'meaning', 'trap'],
   [
     ['H₀, H₁', 'H naught, H one', 'null and alternative hypotheses', 'you never “accept” H₀; you fail to reject it'],
@@ -1687,7 +2204,7 @@ scene({
   }
 });
 
-Proff.compare(
+ref('deep-learning notation',
   ['notation', 'read aloud', 'meaning', 'where you meet it'],
   [
     ['f_θ, g_φ', 'f theta, g phi', 'a network with weights θ (or φ)', 'every DL methods section'],
@@ -1769,7 +2286,7 @@ scene({
   }
 });
 
-Proff.compare(
+ref('advanced symbols',
   ['notation', 'read aloud', 'meaning', 'example'],
   [
     ['∝', 'proportional to', 'equal up to a constant factor', 'posterior ∝ likelihood × prior'],
@@ -1815,6 +2332,8 @@ Proff.quiz([
   { tag: 'level 7', q: 'The model gives ŷ_c = 0.25 to the true class. What is the cross-entropy loss?', a: '−log 0.25 = 1.39 (natural log).' },
   { tag: 'level 8', q: 'Is D_KL(p ‖ q) = D_KL(q ‖ p)?', a: 'Not in general. KL is not symmetric, so it is not a distance. With p = N(0,1) and q = N(1, 1.5²) the two values are 0.35 and 0.72.' }
 ]);
+
+REF.forEach(([n, h, r]) => { Proff.section('reference · ' + n); Proff.compare(h, r); });
 
 </script>
 </body></html>
