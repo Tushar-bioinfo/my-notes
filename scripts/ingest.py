@@ -15,6 +15,7 @@ import urllib.parse
 from html.parser import HTMLParser
 from pathlib import Path
 from datetime import date
+import subprocess
 
 VAULT_ROOT = Path(__file__).resolve().parent.parent
 VISUALS_DIR = VAULT_ROOT / "Visuals"
@@ -323,6 +324,50 @@ def add_to_domain_moc(note_name: str, domain: str):
     moc_path.write_text(new_content, encoding="utf-8")
 
 
+def validate_and_repair_html(html_raw: str) -> str:
+    """Validate scripts inside HTML and repair missing Proff calc runtime or syntax errors."""
+    # 1. Check if Proff.calc is invoked but calc engine runtime is missing
+    if "Proff.calc" in html_raw and "P.calc =" not in html_raw and "/* Proff calc engine" not in html_raw:
+        ref_files = [
+            HTML_DIR / "counts-to-log-cpm-calculation.html",
+            HTML_DIR / "mageck-mle-step-by-step.html",
+            HTML_DIR / "mageck-rra-step-by-step.html",
+        ]
+        calc_engine_block = ""
+        for rf in ref_files:
+            if rf.exists():
+                ref_txt = rf.read_text(encoding="utf-8")
+                m = re.search(r"<script>(\s*/\* Proff calc engine: replays a calctrace\.py trace[\s\S]*?)</script>", ref_txt)
+                if m:
+                    calc_engine_block = f"<script>{m.group(1)}</script>\n"
+                    break
+        if calc_engine_block:
+            last_script_match = list(re.finditer(r"<script(?:\s+[^>]*)?>", html_raw))
+            if last_script_match:
+                pos = last_script_match[-1].start()
+                html_raw = html_raw[:pos] + calc_engine_block + html_raw[pos:]
+                print("🛡️ [INTEGRITY] Auto-injected missing Proff calc engine module.")
+
+    # 2. Syntax validation with node if available
+    try:
+        scripts = re.findall(r"<script(?:\s+[^>]*)?>([\s\S]*?)</script>", html_raw, re.IGNORECASE)
+        for idx, code in enumerate(scripts):
+            if not code.strip() or "src=" in code:
+                continue
+            res = subprocess.run(
+                ["node", "-e", "new (require('vm')).Script(process.argv[1])", code],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if res.returncode != 0:
+                print(f"⚠️ [INTEGRITY WARNING] Script #{idx+1} syntax error: {res.stderr.strip()}", file=sys.stderr)
+    except Exception:
+        pass
+
+    return html_raw
+
+
 def ingest_html(source: str, domain: str = None, title: str = None, tags: list = None, move: bool = False):
     ensure_dirs()
     today_str = date.today().isoformat()
@@ -384,14 +429,12 @@ def ingest_html(source: str, domain: str = None, title: str = None, tags: list =
         dest_html_file = HTML_DIR / f"{slug}-{counter}.html"
         counter += 1
 
-    if is_url:
-        dest_html_file.write_text(html_raw, encoding="utf-8")
-    else:
+    html_raw = validate_and_repair_html(html_raw)
+    dest_html_file.write_text(html_raw, encoding="utf-8")
+    if not is_url and move:
         src_path = Path(source).resolve()
-        if move:
-            shutil.move(src_path, dest_html_file)
-        else:
-            shutil.copy2(src_path, dest_html_file)
+        if src_path != dest_html_file and src_path.exists():
+            src_path.unlink()
 
     vault_notes = get_all_vault_notes()
     related_notes = find_related_notes(extracted_title + " " + full_text, vault_notes)

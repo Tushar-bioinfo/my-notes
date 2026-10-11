@@ -77,6 +77,15 @@ If creating companion notes manually:
 
 ---
 
+### Ingestion Integrity & Runtime Verification Gate (Mandatory)
+
+To prevent visual corruption, all visual HTML files must satisfy these criteria before git commit:
+1. **Script Completeness**: If the visual uses calculation traces or calls `Proff.calc(...)`, it **must** include the Proff calc engine module (`/* Proff calc engine: replays a calctrace.py trace... */`). Never omit this runtime block when transferring or copying files.
+2. **JavaScript Syntax Check**: Verify that all `<script>` tags parse cleanly without syntax errors (watch out for mismatched quotes or unclosed template literals/backticks `` ` ``).
+3. **Runtime Execution Check**: Ensure the HTML boots with zero console exceptions so iframes inside Obsidian render smoothly.
+
+---
+
 ## 3. Companion Note Template
 
 Every ingested HTML visual must have a companion markdown note following this exact format:
