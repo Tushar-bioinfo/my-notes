@@ -15,6 +15,7 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
+- [[Maximum likelihood, from coins to neural nets - Visual]] *(Interactive Visual)*
 - [[Reading the maths in methods sections - Visual]] *(Interactive Visual)*
 - [[MAGeCK RRA, step by step - Visual]] *(Interactive Visual)*
 - [[MAGeCK-MLE, step by step - Visual]] *(Interactive Visual)*

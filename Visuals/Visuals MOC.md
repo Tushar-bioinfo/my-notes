@@ -14,6 +14,7 @@ This hub tracks interactive visualizations and visual reference pages across all
 
 ## 🧬 Biology & Digital Pathology Visuals
 
+- [[Hematoxylin from an H&E image - Visual]] — *Watch light pass through stained tissue. Turn what reaches the camera into optical density...*
 - [[MAGeCK RRA, step by step - Visual]] — *A toy knockout screen: 5 genes × 3 guides, day 0 vs day 21. Every number is computed.. Key...*
 - [[MAGeCK-MLE, step by step - Visual]] — *One gene, 3 guides, 3 samples. Watch each number get made.. Key stages: Where z falls if G...*
 - [[Counts to log-CPM Calculation - Visual]] — *3 genes × 4 samples. Watch each cell change....*
@@ -25,6 +26,7 @@ This hub tracks interactive visualizations and visual reference pages across all
 - [[Reading Deep Learning Notation - Visual]] — *From x_ij to softmax(QKᵀ/√d)V: what each symbol says and how the numbers move. Key stages:...*
 ## 📐 Mathematics & Statistics Visuals
 
+- [[Maximum likelihood, from coins to neural nets - Visual]] — *Which settings of a model make the data you saw most probable? One idea runs from a coin t...*
 - [[Reading the maths in methods sections - Visual]] — *An A–Z course in statistics and deep-learning notation, from the first subscript to KL div...*
 - [[Statistical Notation - Visual]] — *Testing a metabolic drug in mice: from raw bench data to statistical proof. Key stages: Be...*
 - [[What a t-test Sees - Visual]] — *Two groups of cells, one treated. Is the treated group really higher, or is it noise?. Key...*

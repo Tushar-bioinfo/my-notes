@@ -13,6 +13,10 @@ status: permanent
 
 - Add classical ML notes here: regression, classification, clustering, feature engineering, model evaluation, and experiment design.
 
+## Visuals & Walkthroughs
+
+- [[Maximum likelihood, from coins to neural nets - Visual]] *(Interactive Visual)*
+
 ## Bridges
 
 - [[Stats MOC]]

@@ -15,6 +15,10 @@ status: permanent
 - [[Digital Pathology Guide for Beginners]]
 - [[Beginner Digital Pathology Guide for H&E]]
 
+## Visuals & Walkthroughs
+
+- [[Hematoxylin from an H&E image - Visual]] *(Interactive Visual)*
+
 ## Bridges
 
 - [[Cancer Biology MOC]]
