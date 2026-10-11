@@ -15,7 +15,7 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
-- [[Maximum likelihood, from coins to neural nets - Visual]] *(Interactive Visual)*
+- [[Maximum likelihood, from zero - Visual]] *(Interactive Visual)*
 
 ## Bridges
 

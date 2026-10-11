@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Maximum likelihood, from coins to neural nets</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css"><script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<title>Maximum likelihood, from zero</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css"><script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
 <style>/* Proff visual kit. BlockFrame chrome (thick borders, hard offset shadows, heavy Inter, Space Grotesk labels)
    around clean figures. Dark only. Every colour is a token. Authors never edit this file. */
 :root,[data-theme=dark]{   /* default palette "blockframe": the Block Frame pastels (frontend-slides, MIT) on black, with quiet grey frames.
@@ -807,110 +807,366 @@ table.cmp th{font:700 12px var(--f-mono);letter-spacing:.08em;text-transform:upp
 })();
 </script>
 <script>
-// Maximum likelihood from the ground up: coin -> logs -> slope -> normal -> least squares -> cross-entropy.
+// Maximum likelihood from zero. Part 1 builds the tools (chance, "|", multiplying, distributions, logs).
+// Part 2 turns the question around (likelihood). Part 3 adds many points and logs. Part 4 finds the top.
+// Part 5 moves to continuous data. Part 6 lands on regression, classification and deep learning.
 // Identity colours on every scene: c1 = observed data, c2 = the current guess (slider), c3 = the best guess (MLE), c4 = log scale, c5 = loss.
-Proff.page({ title: 'Maximum likelihood, from coins to neural nets', sub: 'Which settings of a model make the data you saw most probable? One idea runs from a coin to deep learning.', eyebrow: 'interactive', layout: 'article' });
+Proff.page({ title: 'Maximum likelihood, from zero', sub: 'Start with one coin flip. End with how neural networks learn. Each scene uses only what the scenes before it built.', eyebrow: 'interactive', layout: 'article' });
 
 const S = Proff.stat;
 const on = (k, j, t) => k > j ? 1 : k === j ? t : 0;
 const choose = (n, r) => { let c = 1; for (let i = 1; i <= r; i++) c = c * (n - r + i) / i; return c; };
 const sup = n => String(n).replace(/[-0-9]/g, c => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]);
 const sci = v => { if (v === 0) return '0'; if (v >= .001) return v.toFixed(3); const e = Math.floor(Math.log10(v)), m = v / 10 ** e; return `${m.toFixed(1)} × 10${sup(e)}`; };
-const texSci = v => { if (v >= .001) return v.toFixed(3); const e = Math.floor(Math.log10(v)); return `${(v / 10 ** e).toFixed(1)}\\times10^{${e}}`; };
-const f2 = v => v.toFixed(2);
+const texSci = v => { if (v === 0) return '0'; if (v >= .001) return v.toFixed(3); const e = Math.floor(Math.log10(v)); return `${(v / 10 ** e).toFixed(1)}\\times10^{${e}}`; };
+const f2 = v => v.toFixed(2), f3 = v => v.toFixed(3), ln = Math.log;
+const fr = v => v < 100 ? v.toFixed(2) : v < 1e5 ? Math.round(v).toLocaleString('en-US') : (() => { const e = Math.floor(Math.log10(v)); return `${(v / 10 ** e).toFixed(1)} × 10${sup(e)}`; })();
+const sgn = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
 
-// ---------------- scene 1: probability vs likelihood ----------------
+// =============== PART 1 · THE TOOLBOX ===============
+
+// ---------------- scene 1: what a probability is ----------------
+const U1 = (() => { const r = Proff.rng(3), a = []; for (let i = 0; i < 1000; i++) a.push(r()); return a; })();
 Proff.scene({
-  title: 'Same formula, two questions', acc: 1, h: 640,
-  panels: [{ id: 'prob', from: 0 }, { id: 'lik', from: 2 }],
+  title: 'A probability is the share of times something happens', phase: 'part 1 · toolbox', acc: 1, h: 640,
+  panels: [{ id: 'one', from: 0 }, { id: 'many', from: 1 }, { id: 'share', from: 2 }],
+  controls: [
+    { name: 'p', label: 'chance of heads p', min: .05, max: .95, step: .01, value: .3 },
+    { name: 'n', label: 'flips', min: 20, max: 1000, step: 20, value: 1000 }],
+  info: {
+    notation: {
+      p: ['chance that one flip lands heads', 'p = 0.30: about 3 heads per 10 flips, in the long run'],
+      '1-p': ['chance of tails: what is left of 1', '1 − 0.30 = 0.70'],
+      'P(\\text{heads})': ['"the probability of heads"; read P( ) as "probability of"', 'P(heads) = 0.30'] },
+    try: 'Set **flips** to 20. The share can land far from p. Slide back to 1,000 and it settles.' },
+  steps: [
+    { cap: 'One coin flip has two outcomes. A **probability** (chance) is a number from 0 to 1 for each. The two chances add up to 1.',
+      info: { see: ['Left bar: chance of heads', 'Right bar: chance of tails'], read: ['0 means never, 1 means always', 'Something must happen, so the chances add to 1'] } },
+    { cap: 'What does "chance 0.30" mean? Flip the same coin 1,000 times (simulated). Filled squares are heads.',
+      info: { see: ['One square per flip, left to right, row by row', 'Top line: heads so far'], read: ['One flip alone is unpredictable'] } },
+    { cap: 'Track the share of heads as the flips pile up. It wobbles early, then settles on p. The probability is that long-run share.',
+      info: { see: ['Solid line: heads ÷ flips so far', 'Dashed line: p'], read: ['Few flips: the share can sit far from p', 'This is why small samples mislead'] } }],
+  draw(g, k, t, p) {
+    const fl = U1.slice(0, p.n).map(u => u < p.p ? 1 : 0), h = fl.reduce((a, b) => a + b, 0);
+    g.panel('one', D => {
+      const A = g.axes({ ...D, xd: [-.8, 1.8], yd: [0, 1.25], xt: [0, 1], yt: [0, .25, .5, .75, 1], fmtx: v => v ? 'tails' : 'heads', grid: true, xl: 'outcome of one flip', yl: 'probability' });
+      [[0, p.p, 'c1', 'f1', `p = ${f2(p.p)}`], [1, 1 - p.p, 'c6', 'f6', `1 − p = ${f2(1 - p.p)}`]].forEach(([x, v, s, f, lab]) => {
+        g.rect(A.sx(x) - 90, A.sy(v), 180, A.sy(0) - A.sy(v), { fill: f, stroke: s, sw: 2.5, free: true });
+        g.text(A.sx(x), A.sy(v) - 22, lab, { size: 26, anchor: 'middle', weight: 800, mono: true, fill: x ? 'ink' : 'c1' }); });
+      g.text(A.sx(.5), A.sy(1.18), `${f2(p.p)} + ${f2(1 - p.p)} = 1`, { size: 24, anchor: 'middle', weight: 800, mono: true, fill: 'ink' });
+    });
+    g.panel('many', D => {
+      const cols = 50, rows = 20, cs = Math.min(D.w / cols, (D.h - 70) / rows), x0 = D.x + (D.w - cs * cols) / 2, y0 = D.y + 70;
+      fl.forEach((f, i) => { const x = x0 + (i % cols) * cs, y = y0 + Math.floor(i / cols) * cs;
+        g.rect(x + cs * .12, y + cs * .12, cs * .76, cs * .76, { fill: f ? 'c1' : 'surf', stroke: f ? 'c1' : 'c6', sw: 1.2 }); });
+      g.text(D.x + D.w / 2, D.y + 28, `${h} of ${p.n} heads: share ${f3(h / p.n)}`, { size: 26, anchor: 'middle', weight: 800, mono: true, fill: 'c1' });
+    });
+    g.panel('share', D => {
+      const A = g.axes({ ...D, xd: [0, 1000], yd: [0, 1], xt: [0, 200, 400, 600, 800, 1000], yt: [0, .25, .5, .75, 1], grid: true, xl: 'number of flips so far', yl: 'share of heads so far' });
+      let c = 0; const pts = fl.map((f, i) => { c += f; return [A.sx(i + 1), A.sy(c / (i + 1))]; });
+      g.line(A.sx(0), A.sy(p.p), A.sx(1000), A.sy(p.p), { stroke: 'c2', sw: 2.5, dash: true, free: true });
+      g.poly(pts, { stroke: 'c1', sw: 3 });
+      g.text(A.sx(990), A.sy(p.p) + (p.p > .5 ? 40 : -40), `p = ${f2(p.p)}`, { size: 24, anchor: 'end', weight: 800, mono: true, fill: 'c2' });
+      g.text(A.sx(500), A.sy(p.p > .5 ? .12 : .88), `after ${p.n} flips: ${f3(h / p.n)}`, { size: 26, anchor: 'middle', weight: 800, mono: true, fill: 'c1' });
+    });
+  }
+});
+
+// ---------------- scene 2: the "|" sign and multiplying ----------------
+const ORD = [1, 1, 0, 1, 1, 1, 0, 1, 0, 1];
+Proff.scene({
+  title: 'Chances of separate events multiply', phase: 'part 1 · toolbox', acc: 2, h: 640,
+  panels: [{ id: 'tree', from: 0 }, { id: 'chain', from: 2 }],
+  controls: [{ name: 'p', label: 'chance of heads p', min: .05, max: .95, step: .01, value: .3 }],
+  info: {
+    notation: {
+      'H, T': ['heads, tails', 'H T: heads first, then tails'],
+      '\\mid': ['"given" or "if": what you assume is true', 'P(H, H | p): two heads, if the coin has bias p'],
+      '\\times': ['multiply', '0.30 × 0.30 = 0.090'],
+      'p^7': ['p multiplied by itself 7 times', `0.30⁷ = ${sci(.3 ** 7)}`] },
+    try: 'Drag **chance of heads p** to 0.50. All four paths of the tree get 0.250.' },
+  steps: [
+    { cap: 'Flip twice. The first flip splits into heads or tails; each of those splits again. Multiply the chances along a path to get its chance.',
+      info: { see: ['Label on each branch: the chance of that flip', 'Right: the chance of each full path'], read: ['The four paths add up to 1'] } },
+    { cap: 'Two heads in a row: p × p. Flips that do not affect each other are **independent**, and their chances multiply.',
+      info: { see: ['Thick path: heads, then heads', 'Formula: its chance with your p'], read: ['The bar "|" reads "given": the chance of the data if the coin has bias p'] } },
+    { cap: 'Ten flips in a set order. Each flip adds one factor: p for heads, 1 − p for tails.',
+      info: { see: ['Circles: the 10 flips in order', 'Number under each: its factor'] } },
+    { cap: 'Multiply all ten. Seven heads and three tails give p⁷ × (1 − p)³, in any order. Ten factors below 1 make a tiny number.',
+      info: { see: ['Formula: the product with your p'], read: ['Keep this shrinking in mind: it is why logs appear in part 3'] } }],
+  draw(g, k, t, p) {
+    const q = [p.p, 1 - p.p];
+    g.panel('tree', D => {
+      const cy = D.y + D.h * .43, x0 = D.x + 70, x1 = D.x + 370, x2 = D.x + 670, d1 = D.h * .26, d2 = D.h * .13;
+      const br = (xa, ya, xb, yb, s, hi) => {
+        const dx = xb - xa, dy = yb - ya, L = Math.hypot(dx, dy), nx = (dy < 0 ? dy : -dy) / L, ny = (dy < 0 ? -dx : dx) / L;
+        g.line(xa, ya, xb, yb, { stroke: hi ? 'c2' : s ? 'c6' : 'c1', sw: hi ? 7 : 3, free: true });
+        g.text((xa + xb) / 2 + nx * 48, (ya + yb) / 2 + ny * 48, `${s ? 'T' : 'H'}: ${f2(q[s])}`, { size: 22, anchor: 'middle', weight: 800, mono: true, fill: hi ? 'c2' : s ? 'ink' : 'c1' }); };
+      const hiP = k >= 1;
+      [0, 1].forEach(a => { const ya = cy + (a ? d1 : -d1); br(x0, cy, x1, ya, a, hiP && a === 0);
+        [0, 1].forEach(b => { const yb = ya + (b ? d2 : -d2); br(x1, ya, x2, yb, b, hiP && a === 0 && b === 0);
+          g.circle(x2, yb, 7, { fill: 'ink', stroke: 'fig', sw: 1.5, free: true });
+          g.text(x2 + 26, yb, `${a ? 'T' : 'H'}${b ? 'T' : 'H'}:  ${f2(q[a])} × ${f2(q[b])} = ${f3(q[a] * q[b])}`, { size: 22, weight: 800, mono: true, fill: hiP && a + b === 0 ? 'c2' : 'ink' }); });
+        g.circle(x1, ya, 7, { fill: 'ink', stroke: 'fig', sw: 1.5, free: true }); });
+      g.circle(x0, cy, 9, { fill: 'ink', stroke: 'fig', sw: 1.5, free: true });
+      g.text(x2 + 26, cy, `all four paths: ${f3(q[0] * q[0] + 2 * q[0] * q[1] + q[1] * q[1])}`, { size: 20, weight: 700, mono: true, fill: 'muted' });
+      if (k >= 1) g.fade(on(k, 1, t), g => g.tex(D.x + D.w / 2, D.y + D.h * .95, `P(H, H \\mid p) = p \\times p = ${f2(p.p)} \\times ${f2(p.p)} = ${f3(p.p * p.p)}`, { size: 28, w: 700 }));
+    });
+    g.panel('chain', D => {
+      const gap = Math.min(100, D.w / 11), x0 = D.x + D.w / 2 - gap * 4.5 + 40, cy = D.y + D.h * .28;
+      g.text(x0 - 60, cy, 'flip', { size: 20, anchor: 'end', weight: 700, fill: 'muted' });
+      g.text(x0 - 60, cy + 72, 'factor', { size: 20, anchor: 'end', weight: 700, fill: 'muted' });
+      ORD.forEach((f, i) => { const x = x0 + i * gap;
+        g.circle(x, cy, 32, { fill: f ? 'f1' : 'f6', stroke: f ? 'c1' : 'c6', sw: 3, free: true });
+        g.text(x, cy, f ? 'H' : 'T', { size: 26, anchor: 'middle', weight: 800, fill: f ? 'c1' : 'ink' });
+        g.text(x, cy + 72, f2(f ? p.p : 1 - p.p), { size: 22, anchor: 'middle', weight: 700, mono: true, fill: f ? 'c1' : 'ink' }); });
+      if (k >= 3) g.fade(on(k, 3, t), g => g.tex(D.x + D.w / 2, D.y + D.h * .72,
+        `P(\\text{this order} \\mid p) = p^{7}\\,(1-p)^{3} = ${f2(p.p)}^{7} \\times ${f2(1 - p.p)}^{3} = ${texSci(p.p ** 7 * (1 - p.p) ** 3)}`, { size: 28, w: 900 }));
+    });
+  }
+});
+
+// ---------------- scene 3: a distribution ----------------
+const COMB = (() => { const all = []; for (let r = 0; r <= 10; r++) { const out = [], cur = [];
+  const rec = s => { if (cur.length === r) { out.push(cur.slice()); return; } for (let i = s; i < 10; i++) { cur.push(i); rec(i + 1); cur.pop(); } }; rec(0); all.push(out); } return all; })();
+Proff.scene({
+  title: 'A distribution gives a chance to every possible outcome', phase: 'part 1 · toolbox', acc: 1, h: 640,
+  panels: [{ id: 'orders', from: 0 }, { id: 'bars', from: 2 }],
+  controls: [
+    { name: 'p', label: 'chance of heads p', min: .05, max: .95, step: .01, value: .3 },
+    { name: 'h', label: 'number of heads h', min: 0, max: 10, step: 1, value: 7 }],
+  info: {
+    notation: {
+      n: ['number of flips', 'n = 10'],
+      h: ['number of heads among them', 'h = 7'],
+      '\\binom{n}{h}': ['number of orders h heads can come in: "n choose h"', 'C(10, 7) = 120'],
+      'P(h \\mid p)': ['chance of exactly h heads, if the bias is p', `P(7 | 0.30) = ${f3(S.binomPmf(7, 10, .3))}`] },
+    try: 'Set **number of heads h** to 5: 252 orders, the most of any count.' },
+  steps: [
+    { cap: 'How many orders give 7 heads in 10 flips? Here are 8 of them. Each order has exactly the same chance.',
+      info: { see: ['Each row: one order of 10 flips', 'Filled dot: heads'], read: ['Every order with 7 heads has 7 factors of p and 3 of 1 − p'] } },
+    { cap: 'Add up the chances of all 120 orders. Since they are equal, multiply one of them by 120.',
+      info: { see: ['Formula: count of orders × chance of one order'], read: ['The count is written C(10, 7) or "10 choose 7"', 'C(10, 7) = 10! ÷ (7! × 3!) = 120'] } },
+    { cap: 'Do this for every count from 0 to 10. The 11 bars are the **binomial distribution**. They add up to 1.',
+      info: { see: ['One bar per head count', 'Filled bar: your h'], read: ['Some count must happen, so the bars add to 1'] } },
+    { cap: 'A **distribution** is a rule: give it its settings (here p and n) and it gives a chance to every outcome. Drag p and watch it move.',
+      info: { see: ['Label: the most likely count for your p'], read: ['The settings of a distribution are called **parameters**', 'Finding them from data is the whole job of maximum likelihood'] } }],
+  draw(g, k, t, p) {
+    const one = p.p ** p.h * (1 - p.p) ** (10 - p.h), N = COMB[p.h].length;
+    g.panel('orders', D => {
+      const m = Math.min(8, N), idx = m === 1 ? [0] : Array.from({ length: m }, (_, i) => Math.round(i * (N - 1) / (m - 1)));
+      const gap = 46, x0 = D.x + D.w / 2 - 260, y0 = D.y + 40, rh = 44;
+      for (let j = 0; j < 10; j++) g.text(x0 + j * gap, y0 - 6, String(j + 1), { size: 18, anchor: 'middle', fill: 'muted', tick: 1 });
+      idx.forEach((ci, r) => { const set = new Set(COMB[p.h][ci]);
+        for (let j = 0; j < 10; j++) g.circle(x0 + j * gap, y0 + 36 + r * rh, 14, { fill: set.has(j) ? 'c1' : 'surf', stroke: set.has(j) ? 'c1' : 'c6', sw: 2.5 }); });
+      const yb = y0 + 36 + (m - 1) * rh, bx = x0 + 9 * gap + 40;
+      if (m > 1) g.brace(bx, y0 + 22, bx, yb + 14, `each order: ${sci(one)}`, { size: 22, fill: 'ink' });
+      else g.text(bx, yb, `this order: ${sci(one)}`, { size: 22, weight: 700, fill: 'ink' });
+      g.text(x0 - 40, (y0 + 36 + yb) / 2, N > m ? `${m} of ${N} orders` : `${N} order${N > 1 ? 's' : ''} in all`, { size: 22, anchor: 'end', weight: 800, fill: 'c1' });
+      if (k >= 1) g.fade(on(k, 1, t), g => g.tex(D.x + D.w / 2, D.y + D.h * .93,
+        `P(${p.h}\\mid p) = \\binom{10}{${p.h}}\\,p^{${p.h}}(1-p)^{${10 - p.h}} = ${N} \\times ${texSci(one)} = ${texSci(N * one)}`, { size: 28, w: 900 }));
+    });
+    g.panel('bars', D => {
+      const A = g.axes({ ...D, xd: [-.6, 10.6], yd: [0, .7], xt: [0, 2, 4, 6, 8, 10], yt: [0, .2, .4, .6], grid: true, xl: 'number of heads in 10 flips', yl: 'probability' });
+      const P = h => S.binomPmf(h, 10, p.p), bw = (A.sx(1) - A.sx(0)) * .7;
+      let mode = 0, sum = 0; for (let h = 0; h <= 10; h++) { sum += P(h); if (P(h) > P(mode)) mode = h; }
+      for (let h = 0; h <= 10; h++) { const y = A.sy(P(h)), hit = h === p.h;
+        g.rect(A.sx(h) - bw / 2, y, bw, A.y + A.h - y, { fill: hit ? 'c1' : 'f6', stroke: hit ? 'c1' : 'c6', sw: 2, free: true }); }
+      g.text(A.sx(mode > 5 ? 2.5 : 7.5), A.sy(.64), `11 bars add up to ${f3(sum)}`, { size: 24, anchor: 'middle', weight: 800, mono: true, fill: 'ink' });
+      if (k === 2) g.text(A.sx(p.h), A.sy(P(p.h)) - 20, f3(P(p.h)), { size: 24, anchor: 'middle', weight: 800, mono: true, fill: 'c1' });
+      if (k >= 3) g.fade(on(k, 3, t), g => g.label(A.sx(mode) + (mode > 5 ? -190 : 190), A.sy(P(mode)) - 20, `most likely: ${mode} heads`, { to: [A.sx(mode), A.sy(P(mode))], size: 22, weight: 800, fill: 'ink' }));
+    });
+  }
+});
+
+// ---------------- scene 4: logs ----------------
+Proff.scene({
+  title: 'A log turns multiplying into adding', phase: 'part 1 · toolbox', acc: 4, h: 640,
+  panels: [{ id: 'plain', from: 0 }, { id: 'logs', from: 1 }, { id: 'curve', from: 3 }],
+  controls: [
+    { name: 'a', label: 'factor a', min: .1, max: .9, step: .05, value: .5 },
+    { name: 'm', label: 'times multiplied', min: 2, max: 20, step: 1, value: 10 }],
+  info: {
+    notation: {
+      '\\log': ['natural log: the power you raise e (2.718) to, to get the number', `log 0.5 = ${ln(.5).toFixed(2)}, because 2.718^(${ln(.5).toFixed(2)}) = 0.5`],
+      'a^k': ['a multiplied by itself k times', '0.5³ = 0.125'],
+      k: ['how many times you have multiplied', 'k = 10 at the last dot'] },
+    try: 'Set **factor a** to 0.1. The plain values hit 0 almost at once; the logs keep falling in equal steps.' },
+  steps: [
+    { cap: 'Start at 1 and multiply by 0.5 again and again. The values crowd against 0 and soon look like nothing.',
+      info: { see: ['Dots: 1, 0.5, 0.25, 0.125, …'], read: ['After 10 steps the value is below 0.001', 'The dots can no longer be told apart'] } },
+    { cap: `Plot the **log** of each value instead. Every multiply by 0.5 becomes the same step down: log 0.5 = ${ln(.5).toFixed(2)}.`,
+      info: { see: ['Dots: log of each value, on a straight line'], read: ['Multiplying by a number below 1 means adding a negative log'] } },
+    { cap: 'The rule behind it: log(a × b) = log a + log b. A product of many numbers becomes a sum of their logs.',
+      info: { see: ['Formula: the log of the last value, done as a sum'], read: ['Sums of moderate numbers are easy for a computer', 'Products of many small numbers are not'] } },
+    { cap: 'The log curve always rises. A bigger number always has a bigger log, so the largest value also has the largest log.',
+      info: { see: ['Curve: log x', 'Dots: log 1 and log a'], read: ['log 1 = 0; numbers below 1 have negative logs', 'Base 10 or 2 would only rescale the curve'] } }],
+  draw(g, k, t, p) {
+    const vals = Array.from({ length: p.m + 1 }, (_, i) => p.a ** i), la = ln(p.a);
+    g.panel('plain', D => {
+      const A = g.axes({ ...D, xd: [-.5, 20.5], yd: [0, 1.1], xt: [0, 5, 10, 15, 20], yt: [0, .25, .5, .75, 1], grid: true, xl: 'times multiplied, k', yl: 'value aᵏ' });
+      g.poly(vals.map((v, i) => [A.sx(i), A.sy(v)]), { stroke: 'c6', sw: 2 });
+      vals.forEach((v, i) => g.circle(A.sx(i), A.sy(v), 8, { fill: 'c1', stroke: 'fig', sw: 1.5, free: true }));
+      g.label(A.sx(Math.min(p.m, 12) + 1), A.sy(.35), `${f2(p.a)}${sup(p.m)} = ${sci(p.a ** p.m)}`, { to: [A.sx(p.m), A.sy(p.a ** p.m)], size: 24, weight: 800, fill: 'c1' });
+    });
+    g.panel('logs', D => {
+      const A = g.axes({ ...D, xd: [-.5, 20.5], yd: [-47, 0], xt: [0, 5, 10, 15, 20], yt: [-40, -30, -20, -10, 0], grid: true, xl: 'times multiplied, k', yl: 'log of the value' });
+      g.poly(vals.map((v, i) => [A.sx(i), A.sy(i * la)]), { stroke: 'c6', sw: 2 });
+      vals.forEach((v, i) => g.circle(A.sx(i), A.sy(i * la), 8, { fill: 'c4', stroke: 'fig', sw: 1.5, free: true }));
+      g.text(A.x + 20, A.sy(-34), `each step adds log ${f2(p.a)} = ${la.toFixed(2)}`, { size: 24, weight: 800, mono: true, fill: 'c4' });
+      if (k >= 2) g.fade(on(k, 2, t), g => g.tex(A.x + 20 + 300, A.sy(-42), `\\log(${f2(p.a)}^{${p.m}}) = ${p.m} \\times (${la.toFixed(2)}) = ${(p.m * la).toFixed(2)}`, { size: 26, w: 600 }));
+    });
+    g.panel('curve', D => {
+      const A = g.axes({ ...D, xd: [0, 2], yd: [-5, 1], xt: [0, .5, 1, 1.5, 2], yt: [-5, -4, -3, -2, -1, 0, 1], grid: true, xl: 'number x', yl: 'log x' });
+      g.line(A.sx(0), A.sy(0), A.sx(2), A.sy(0), { stroke: 'muted', sw: 1.5, dash: true, free: true });
+      g.curve(x => Math.max(-5, ln(x)), A, .006, 2, { stroke: 'c4', sw: 3.5 });
+      g.circle(A.sx(1), A.sy(0), 9, { fill: 'c4', stroke: 'fig', sw: 2, free: true });
+      g.circle(A.sx(p.a), A.sy(la), 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
+      g.label(A.sx(.55), A.sy(.6), 'log 1 = 0', { to: [A.sx(1), A.sy(0)], size: 22, weight: 800, fill: 'c4' });
+      g.label(A.sx(1.25), A.sy(la - 1.1), `log ${f2(p.a)} = ${la.toFixed(2)}`, { to: [A.sx(p.a), A.sy(la)], size: 22, weight: 800, fill: 'c2' });
+      g.text(A.sx(1.6), A.sy(-4.2), 'below 1: negative log', { size: 20, anchor: 'middle', weight: 700, fill: 'muted' });
+    });
+  }
+});
+
+// =============== PART 2 · LIKELIHOOD ===============
+Proff.section('part 2 · likelihood');
+Proff.prose('You now have four tools: chances, the "given" bar |, multiplying independent chances, and logs. Part 2 uses only the first three. It turns the coin question around.');
+
+// ---------------- scene 5: the question turned around ----------------
+const L5 = (h, q) => S.binomPmf(h, 10, q);
+Proff.scene({
+  title: 'Likelihood asks the probability question backwards', phase: 'part 2 · likelihood', acc: 3, h: 640,
+  panels: [{ id: 'fwd', from: 0 }, { id: 'trace', from: 2 }],
   controls: [
     { name: 'p', label: 'coin bias p', min: .05, max: .95, step: .01, value: .5 },
     { name: 'h', label: 'heads seen (of 10)', min: 1, max: 9, step: 1, value: 7 }],
   info: {
     notation: {
-      p: ['chance one flip lands heads; the knob of the model', 'p = 0.50: a fair coin'],
-      n: ['number of flips', 'n = 10'],
-      h: ['number of heads you saw', 'h = 7'],
-      '\\binom{n}{h}': ['number of orders h heads can come in among n flips', 'C(10, 7) = 120 orders'],
-      'P(h \\mid p)': ['probability of h heads, given the bias p', 'P(7 | 0.50) = 0.117'],
-      'L(p)': ['likelihood: the same number, read as a score for p with the data fixed', 'L(0.50) = 0.117'] },
-    try: 'Set **heads seen** to 3. The likelihood peak jumps to 0.30.' },
+      'P(h \\mid p)': ['probability of h heads in 10 flips, if the bias is p', `P(7 | 0.50) = ${f3(L5(7, .5))}`],
+      'L(p)': ['likelihood of p: the same number, with h fixed at what you saw', `L(0.50) = ${f3(L5(7, .5))}`],
+      '\\hat p': ['"p-hat": the p with the highest likelihood', 'p̂ = 7 ÷ 10 = 0.70'] },
+    try: 'Set **heads seen** to 3. Every likelihood changes, and the peak moves to 0.30.' },
   steps: [
-    { cap: '**Probability**: fix the coin (p), ask about data. Each bar is the chance of that many heads in 10 flips.',
-      info: { see: ['One bar per possible head count, 0 to 10', 'Filled bar: the count you actually saw'], read: ['Bars add up to 1: something must happen', 'Drag **coin bias p** and the whole pile slides'] } },
-    { cap: 'The bar height comes from the **binomial** formula. Every term is a plain count or chance.',
-      info: { see: ['Formula: orders × chance of each head × chance of each tail'], read: ['0.5⁷ × 0.5³ is one specific order; 120 orders exist'] } },
-    { cap: '**Likelihood**: now fix the data (7 heads), slide p. The curve height scores how well each p explains what you saw.',
-      info: { see: ['Curve: L(p) for every p from 0 to 1', 'Dot: your current p, same number as the bar before'], read: ['Probability: p fixed, data varies', 'Likelihood: data fixed, p varies'] } },
-    { cap: 'The top of the curve is the **maximum likelihood estimate (MLE)**: the p that makes your data most probable.',
-      info: { see: ['Dashed line: the peak, written p̂ ("p-hat")'], read: ['For a coin, p̂ = h ÷ n: the share of heads', 'The hat ˆ always means "estimated from data"'] } },
-    { cap: 'Likelihood is **not** a probability of p. The area under this curve is not 1.',
-      info: { see: ['Shaded area: total area under L(p)'], read: ['Bars of P(h | p) add to 1 across h', 'L(p) across p has no such rule', 'So "L = 0.27" never means "27% chance p is right"'] } }],
+    { cap: '**Probability** looks forward: you know the coin and predict the data. A fair coin (p = 0.50) gives these chances for 10 flips.',
+      info: { see: ['One bar per head count'], read: ['Question: if the coin is p, what data will I see?'] } },
+    { cap: 'Science runs backwards: you saw 7 heads and do not know p. Only one bar matters now, the one for 7 heads.',
+      info: { see: ['Filled bar: the count you saw', 'Number: its height for your p'], read: ['Question now: which p makes 7 heads easy to get?'] } },
+    { cap: 'Try different coins. For each p, read the height of the 7-heads bar and plot it above that p.',
+      info: { see: ['Grey dots: 9 coins, p = 0.1 to 0.9, with their heights', 'Large dot: your p'], read: ['Drag **coin bias p**: the large dot is the filled bar from the step before'] } },
+    { cap: 'Do it for every p and you get a curve: the **likelihood** L(p). It scores how well each p explains the data you saw.',
+      info: { see: ['Curve: L(p) for every p from 0 to 1'], read: ['Probability: p fixed, data varies', 'Likelihood: data fixed, p varies', 'Same formula, same numbers'] } },
+    { cap: 'The top of the curve is the **maximum likelihood estimate** (MLE), written p̂. For a coin it is the share of heads: 7 ÷ 10.',
+      info: { see: ['Dashed line: the peak', 'Ratio: how many times better p̂ explains the data than your p'], read: ['The hat ˆ always means "estimated from data"'] } }],
   draw(g, k, t, p) {
-    const n = 10, P = h => S.binomPmf(h, n, p.p);
-    g.panel('prob', D => {
-      const A = g.axes({ ...D, xd: [-.6, 10.6], yd: [0, .85], xt: [0, 2, 4, 6, 8, 10], yt: [0, .2, .4, .6, .8], grid: true, xl: 'number of heads in 10 flips', yl: 'probability' });
+    const ph = p.h / 10;
+    g.panel('fwd', D => {
+      const A = g.axes({ ...D, xd: [-.6, 10.6], yd: [0, .7], xt: [0, 2, 4, 6, 8, 10], yt: [0, .2, .4, .6], grid: true, xl: 'number of heads in 10 flips', yl: `probability, coin p = ${f2(p.p)}` });
       const bw = (A.sx(1) - A.sx(0)) * .7;
-      for (let h = 0; h <= n; h++) { const y = A.sy(P(h)), hit = h === p.h;
-        g.rect(A.sx(h) - bw / 2, y, bw, A.y + A.h - y, { fill: hit ? 'c1' : 'f6', stroke: hit ? 'c1' : 'c6', sw: 2, free: true }); }
-      if (k === 0) g.text(A.sx(p.h), A.sy(P(p.h)) - 18, sci(P(p.h)), { size: 24, anchor: 'middle', weight: 800, mono: true, fill: 'c1' });
-      if (k >= 1) g.fade(on(k, 1, t), g => g.tex(A.x + A.w / 2, A.y + 34,
-        `P(${p.h}\\mid p{=}${f2(p.p)}) = \\binom{10}{${p.h}}\\,${f2(p.p)}^{${p.h}}\\,${f2(1 - p.p)}^{${n - p.h}} = ${texSci(P(p.h))}`, { size: 26, w: 760 }));
+      for (let h = 0; h <= 10; h++) { const y = A.sy(L5(h, p.p)), hit = k >= 1 && h === p.h;
+        g.rect(A.sx(h) - bw / 2, y, bw, A.y + A.h - y, { fill: hit ? 'c1' : 'f6', stroke: hit ? 'c1' : 'c6', sw: 2, op: k >= 1 && !hit ? .45 : 1, free: true }); }
+      if (k >= 1) g.fade(on(k, 1, t), g => g.text(A.sx(p.h), A.sy(L5(p.h, p.p)) - 22, f3(L5(p.h, p.p)), { size: 26, anchor: 'middle', weight: 800, mono: true, fill: 'c1' }));
     });
-    g.panel('lik', D => {
+    g.panel('trace', D => {
       const A = g.axes({ ...D, xd: [0, 1], yd: [0, .5], xt: [0, .2, .4, .6, .8, 1], yt: [0, .1, .2, .3, .4, .5], grid: true, xl: 'coin bias p', yl: `likelihood of ${p.h} heads in 10` });
-      const L = q => S.binomPmf(p.h, n, q), ph = p.h / n;
+      const L = q => L5(p.h, q);
+      if (k >= 3) g.fade(on(k, 3, t), g => g.curve(L, A, 0, 1, { stroke: 'ink', sw: 3 }));
+      for (let i = 1; i <= 9; i++) { const q = i / 10;
+        g.circle(A.sx(q), A.sy(L(q)), 7, { fill: 'c6', stroke: 'fig', sw: 1.5, free: true });
+        if (k === 2) g.text(A.sx(q), A.sy(L(q)) - 24, f3(L(q)), { size: 18, anchor: 'middle', weight: 700, mono: true, fill: 'muted' }); }
       if (k >= 4) g.fade(on(k, 4, t), g => {
-        g.area(L, A, 0, 1, { fill: 'f6' });
-        let area = 0; for (let i = 0; i < 2000; i++) area += L((i + .5) / 2000) / 2000;
-        g.text(A.sx(ph > .5 ? .2 : .8), A.sy(.38), `area = ${area.toFixed(3)}, not 1`, { size: 24, anchor: 'middle', weight: 800, mono: true, fill: 'ink' });
-      });
-      g.curve(L, A, 0, 1, { stroke: 'ink', sw: 3 });
-      if (k >= 3) g.fade(on(k, 3, t), g => {
         g.line(A.sx(ph), A.sy(L(ph)), A.sx(ph), A.y + A.h, { stroke: 'c3', sw: 3, dash: true, free: true });
-        g.label(A.sx(ph) + (ph > .5 ? -150 : 150), A.sy(L(ph)) - 14, `p̂ = ${f2(ph)}`, { to: [A.sx(ph), A.sy(L(ph))], size: 24, weight: 800, fill: 'c3', lc: 'c3' });
+        g.label(A.sx(ph) + (ph > .5 ? -150 : 150), A.sy(L(ph)) - 16, `p̂ = ${f2(ph)}`, { to: [A.sx(ph), A.sy(L(ph))], size: 24, weight: 800, fill: 'c3', lc: 'c3' });
+        g.text(A.sx(ph > .5 ? .22 : .78), A.sy(.38), `L(p̂) ÷ L(p) = ${fr(L(ph) / L(p.p))}`, { size: 24, anchor: 'middle', weight: 800, mono: true, fill: 'ink' });
       });
       const y = A.sy(L(p.p));
       g.line(A.sx(p.p), y, A.sx(p.p), A.y + A.h, { stroke: 'c2', sw: 2, free: true });
-      g.circle(A.sx(p.p), y, 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
-      g.text(A.sx(ph > .5 ? .2 : .8), A.sy(.46), `L(${f2(p.p)}) = ${sci(L(p.p))}`, { size: 26, anchor: 'middle', weight: 800, mono: true, fill: 'c2' });
+      g.circle(A.sx(p.p), y, 10, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
+      g.text(A.sx(ph > .5 ? .22 : .78), A.sy(.46), `L(${f2(p.p)}) = ${f3(L(p.p))}`, { size: 26, anchor: 'middle', weight: 800, mono: true, fill: 'c2' });
     });
   }
 });
 
-// ---------------- scene 2: products shrink, logs rescue ----------------
-const SEQ = (() => { const r = Proff.rng(21), a = []; for (let i = 0; i < 2000; i++) a.push(r() < .7 ? 1 : 0); return a; })();
-Proff.prose('Real data has many points, not one count. Each point adds a factor to a product. That product is where logs come in.');
+// ---------------- scene 6: one table, read two ways ----------------
 Proff.scene({
-  title: 'Many points multiply; logs turn the product into a sum', acc: 4, h: 640,
-  panels: [{ id: 'each', from: 0 }, { id: 'prod', from: 1 }, { id: 'run', from: 3 }, { id: 'peak', from: 4 }],
+  title: 'One table, read two ways: probability across, likelihood down', phase: 'part 2 · likelihood', acc: 3, h: 640,
+  panels: [{ id: 'grid', from: 0 }],
+  controls: [
+    { name: 'r', label: 'row: coin bias p', min: .1, max: .9, step: .1, value: .5 },
+    { name: 'c', label: 'column: heads seen h', min: 0, max: 10, step: 1, value: 7 }],
+  info: {
+    notation: {
+      'P(h \\mid p)': ['one cell: chance of h heads in 10 flips, if the bias is p', `row p = 0.5, column h = 7: ${f3(L5(7, .5))}`],
+      'L(p)': ['the same cell, read as a score for p, with h fixed', `L(0.7) = ${f3(L5(7, .7))} for h = 7`],
+      '\\sum': ['add up', `row p = 0.5: 0.001 + 0.010 + … = 1.000`] },
+    try: 'Move **column: heads seen** to 0. The column sum changes; every row sum stays 1.000.' },
+  steps: [
+    { cap: 'Each cell: the chance of h heads in 10 flips, if the coin is p. **Across a row**, p is fixed: a distribution, adding to 1.',
+      info: { see: ['Stronger shading: higher chance', 'Highlighted row: your p, with its sum'], read: ['This is the probability question from part 1'] } },
+    { cap: 'Read **down a column**: data fixed, p varies. That is the likelihood. Nothing forces these numbers to add to 1.',
+      info: { see: ['Highlighted column: your h, with its sum'], read: [`Over every p from 0 to 1, the area under L is ${f3(1 / 11)} for any h, not 1`] } },
+    { cap: 'So L(0.7) = 0.267 does not mean "27% chance that p is 0.7". Compare likelihoods only as ratios: how many times better one p explains the data.',
+      info: { see: ['Ratio: best cell in the column ÷ your row'], read: ['A probability for p itself needs extra assumptions (a prior; that is Bayes)'] } }],
+  draw(g, k, t, p) {
+    const ps = Proff.range(.1, .9, 9), ri = Math.round(p.r * 10) - 1, c = p.c, M = ps.map(q => Array.from({ length: 11 }, (_, h) => L5(h, q)));
+    g.panel('grid', D => {
+      const cw = 76, ch = 38, x0 = D.x + (D.w - cw * 11) / 2 - 20, y0 = D.y + 52;
+      const showRow = k !== 1, showCol = k >= 1;
+      g.matrix(x0, y0, M, { cw, ch, size: 21, title: 'h = heads seen in 10 flips',
+        rows: ps.map(q => `p = ${q.toFixed(1)}`), cols: Array.from({ length: 11 }, (_, h) => String(h)),
+        cell: (i, j, v) => { const inR = showRow && i === ri, inC = showCol && j === c;
+          return { fill: inR ? 'f2' : inC ? 'f1' : 'c6', op: inR || inC ? 1 : .05 + .55 * Math.min(1, v / .35), text: inR || inC ? f3(v) : '', color: 'ink', weight: inR && inC ? 900 : 600 }; } });
+      const rs = M[ri].reduce((a, b) => a + b, 0), cs = M.reduce((a, row) => a + row[c], 0);
+      if (showRow) g.text(x0 + cw * 11 + 16, y0 + (ri + .5) * ch, `sum ${f3(rs)}`, { size: 20, weight: 800, mono: true, fill: 'c2' });
+      if (showCol) g.fade(on(k, 1, t), g => g.text(x0 + (c + .5) * cw, y0 + 9 * ch + 26, `sum ${cs.toFixed(2)}`, { size: 20, anchor: 'middle', weight: 800, mono: true, fill: 'c1' }));
+      if (k >= 2) g.fade(on(k, 2, t), g => { let bi = 0; M.forEach((row, i) => { if (row[c] > M[bi][c]) bi = i; });
+        g.text(D.x + D.w / 2, y0 + 9 * ch + 72, `L(${ps[bi].toFixed(1)}) ÷ L(${ps[ri].toFixed(1)}) = ${fr(M[bi][c] / M[ri][c])}`, { size: 26, anchor: 'middle', weight: 800, mono: true, fill: 'c3' }); });
+    });
+  }
+});
+
+// =============== PART 3 · MANY POINTS, AND WHY LOGS ===============
+Proff.section('part 3 · many data points, and why logs');
+Proff.prose('A count of heads hides a step. Real data come one point at a time: one flip, one cell, one patient. Part 3 builds the likelihood point by point, hits a problem, and uses the log tool from part 1 to fix it.');
+
+// ---------------- scene 7: one factor per point; the product collapses ----------------
+const SEQ = (() => { const r = Proff.rng(21), a = []; for (let i = 0; i < 2000; i++) a.push(r() < .7 ? 1 : 0); return a; })();
+Proff.scene({
+  title: 'The likelihood of many points is a product, and products collapse', phase: 'part 3 · many points', acc: 5, h: 640,
+  panels: [{ id: 'decode', from: 0 }, { id: 'each', from: 1 }, { id: 'prod', from: 2 }],
   controls: [
     { name: 'p', label: 'coin bias p', min: .05, max: .95, step: .01, value: .6 },
     { name: 'n', label: 'flips used', min: 30, max: 100, step: 10, value: 100 }],
   info: {
     notation: {
-      x_i: ['flip number i: 1 for heads, 0 for tails', 'x₁ = 1: the first flip was heads'],
-      '\\prod_i': ['multiply over every flip i', '0.6 × 0.6 × 0.6 × … 100 factors'],
-      '\\sum_i': ['add up over every flip i', 'log 0.6 = −0.51 per head, log 0.4 = −0.92 per tail'],
-      '\\log': ['natural log: the power you raise e (2.718) to', 'log 0.5 = −0.69'],
-      'L(p)': ['likelihood of all flips together', 'L(0.60), 100 flips: log L = −62.0, so L ≈ 10⁻²⁷'] },
-    try: 'Slide **flips used** down to 30, then back to 100. The product collapses; the log sum keeps a readable slope.' },
+      x_i: ['flip number i, as a number: 1 for heads, 0 for tails', 'x₁ = 1: the first flip was heads'],
+      'P(x_i \\mid p)': ['chance of flip i, if the bias is p', 'p = 0.60 for a head, 0.40 for a tail'],
+      '\\prod_i': ['multiply over every flip i = 1 … n', '0.60 × 0.40 × 0.60 × … (100 factors)'],
+      'L(p)': ['likelihood of all flips together', `L(0.60), 100 flips: ${sci(Math.exp(SEQ.slice(0, 100).reduce((a, x) => a + ln(x ? .6 : .4), 0)))}`] },
+    try: 'Slide **flips used** from 30 to 100. The product drops by more than 10 powers of ten.' },
   steps: [
-    { cap: '100 flips (simulated, true bias 0.7). Each bar: the chance your guess p gives to that one flip.',
-      info: { see: ['Tall filled bars: heads, chance p', 'Short open bars: tails, chance 1 − p'], read: ['Flips are independent, so their chances multiply'] } },
-    { cap: 'Multiply the bars one by one. The running product falls toward zero fast.',
-      info: { see: ['Line: product of the first i bars', 'Number: the product over all flips used'], read: ['Every factor is below 1, so each flip shrinks the total'] } },
-    { cap: 'With 2,000 flips the computer cannot store the product. It becomes exactly 0.',
-      info: { see: ['Number under the line: the product over 2,000 flips, as the computer stores it'], read: ['The smallest number a computer double holds is about 10⁻³⁰⁸', 'This failure is called **underflow**'] } },
-    { cap: 'Take the **log** of each bar and add. Log turns × into +, and the numbers stay readable.',
-      info: { see: ['Line: running sum of log chances', 'Every step goes down: log of a number below 1 is negative'], read: ['log(a × b) = log a + log b', 'The 2,000-flip total is a normal number again'] } },
-    { cap: 'Log keeps order: bigger L always means bigger log L. So both curves peak at the same p.',
-      info: { see: ['Solid curve: log L for every p', 'Dashed curve: L itself, rescaled to fit', 'Dashed line: the shared peak at the share of heads'], read: ['Maximising log L gives exactly the same answer as maximising L', 'This is why every method works with log-likelihood'] } }],
+    { cap: 'Write each flip as a number: xᵢ = 1 for heads, 0 for tails. Then one formula gives the chance of either outcome.',
+      info: { see: ['Top: the formula', 'Rows: what it gives for heads and for tails'], read: ['The power 0 switches a factor off: anything to the power 0 is 1'] } },
+    { cap: '100 real flips (simulated, true bias 0.7). Each bar is P(xᵢ | p): the chance your guess p gives that one flip.',
+      info: { see: ['Tall filled bars: heads, chance p', 'Short open bars: tails, chance 1 − p'] } },
+    { cap: 'The flips are independent, so multiply all the bars. The running product falls toward 0 with every flip.',
+      info: { see: ['Line: product of the first i bars', 'Formula: the product over all flips used'], read: ['Every factor is below 1, so each flip shrinks the total'] } },
+    { cap: 'With 2,000 flips the computer stores the product as exactly 0. This is **underflow**. Every p then scores 0, and you cannot compare them.',
+      info: { see: ['Number in the middle: the 2,000-flip product, as the computer stores it'], read: ['The smallest number a computer double holds is about 10⁻³²⁴', 'A single-cell dataset has millions of points'] } }],
   draw(g, k, t, p) {
     const xs = SEQ.slice(0, p.n), h = xs.reduce((a, b) => a + b, 0), q = x => x ? p.p : 1 - p.p;
-    const logL = pp => h * Math.log(pp) + (p.n - h) * Math.log(1 - pp);
+    g.panel('decode', D => {
+      const cx = D.x + D.w / 2;
+      g.tex(cx, D.y + 50, 'P(x_i \\mid p) = p^{\\,x_i}\\,(1-p)^{\\,1-x_i}', { size: 34, w: 600 });
+      [[1, D.y + D.h * .45], [0, D.y + D.h * .72]].forEach(([x, y]) => {
+        g.circle(D.x + 170, y, 32, { fill: x ? 'f1' : 'f6', stroke: x ? 'c1' : 'c6', sw: 3, free: true });
+        g.text(D.x + 170, y, x ? 'H' : 'T', { size: 26, anchor: 'middle', weight: 800, fill: x ? 'c1' : 'ink' });
+        g.tex(D.x + 290, y, `x_i = ${x}`, { size: 28, w: 120 });
+        g.tex(D.x + 700, y, x ? `p^{1}\\,(1-p)^{0} = p \\times 1 = ${f2(p.p)}` : `p^{0}\\,(1-p)^{1} = 1 \\times (1-p) = ${f2(1 - p.p)}`, { size: 30, w: 560 }); });
+      g.text(cx, D.y + D.h * .93, 'anything to the power 0 is 1', { size: 20, anchor: 'middle', weight: 700, fill: 'muted' });
+    });
     g.panel('each', D => {
-      const A = g.axes({ ...D, xd: [0, 101], yd: [0, 1.15], xt: [1, 20, 40, 60, 80, 100], yt: [0, .5, 1], grid: true, xl: 'flip number i', yl: 'chance of this flip under p' });
+      const A = g.axes({ ...D, xd: [0, 101], yd: [0, 1.15], xt: [1, 20, 40, 60, 80, 100], yt: [0, .5, 1], grid: true, xl: 'flip number i', yl: 'P(xᵢ | p): chance of this flip' });
       const bw = Math.max(2, (A.sx(1) - A.sx(0)) * .7);
       xs.forEach((x, i) => { const y = A.sy(q(x)); g.rect(A.sx(i + 1) - bw / 2, y, bw, A.y + A.h - y, { fill: x ? 'c1' : 'fig', stroke: x ? 'c1' : 'c6', sw: 1.5, free: true }); });
       g.text(A.x + A.w - 10, A.sy(1.08), `${h} heads · ${p.n - h} tails`, { size: 24, anchor: 'end', weight: 800, fill: 'c1' });
@@ -919,19 +1175,54 @@ Proff.scene({
       const A = g.axes({ ...D, xd: [0, 101], yd: [0, 1.15], xt: [1, 20, 40, 60, 80, 100], yt: [0, .5, 1], grid: true, xl: 'flip number i', yl: 'running product' });
       let pr = 1; const pts = [[A.sx(0), A.sy(1)]]; xs.forEach((x, i) => { pr *= q(x); pts.push([A.sx(i + 1), A.sy(pr)]); });
       g.poly(pts, { stroke: 'c2', sw: 3 });
-      g.tex(A.x + A.w * .62, A.sy(.98), `L = \\prod_i p^{x_i}(1-p)^{1-x_i} = ${texSci(pr)}`, { size: 26, w: 560 });
-      if (k >= 2) g.fade(on(k, 2, t), g => {
+      g.tex(A.x + A.w * .6, A.sy(.98), `L(p) = \\prod_i P(x_i \\mid p) = ${texSci(pr)}`, { size: 28, w: 560 });
+      if (k >= 3) g.fade(on(k, 3, t), g => {
         let big = 1; for (const x of SEQ) big *= q(x);
-        g.text(A.x + A.w * .62, A.sy(.62), `2,000 flips: L = ${big === 0 ? '0' : sci(big)}`, { size: 28, anchor: 'middle', weight: 900, mono: true, fill: 'c3' });
+        g.text(A.x + A.w * .6, A.sy(.62), `2,000 flips: L = ${big === 0 ? '0' : sci(big)}`, { size: 30, anchor: 'middle', weight: 900, mono: true, fill: 'c3' });
       });
     });
+  }
+});
+
+// ---------------- scene 8: logs rescue ----------------
+Proff.scene({
+  title: 'Logs turn the product into a sum and keep the same peak', phase: 'part 3 · many points', acc: 4, h: 640,
+  panels: [{ id: 'run', from: 0 }, { id: 'split', from: 1 }, { id: 'peak', from: 2 }],
+  controls: [
+    { name: 'p', label: 'coin bias p', min: .05, max: .95, step: .01, value: .6 },
+    { name: 'n', label: 'flips used', min: 30, max: 100, step: 10, value: 100 }],
+  info: {
+    notation: {
+      '\\log P(x_i \\mid p)': ['log of the chance of flip i', `log 0.60 = ${ln(.6).toFixed(2)} for a head`],
+      '\\sum_i': ['add up over every flip i = 1 … n', 'a head adds log p, a tail adds log(1 − p)'],
+      '\\log L(p)': ['log-likelihood: one score for the guess p', `100 flips, p = 0.60: ${SEQ.slice(0, 100).reduce((a, x) => a + ln(x ? .6 : .4), 0).toFixed(1)}`] },
+    try: 'Drag **coin bias p** across the range. The log score is highest at the share of heads.' },
+  steps: [
+    { cap: 'Take the log of each bar and add instead of multiplying. Log turns × into +, so the total stays a readable number.',
+      info: { see: ['Line: running sum of logs', 'Every step goes down: the log of a number below 1 is negative'], read: ['The 2,000-flip total is an ordinary number, not 0'] } },
+    { cap: 'Group the terms. Every head adds the same log p; every tail adds log(1 − p). So log L = h·log p + (n − h)·log(1 − p).',
+      info: { see: ['Left block: all the tails', 'Right block: all the heads', 'Total: where the bar ends'] } },
+    { cap: 'Log never changes which number is bigger. So log L peaks at exactly the same p as L. Both say p̂ = h ÷ n.',
+      info: { see: ['Solid curve: log L for every p', 'Dashed curve: L itself, rescaled to fit', 'Dashed line: the shared peak'], read: ['Maximising log L gives the same answer as maximising L', 'This is why every method works with log-likelihood'] } }],
+  draw(g, k, t, p) {
+    const xs = SEQ.slice(0, p.n), h = xs.reduce((a, b) => a + b, 0), q = x => x ? p.p : 1 - p.p;
+    const logL = pp => h * ln(pp) + (p.n - h) * ln(1 - pp);
     g.panel('run', D => {
       const A = g.axes({ ...D, xd: [0, 101], yd: [-140, 0], xt: [1, 20, 40, 60, 80, 100], yt: [-140, -100, -60, -20, 0], grid: true, xl: 'flip number i', yl: 'running sum of log chances' });
-      let s = 0; const pts = [[A.sx(0), A.sy(0)]]; xs.forEach((x, i) => { s += Math.log(q(x)); pts.push([A.sx(i + 1), A.sy(Math.max(-140, s))]); });
+      let s = 0; const pts = [[A.sx(0), A.sy(0)]]; xs.forEach((x, i) => { s += ln(q(x)); pts.push([A.sx(i + 1), A.sy(Math.max(-140, s))]); });
       g.poly(pts, { stroke: 'c4', sw: 3 });
-      g.tex(A.x + A.w * .66, A.sy(-8), `\\log L = \\sum_i \\log P(x_i\\mid p) = ${s.toFixed(1)}`, { size: 26, w: 520 });
-      const big = SEQ.reduce((a, x) => a + Math.log(q(x)), 0);
-      g.text(A.x + A.w * .66, A.sy(-22), `2,000 flips: log L = ${big.toFixed(1)}`, { size: 22, anchor: 'middle', weight: 800, mono: true, fill: 'c4' });
+      g.tex(A.x + A.w * .66, A.sy(-8), `\\log L = \\sum_i \\log P(x_i\\mid p) = ${s.toFixed(1)}`, { size: 28, w: 540 });
+      const big = SEQ.reduce((a, x) => a + ln(q(x)), 0);
+      g.text(A.x + A.w * .66, A.sy(-22), `2,000 flips: log L = ${big.toFixed(1)}`, { size: 24, anchor: 'middle', weight: 800, mono: true, fill: 'c4' });
+    });
+    g.panel('split', D => {
+      const A = g.axes({ ...D, xd: [-240, 0], yd: [0, 1], xt: [-240, -200, -160, -120, -80, -40, 0], yt: [], xl: 'log L (adds up to the left)', yl: '' });
+      const hv = h * ln(p.p), tv = (p.n - h) * ln(1 - p.p), cy = A.sy(.45), bh = 70;
+      g.rect(A.sx(hv), cy - bh / 2, A.sx(0) - A.sx(hv), bh, { fill: 'f1', stroke: 'c1', sw: 2.5 });
+      g.rect(A.sx(Math.max(-240, hv + tv)), cy - bh / 2, A.sx(hv) - A.sx(Math.max(-240, hv + tv)), bh, { fill: 'f6', stroke: 'c6', sw: 2.5 });
+      g.label(A.x + A.w, A.sy(.88), `${h} heads × log ${f2(p.p)} = ${hv.toFixed(1)}`, { to: [A.sx(hv / 2), cy - bh / 2], size: 22, weight: 800, fill: 'c1', anchor: 'end' });
+      g.label(A.x, A.sy(.88), `${p.n - h} tails × log ${f2(1 - p.p)} = ${tv.toFixed(1)}`, { to: [A.sx(Math.max(-240, hv + tv / 2)), cy - bh / 2], size: 22, weight: 800, fill: 'ink', anchor: 'start' });
+      g.tex(A.sx(-120), A.sy(.12), `\\log L = ${h}\\log ${f2(p.p)} + ${p.n - h}\\log ${f2(1 - p.p)} = ${(hv + tv).toFixed(1)}`, { size: 28, w: 640 });
     });
     g.panel('peak', D => {
       const A = g.axes({ ...D, xd: [0, 1], yd: [-140, 0], xt: [0, .2, .4, .6, .8, 1], yt: [-140, -100, -60, -20, 0], grid: true, xl: 'coin bias p', yl: 'log L' });
@@ -940,60 +1231,79 @@ Proff.scene({
       g.curve(pp => lo + (-lo) * .8 * Math.exp(logL(pp) - top), A, .005, .995, { stroke: 'muted', sw: 2.5, dash: true });
       g.line(A.sx(ph), A.sy(0), A.sx(ph), A.y + A.h, { stroke: 'c3', sw: 3, dash: true, free: true });
       g.text(A.sx(ph) + (ph > .5 ? -14 : 14), A.sy(-5), `p̂ = ${h}/${p.n} = ${f2(ph)}`, { size: 24, anchor: ph > .5 ? 'end' : 'start', weight: 800, mono: true, fill: 'c3' });
-      g.label(A.sx(.12), A.sy(lo + 112 * Math.exp(logL(.12) - top) + 30), 'L, rescaled', { to: [A.sx(.12), A.sy(lo + 112 * Math.exp(logL(.12) - top))], size: 20, fill: 'muted' });
-      const y = A.sy(Math.max(lo, logL(p.p)));
-      g.circle(A.sx(p.p), y, 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
+      { const q = Proff.clamp(ph - 1.2 * Math.sqrt(ph * (1 - ph) / p.n), .03, .97), yq = lo + 112 * Math.exp(logL(q) - top); g.label(A.sx(q) - 120, A.sy(yq) - 10, 'L, rescaled', { to: [A.sx(q), A.sy(yq)], size: 20, fill: 'muted' }); }
+      g.circle(A.sx(p.p), A.sy(Math.max(lo, logL(p.p))), 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
       g.text(A.sx(ph > .5 ? .04 : .96), A.sy(-20), `log L(${f2(p.p)}) = ${logL(p.p).toFixed(1)}`, { size: 22, anchor: ph > .5 ? 'start' : 'end', weight: 800, mono: true, fill: 'c2' });
     });
   }
 });
 
-// ---------------- scene 3: slope = 0 at the peak; gradient ascent ----------------
-Proff.prose('Finding the peak by eye works for one knob. A model with thousands of knobs needs a rule. The rule is the slope.');
+// ---------------- notation decoder ----------------
+const h100 = SEQ.slice(0, 100).reduce((a, b) => a + b, 0), ll100 = h100 * ln(.6) + (100 - h100) * ln(.4);
+Proff.section('reading log P(xᵢ | p), one piece at a time');
+Proff.compare(['piece', 'read it as', 'example (100 flips, guess p = 0.60)'], [
+  ['xᵢ', 'data point number i', 'x₃ = 1: flip 3 was heads'],
+  ['P(xᵢ | p)', 'its chance, if the knob is set to p', 'P(x₃ | 0.60) = 0.60'],
+  ['log P(xᵢ | p)', 'the log of that chance: a negative number', `log 0.60 = ${ln(.6).toFixed(2)}`],
+  ['Σᵢ log P(xᵢ | p)', 'add that up over all n points', `${h100} × (${ln(.6).toFixed(2)}) + ${100 - h100} × (${ln(.4).toFixed(2)})`],
+  ['log L(p)', 'the total: one score for the guess p', ll100.toFixed(1)],
+  ['p̂ = argmax log L(p)', 'the p with the highest score ("argmax" = the input that gives the maximum)', `p̂ = ${h100}/100 = ${(h100 / 100).toFixed(2)}`],
+]);
+
+// =============== PART 4 · FINDING THE TOP ===============
+Proff.section('part 4 · finding the top without looking');
+Proff.prose('Reading the peak off a plot works for one knob. A model with thousands of knobs cannot be plotted. It needs a rule that says which way is uphill. That rule is the slope.');
+
+// ---------------- scene 9: slope = 0 at the peak; gradient ascent ----------------
 Proff.scene({
-  title: 'The peak is where the slope is zero', acc: 2, h: 640,
-  panels: [{ id: 'slope', from: 0 }, { id: 'climb', from: 3 }],
+  title: 'The peak is where the slope is zero', phase: 'part 4 · finding the top', acc: 2, h: 640,
+  panels: [{ id: 'slope', from: 0 }, { id: 'climb', from: 4 }],
   controls: [
     { name: 'p', label: 'guess p', min: .05, max: .95, step: .01, value: .3 },
     { name: 'h', label: 'heads seen (of 10)', min: 1, max: 9, step: 1, value: 7 },
-    { name: 'eta', label: 'step size η', min: .002, max: .03, step: .001, value: .01 }],
+    { name: 'eta', label: 'step size η', min: .002, max: .03, step: .001, value: .01, fmt: v => v.toFixed(3) }],
   info: {
     notation: {
-      '\\log L(p)': ['log-likelihood: h log p + (n − h) log(1 − p)', '7 log 0.3 + 3 log 0.7 = −9.50'],
-      '\\frac{d}{dp}': ['slope: how fast log L rises as p grows a tiny bit', '+19.05 at p = 0.30'],
-      '\\hat p': ['the p where the slope is 0: the MLE', 'p̂ = 7/10 = 0.70'],
-      '\\eta': ['step size (learning rate): how far to move per step', 'η = 0.010'],
-      'p_t': ['the guess after t steps', 'p₁ = 0.49 after one step from 0.30'] },
+      '\\log L(p)': ['log-likelihood: h log p + (n − h) log(1 − p)', `7 log 0.3 + 3 log 0.7 = ${(7 * ln(.3) + 3 * ln(.7)).toFixed(2)}`],
+      '\\frac{d}{dp}': ['slope: how fast log L rises as p grows a tiny bit', `+${(7 / .3 - 3 / .7).toFixed(2)} at p = 0.30`],
+      '\\eta': ['step size (learning rate): how far to move per unit of slope', 'η = 0.010'],
+      p_1: ['the guess after one step', 'p₁ = 0.49 after one step from 0.30'] },
     try: 'Set **step size η** to 0.03. The dots jump past the peak and bounce back.' },
   steps: [
-    { cap: 'Log-likelihood for 7 heads in 10. The short straight line touching the curve at your guess shows the **slope**.',
-      info: { see: ['Curve: log L(p)', 'Dot: your guess p', 'Straight line: the slope at that point'] } },
-    { cap: 'The slope has a formula. Positive: move p right to climb. Negative: move left.',
-      info: { see: ['Formula: slope at your p, with your numbers', 'Arrow: the uphill direction'], read: ['h/p comes from h log p; (n − h)/(1 − p) from (n − h) log(1 − p)'] } },
-    { cap: 'At the top the slope is exactly 0. Solve slope = 0 and you get p̂ = h/n.',
+    { cap: 'Log-likelihood for 7 heads in 10. Your guess p sits somewhere on the hill. Which way is up?',
+      info: { see: ['Curve: log L(p)', 'Dot: your guess p'] } },
+    { cap: 'Nudge p a little and see how much log L changes. Rise ÷ run is the **slope**. Positive: uphill is to the right.',
+      info: { see: ['Triangle: run 0.05 across, rise up or down', 'Formula: rise ÷ run with your numbers'], read: ['A smaller run gives a closer estimate of the exact slope'] } },
+    { cap: 'Calculus gives the exact slope with no nudging: h/p − (n − h)/(1 − p). Each log term gives one piece.',
+      info: { see: ['Straight line: the slope at your guess', 'Arrow: the uphill direction'], read: ['h log p has slope h/p', '(n − h) log(1 − p) has slope −(n − h)/(1 − p)'] } },
+    { cap: 'At the top the slope is exactly 0. Set the formula to 0 and solve: p̂ = h ÷ n.',
       info: { see: ['Flat line at the peak: slope 0'], read: ['h/p = (n − h)/(1 − p) → h(1 − p) = (n − h)p → p = h/n', 'The log made this algebra easy: products became sums'] } },
-    { cap: 'Most models have no formula for the top. So computers step uphill: new p = old p + η × slope. This is **gradient ascent**.',
-      info: { see: ['Dots: 12 steps starting from your guess', 'Last dot: where the walk ends'], read: ['Big slope: big step. Near the top the slope shrinks, so steps shrink', 'Each step is capped at 0.2 (**gradient clipping**), a common guard in deep learning'] } },
-    { cap: 'One step, in numbers. Too large an η overshoots; too small crawls.',
-      info: { see: ['Formula: the first step with your numbers'], read: ['Machine learning does exactly this, on −log L, going downhill'] } }],
+    { cap: 'Most models have no formula for the top. So the computer steps uphill: new p = old p + η × slope. This is **gradient ascent**.',
+      info: { see: ['Dots: 12 steps from your guess', 'Last dot: where the walk ends'], read: ['Big slope, big step. Near the top the slope shrinks, so the steps shrink', 'Each step is capped at 0.2 (**gradient clipping**)'] } },
+    { cap: 'The first step, in numbers. Too large an η overshoots the top; too small crawls.',
+      info: { see: ['Formula: the first step with your numbers'], read: ['Machine learning does exactly this on −log L, stepping downhill'] } }],
   draw(g, k, t, p) {
-    const n = 10, h = p.h, LL = q => h * Math.log(q) + (n - h) * Math.log(1 - q), sl = q => h / q - (n - h) / (1 - q), ph = h / n, lo = -30;
+    const n = 10, h = p.h, LL = q => h * ln(q) + (n - h) * ln(1 - q), sl = q => h / q - (n - h) / (1 - q), ph = h / n, lo = -30;
     const axes = D => g.axes({ ...D, xd: [0, 1], yd: [lo, 0], xt: [0, .2, .4, .6, .8, 1], yt: [-30, -20, -10, 0], grid: true, xl: 'coin bias p', yl: `log L for ${h} heads in 10` });
     const tangent = (A, q, c) => { let dp = .1; const y0 = LL(q), s = sl(q); while (dp > .005 && (q - dp < 0 || q + dp > 1 || y0 + s * dp > 0 || y0 - s * dp > 0 || y0 + s * dp < lo || y0 - s * dp < lo)) dp *= .8;
       g.line(A.sx(q - dp), A.sy(y0 - s * dp), A.sx(q + dp), A.sy(y0 + s * dp), { stroke: c, sw: 3, free: true }); };
     g.panel('slope', D => {
       const A = axes(D);
       g.curve(q => Math.max(lo, LL(q)), A, .005, .995, { stroke: 'c4', sw: 3 });
-      if (k >= 2) g.fade(on(k, 2, t), g => { tangent(A, ph, 'c3');
-        g.tex(A.x + A.w / 2, A.sy(-26.5), `\\frac{h}{p} = \\frac{n-h}{1-p} \\quad\\Rightarrow\\quad \\hat p = \\frac{h}{n} = \\frac{${h}}{10} = ${f2(ph)}`, { size: 26, w: 560 });
-        g.text(A.sx(ph), A.sy(LL(ph)) - 24, 'slope 0', { size: 20, anchor: 'middle', weight: 800, fill: 'c3' }); });
-      tangent(A, p.p, 'c2');
       const y = A.sy(LL(p.p)), s = sl(p.p);
+      if (k === 1) g.fade(t, g => { const dx = p.p + .05 <= .99 ? .05 : -.05, rise = LL(p.p + dx) - LL(p.p), y2 = A.sy(Math.max(lo, LL(p.p + dx)));
+        g.line(A.sx(p.p), y, A.sx(p.p + dx), y, { stroke: 'c2', sw: 3, free: true });
+        g.line(A.sx(p.p + dx), y, A.sx(p.p + dx), y2, { stroke: 'c2', sw: 3, free: true });
+        g.tex(A.x + A.w / 2, A.sy(-26.5), `\\text{slope} \\approx \\frac{\\text{rise}}{\\text{run}} = \\frac{${rise.toFixed(2)}}{${dx.toFixed(2)}} = ${(rise / dx).toFixed(1)}`, { size: 28, w: 560 }); });
+      if (k >= 3) g.fade(on(k, 3, t), g => { tangent(A, ph, 'c3');
+        g.tex(A.x + A.w / 2, A.sy(-26.5), `\\frac{h}{p} = \\frac{n-h}{1-p} \\quad\\Rightarrow\\quad \\hat p = \\frac{h}{n} = \\frac{${h}}{10} = ${f2(ph)}`, { size: 28, w: 560 });
+        g.text(A.sx(ph), A.sy(LL(ph)) - 24, 'slope 0', { size: 20, anchor: 'middle', weight: 800, fill: 'c3' }); });
+      if (k >= 2) tangent(A, p.p, 'c2');
       g.circle(A.sx(p.p), y, 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
-      if (k < 2) g.text(A.sx(p.p) + (s < 0 ? -20 : 20), y + 40, `slope = ${s >= 0 ? '+' : ''}${s.toFixed(2)}`, { size: 24, anchor: s < 0 ? 'end' : 'start', weight: 800, mono: true, fill: 'c2', halo: true });
-      if (k === 1) g.fade(t, g => {
+      if (k === 2) g.fade(t, g => {
+        g.text(A.sx(p.p) + (s < 0 ? -20 : 20), y + 40, `slope = ${sgn(s)}`, { size: 24, anchor: s < 0 ? 'end' : 'start', weight: 800, mono: true, fill: 'c2', halo: true });
         if (Math.abs(s) > .5) g.arrow(A.sx(p.p), y + 80, A.sx(p.p) + (s > 0 ? 90 : -90), y + 80, { stroke: 'c2', sw: 3, head: 12 });
-        g.tex(A.x + A.w / 2, A.sy(-26.5), `\\frac{d\\log L}{dp} = \\frac{h}{p} - \\frac{n-h}{1-p} = \\frac{${h}}{${f2(p.p)}} - \\frac{${n - h}}{${f2(1 - p.p)}} = ${s.toFixed(2)}`, { size: 26, w: 640 }); });
+        g.tex(A.x + A.w / 2, A.sy(-26.5), `\\frac{d\\log L}{dp} = \\frac{h}{p} - \\frac{n-h}{1-p} = \\frac{${h}}{${f2(p.p)}} - \\frac{${n - h}}{${f2(1 - p.p)}} = ${s.toFixed(2)}`, { size: 28, w: 660 }); });
     });
     g.panel('climb', D => {
       const A = axes(D);
@@ -1005,54 +1315,67 @@ Proff.scene({
       path.forEach((v, i) => g.circle(A.sx(v), A.sy(Math.max(lo, LL(v))), i === 0 || i === 12 ? 9 : 6, { fill: i === 12 ? 'c3' : 'c2', stroke: 'fig', sw: 1.5, op: i === 0 || i === 12 ? 1 : .75, free: true }));
       const cx = A.x + A.w * (ph > .75 ? .5 : ph >= .5 ? .27 : .73);
       g.text(cx, A.sy(-21), `after 12 steps: p = ${f2(path[12])}`, { size: 26, anchor: 'middle', weight: 800, mono: true, fill: 'c3' });
-      if (k >= 4) g.fade(on(k, 4, t), g => g.tex(cx, A.sy(-27), `p_1 = ${f2(p.p)} + ${p.eta.toFixed(3)} \\times ${sl(p.p).toFixed(2)} ${Math.abs(p.eta * sl(p.p)) > .2 ? '\\to \\text{capped}' : ''} = ${f2(path[1])}`, { size: 26, w: 520 }));
+      if (k >= 5) g.fade(on(k, 5, t), g => g.tex(A.x + A.w * .5, A.sy(-27), Math.abs(p.eta * sl(p.p)) > .2 ? `p_1 = ${f2(p.p)} + \\text{clip}(${p.eta.toFixed(3)} \\times ${sl(p.p).toFixed(2)}) = ${f2(p.p)} ${sgn(path[1] - p.p)} = ${f2(path[1])}` : `p_1 = ${f2(p.p)} + ${p.eta.toFixed(3)} \\times ${sl(p.p).toFixed(2)} = ${f2(path[1])}`, { size: 28, w: 760 }));
     });
   }
 });
 
-// ---------------- scene 4: the normal distribution ----------------
+// =============== PART 5 · CONTINUOUS MEASUREMENTS ===============
+Proff.section('part 5 · continuous measurements');
+Proff.prose('Coins give yes or no. Most biology measurements are numbers on a scale: expression, weight, intensity. The usual model for them is the bell curve. The recipe stays the same: score each point, take logs, add, find the top.');
+
+// ---------------- scene 10: the normal distribution ----------------
 const XN = (() => { const r = Proff.rng(5), z = S.normal(r), a = []; for (let i = 0; i < 12; i++) a.push(+(6 + 1.5 * z()).toFixed(2)); return a; })();
 const xbar = S.mean(XN), sMLE = Math.sqrt(XN.reduce((a, x) => a + (x - xbar) ** 2, 0) / XN.length);
-const llN = (mu, sg) => XN.reduce((a, x) => a + Math.log(S.normPdf(x, mu, sg)), 0);
-Proff.prose('Coins have one knob. Most measurements in biology are continuous numbers. The usual model for them is the bell curve, which has two knobs.');
+const llN = (mu, sg) => XN.reduce((a, x) => a + ln(S.normPdf(x, mu, sg)), 0);
 Proff.scene({
-  title: 'A bell curve has two knobs; the data pick them', acc: 3, h: 640,
-  panels: [{ id: 'fit', from: 0 }, { id: 'mu', from: 3 }, { id: 'sig', from: 4 }],
+  title: 'A bell curve has two knobs; the data pick them', phase: 'part 5 · continuous data', acc: 3, h: 640,
+  panels: [{ id: 'area', from: 0 }, { id: 'fit', from: 1 }, { id: 'mu', from: 4 }, { id: 'sig', from: 5 }],
   controls: [
     { name: 'mu', label: 'centre μ', min: 2, max: 10, step: .05, value: 4.5 },
     { name: 'sg', label: 'width σ', min: .5, max: 4, step: .05, value: 1.6 }],
   info: {
     notation: {
-      x_i: ['measurement i (i = 1 … 12)', 'x for sample 7 = 8.20'],
-      '\\mu': ['centre of the bell curve (mean)', 'μ = 4.50 at the start'],
-      '\\sigma': ['width of the bell curve (standard deviation)', 'σ = 1.60 at the start'],
-      'f(x\\mid\\mu,\\sigma)': ['height of the bell curve at x', 'f(8.20) = 0.017 at the start'],
-      '\\bar x': ['average of the 12 measurements', `x̄ = ${xbar.toFixed(2)}`],
-      '\\hat\\sigma': ['best width: root of the mean squared distance from x̄', `σ̂ = ${sMLE.toFixed(2)}`] },
-    try: `Find the top by hand: set μ near ${xbar.toFixed(2)} and σ near ${sMLE.toFixed(2)}. log L reads ${llN(xbar, sMLE).toFixed(1)}, the highest possible.` },
+      '\\mu': ['"mu": centre of the bell curve (mean)', 'μ = 4.50 at the start'],
+      '\\sigma': ['"sigma": width of the bell curve (standard deviation)', 'σ = 1.60 at the start'],
+      'f(x\\mid\\mu,\\sigma)': ['height (density) of the bell curve at x', `f(${Math.max(...XN).toFixed(2)}) = ${f3(S.normPdf(Math.max(...XN), 4.5, 1.6))} at the start`],
+      x_i: ['measurement i (i = 1 … 12)', `largest: ${Math.max(...XN).toFixed(2)}`],
+      '\\bar x': ['"x-bar": average of the 12 measurements', `x̄ = ${xbar.toFixed(2)}`] },
+    try: `Find the top by hand: set μ near ${xbar.toFixed(2)} and σ near ${sMLE.toFixed(2)}. log L reaches ${llN(xbar, sMLE).toFixed(1)}, the highest possible.` },
   steps: [
-    { cap: 'Twelve measurements of one gene (simulated log₂ expression). The curve is a **normal distribution**: centre μ, width σ.',
-      info: { see: ['Dots: the 12 measurements', 'Curve: the model, set by the two sliders'] } },
-    { cap: 'Each stick reaches up to the curve. Its height f(xᵢ) scores how plausible the curve finds that point.',
-      info: { see: ['Sticks: curve height above each dot', 'Formula: the bell-curve height'], read: ['These heights are **densities**, not probabilities: they can exceed 1 when σ is small', 'For continuous data the likelihood uses densities'] } },
-    { cap: 'Log-likelihood adds the log of every stick. Drag μ and σ to push it as high as you can.',
-      info: { see: ['Formula: the total log-likelihood for your μ and σ'], read: ['One far-out point with a tiny stick drags the total down a lot'] } },
+    { cap: 'Measurements can take any value. A **normal distribution** gives chances as areas under its curve: the shaded area is the chance of a value from 5 to 7.',
+      info: { see: ['Curve: the bell curve set by the two sliders', 'Shaded: the area from 5 to 7'], read: ['The whole area under the curve is 1'] } },
+    { cap: 'Twelve measurements of one gene (simulated log₂ expression). Which centre and width explain them best?',
+      info: { see: ['Dots: the 12 measurements'] } },
+    { cap: 'One exact value has no width, so no area. Instead each point is scored by the curve **height** above it, called the density.',
+      info: { see: ['Sticks: curve height above each dot', 'Formula: the bell-curve height'], read: ['1/(σ√2π) makes the total area 1', 'The e-part shrinks the height with distance from μ', 'Heights can exceed 1 when σ is small: they are not chances'] } },
+    { cap: 'Same recipe as the coin: take the log of every height and add them. Drag μ and σ to push the total up.',
+      info: { see: ['Formula: total log-likelihood for your μ and σ'], read: ['log f(x) = −(x − μ)²/(2σ²) − log(σ√2π)', 'A far-out point has a tiny stick and drags the total down a lot'] } },
     { cap: 'Hold σ and sweep μ. The peak always sits at the plain **average** of the data, x̄.',
-      info: { see: ['Curve: log L for every μ, σ held at your value', 'Dashed line: the peak, at x̄'], read: ['Calculus gives μ̂ = x̄ for any σ'] } },
-    { cap: 'Now sweep σ, with μ at its best value. The peak is the root of the mean squared distance from x̄.',
-      info: { see: ['Curve: log L for every σ, μ fixed at x̄', 'Dashed line: σ̂'], read: ['σ̂ divides by n, not n − 1. It runs slightly small, most in small samples', 'The usual sample SD divides by n − 1 to fix that bias'] } }],
+      info: { see: ['Curve: log L for every μ, with σ held at your value', 'Dashed line: the peak, at x̄'], read: ['Setting the slope to 0 gives μ̂ = x̄ for any σ'] } },
+    { cap: 'Now sweep σ with μ at its best value. The peak is the square root of the average squared distance from x̄.',
+      info: { see: ['Curve: log L for every σ, μ fixed at x̄', 'Dashed line: σ̂'], read: ['σ̂ divides by n, not n − 1, so it runs slightly small', 'The usual sample SD divides by n − 1 to fix that'] } }],
   draw(g, k, t, p) {
+    const fitAxes = D => g.axes({ ...D, xd: [0, 12], yd: [0, .95], xt: [0, 2, 4, 6, 8, 10, 12], yt: [0, .2, .4, .6, .8], grid: true, xl: 'log₂ expression', yl: 'density' });
+    const f = x => S.normPdf(x, p.mu, p.sg);
+    g.panel('area', D => {
+      const A = fitAxes(D);
+      g.area(f, A, 5, 7, { fill: 'f2' });
+      g.curve(f, A, 0, 12, { stroke: 'c2', sw: 3 });
+      const pr = S.normCdf((7 - p.mu) / p.sg) - S.normCdf((5 - p.mu) / p.sg);
+      g.label(A.sx(p.mu < 6 ? 9.6 : 2.4), A.sy(.7), `P(5 < x < 7) = ${f3(pr)}`, { to: [A.sx(6), A.sy(f(6) / 2)], size: 24, weight: 800, fill: 'c2' });
+    });
     g.panel('fit', D => {
-      const A = g.axes({ ...D, xd: [0, 12], yd: [0, .95], xt: [0, 2, 4, 6, 8, 10, 12], yt: [0, .2, .4, .6, .8], grid: true, xl: 'log₂ expression', yl: 'density' });
-      g.curve(x => S.normPdf(x, p.mu, p.sg), A, 0, 12, { stroke: 'c2', sw: 3 });
+      const A = fitAxes(D);
+      g.curve(f, A, 0, 12, { stroke: 'c2', sw: 3 });
       const seen = {};
-      XN.forEach(x => { const key = Math.round(x * 4); const lift = (seen[key] = (seen[key] || 0) + 1) - 1, yd = A.y + A.h - 10 - lift * 18, top = A.sy(S.normPdf(x, p.mu, p.sg));
-        if (k >= 1) g.fade(on(k, 1, t), g => g.line(A.sx(x), yd, A.sx(x), Math.min(yd, top), { stroke: 'c1', sw: 2.5, free: true }));
+      XN.forEach(x => { const key = Math.round(x * 4); const lift = (seen[key] = (seen[key] || 0) + 1) - 1, yd = A.y + A.h - 10 - lift * 18, top = A.sy(f(x));
+        if (k >= 2) g.fade(on(k, 2, t), g => g.line(A.sx(x), yd, A.sx(x), Math.min(yd, top), { stroke: 'c1', sw: 2.5, free: true }));
         g.circle(A.sx(x), yd, 8, { fill: 'c1', stroke: 'fig', sw: 1.5, free: true }); });
-      const xm = Math.max(...XN), fm = S.normPdf(xm, p.mu, p.sg);
-      if (k === 1) { g.fade(t, g => { g.label(A.sx(xm) + 110, A.sy(fm) - 70, `f(${xm.toFixed(2)}) = ${fm.toFixed(3)}`, { to: [A.sx(xm), A.sy(fm)], size: 22, weight: 800, fill: 'c1' });
-        g.tex(A.x + A.w * (p.mu < 6 ? .72 : .3), A.sy(.86), 'f(x\\mid\\mu,\\sigma) = \\frac{1}{\\sigma\\sqrt{2\\pi}}\\,e^{-(x-\\mu)^2/2\\sigma^2}', { size: 26, w: 420 }); }); }
-      if (k >= 2) g.fade(on(k, 2, t), g => g.tex(A.x + A.w * (p.mu < 6 ? .7 : .32), A.sy(.86), `\\log L = \\sum_{i=1}^{12} \\log f(x_i\\mid\\mu,\\sigma) = ${llN(p.mu, p.sg).toFixed(1)}`, { size: 26, w: 480 }));
+      const xm = Math.max(...XN), fm = f(xm);
+      if (k === 2) g.fade(t, g => { g.label(A.sx(xm) + 110, A.sy(fm) - 70, `f(${xm.toFixed(2)}) = ${f3(fm)}`, { to: [A.sx(xm), A.sy(fm)], size: 22, weight: 800, fill: 'c1' });
+        g.tex(A.x + A.w * (p.mu < 6 ? .72 : .3), A.sy(.86), 'f(x\\mid\\mu,\\sigma) = \\frac{1}{\\sigma\\sqrt{2\\pi}}\\,e^{-(x-\\mu)^2/2\\sigma^2}', { size: 28, w: 440 }); });
+      if (k >= 3) g.fade(on(k, 3, t), g => g.tex(A.x + A.w * (p.mu < 6 ? .7 : .32), A.sy(.86), `\\log L = \\sum_{i=1}^{12} \\log f(x_i\\mid\\mu,\\sigma) = ${llN(p.mu, p.sg).toFixed(1)}`, { size: 28, w: 500 }));
     });
     const lo = -60, hi = -10;
     g.panel('mu', D => {
@@ -1060,51 +1383,52 @@ Proff.scene({
       g.curve(m => Math.max(lo, llN(m, p.sg)), A, 2, 10, { stroke: 'c4', sw: 3 });
       g.line(A.sx(xbar), A.sy(hi), A.sx(xbar), A.y + A.h, { stroke: 'c3', sw: 3, dash: true, free: true });
       g.text(A.sx(xbar) - 14, A.sy(-13), `best μ = ${xbar.toFixed(2)}`, { size: 24, anchor: 'end', weight: 800, mono: true, fill: 'c3' });
-      const v = Math.max(lo, llN(p.mu, p.sg));
-      g.circle(A.sx(p.mu), A.sy(v), 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
+      g.circle(A.sx(p.mu), A.sy(Math.max(lo, llN(p.mu, p.sg))), 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
       g.text(A.sx(9.8), A.sy(-13), `log L = ${llN(p.mu, p.sg).toFixed(1)}`, { size: 24, anchor: 'end', weight: 800, mono: true, fill: 'c2' });
     });
     g.panel('sig', D => {
       const A = g.axes({ ...D, xd: [.5, 4], yd: [lo, hi], xt: [.5, 1, 2, 3, 4], yt: [-60, -50, -40, -30, -20, -10], grid: true, xl: 'width σ', yl: 'log L at best μ' });
       g.curve(s => Math.max(lo, llN(xbar, s)), A, .5, 4, { stroke: 'c4', sw: 3 });
       g.line(A.sx(sMLE), A.sy(hi), A.sx(sMLE), A.y + A.h, { stroke: 'c3', sw: 3, dash: true, free: true });
-      g.tex(A.sx(2.75), A.sy(-50), `\\hat\\sigma = \\sqrt{\\tfrac{1}{n}\\textstyle\\sum_i (x_i-\\bar x)^2} = ${sMLE.toFixed(2)}`, { size: 26, w: 460 });
+      g.tex(A.sx(2.75), A.sy(-50), `\\hat\\sigma = \\sqrt{\\tfrac{1}{n}\\textstyle\\sum_i (x_i-\\bar x)^2} = ${sMLE.toFixed(2)}`, { size: 28, w: 480 });
       g.circle(A.sx(p.sg), A.sy(Math.max(lo, llN(xbar, p.sg))), 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
     });
   }
 });
 
-// ---------------- scene 5: least squares = Gaussian MLE ----------------
+// =============== PART 6 · MODELS ===============
+Proff.section('part 6 · models: regression, classification, deep learning');
+Proff.prose('So far the knobs described one distribution. In a model, the knobs set how the distribution **changes** with an input: dose, marker level, an image. Machine learning also flips the hill upside down. It minimises −log L and calls it the **loss**. Same top, now a bottom.');
+
+// ---------------- scene 11: least squares = Gaussian MLE ----------------
 const XY = (() => { const r = Proff.rng(9), z = S.normal(r), a = []; for (let i = 0; i < 15; i++) { const x = +(r() * 10).toFixed(2); a.push([x, 2 + .6 * x + z()]); } return a; })();
 const xm5 = S.mean(XY.map(d => d[0])), ym5 = S.mean(XY.map(d => d[1]));
 const sse = b => XY.reduce((a, [x, y]) => a + (y - (ym5 + b * (x - xm5))) ** 2, 0);
 const bHat = XY.reduce((a, [x, y]) => a + (x - xm5) * (y - ym5), 0) / XY.reduce((a, [x]) => a + (x - xm5) ** 2, 0);
-const nll5 = b => sse(b) / 2 + XY.length / 2 * Math.log(2 * Math.PI);
-Proff.prose('Now let the centre of the bell curve move with another variable. That is regression. Its standard loss falls straight out of the likelihood.');
+const c5 = XY.length / 2 * ln(2 * Math.PI), nll5 = b => sse(b) / 2 + c5;
 Proff.scene({
-  title: 'Least squares is maximum likelihood with bell-curve noise', acc: 5, h: 640,
+  title: 'Least squares is maximum likelihood with bell-curve noise', phase: 'part 6 · regression', acc: 5, h: 640,
   panels: [{ id: 'line', from: 0 }, { id: 'loss', from: 3 }],
   controls: [{ name: 'b', label: 'slope b', min: -.4, max: 1.4, step: .01, value: 1.1 }],
   info: {
     notation: {
       'x_i, y_i': ['dose and response of sample i', `sample 1: x = ${XY[0][0].toFixed(2)}, y = ${XY[0][1].toFixed(2)}`],
       b: ['slope of the line: response change per unit dose', 'b = 1.10 at the start'],
-      a: ['intercept, set so the line passes through the average point', `a = ${(ym5 - 1.1 * xm5).toFixed(2)} at b = 1.10`],
       r_i: ['residual: y_i minus the line at x_i', 'a vertical gap on the plot'],
-      '\\sum_i r_i^2': ['sum of squared residuals (SSE)', `${sse(1.1).toFixed(1)} at b = 1.10`],
-      '\\sigma': ['noise width, assumed 1 here', 'it scales the loss but never moves its minimum'] },
-    try: `Drag **slope b** to the dashed line at ${bHat.toFixed(2)}. Both the squared gaps and −log L hit their lowest value there.` },
+      '\\sum_i r_i^2': ['sum of squared residuals', `${sse(1.1).toFixed(1)} at b = 1.10`],
+      '\\sigma': ['noise width, set to 1 here', 'it scales the loss but never moves its lowest point'] },
+    try: `Drag **slope b** to the dashed line at ${bHat.toFixed(2)}. The squared gaps and −log L both hit their lowest value there.` },
   steps: [
-    { cap: 'Fifteen samples: drug dose against response (simulated). The line is the model\'s guess; drag its slope.',
-      info: { see: ['Dots: the samples', 'Line: y = a + b·x for your b'] } },
-    { cap: 'The model says: response = line + bell-curve noise. Each small bell shows where a point is expected to land.',
-      info: { see: ['Sideways bells: the noise model at three doses, σ = 1'], read: ['Each point gets a likelihood from the bell centred on the line at its dose'] } },
-    { cap: 'Vertical gaps are **residuals** rᵢ. A point far from the line sits in the bell\'s thin tail: low likelihood.',
+    { cap: 'Fifteen samples: drug dose against response (simulated). The line is the model\'s guess for the average response; drag its slope.',
+      info: { see: ['Dots: the samples', 'Line: y = a + b·x for your b; a keeps it through the average point'] } },
+    { cap: 'The model says: response = line + bell-curve noise. So each point gets its own bell, centred on the line at its dose.',
+      info: { see: ['Sideways bells: the noise model at three doses, σ = 1'], read: ['This is part 5 again, with μ set by the line'] } },
+    { cap: 'Vertical gaps are **residuals** rᵢ. A point far from the line sits in its bell\'s thin tail: low height, low likelihood.',
       info: { see: ['Vertical segments: residuals', 'Formula: their squares, added up'] } },
-    { cap: 'Take −log of the bell-curve likelihood. What is left is half the squared residuals plus a constant. Same minimum.',
-      info: { see: ['Curve: −log L for every slope', 'Dashed line: the best slope b̂'], read: ['log of exp(−r²/2) is just −r²/2: the log undoes the exponential', 'The constant 13.8 = (15/2) log 2π does not depend on b'] } },
+    { cap: 'Flip to −log L, the loss. With σ = 1, each point adds r²/2 + 0.92. So the loss is half the squared residuals, plus a constant.',
+      info: { see: ['Curve: −log L for every slope', 'Dashed line: the best slope b̂'], read: ['The log undoes the e in the bell formula', `The constant ${c5.toFixed(1)} = (15/2)·log 2π does not depend on b`] } },
     { cap: 'Divide the squared residuals by n and you get **MSE** (mean squared error), the default regression loss in machine learning.',
-      info: { read: ['Minimising MSE = maximising a normal likelihood', 'If the noise has heavy tails, MSE is the wrong loss: outliers dominate it'] } }],
+      info: { read: ['Minimising MSE = maximising a normal likelihood', 'Heavy-tailed noise breaks this: a few outliers dominate MSE'] } }],
   draw(g, k, t, p) {
     const a = ym5 - p.b * xm5, line = x => a + p.b * x;
     g.panel('line', D => {
@@ -1115,29 +1439,28 @@ Proff.scene({
         g.poly(pts, { stroke: 'c6', sw: 2.5 }); g.line(A.sx(x0), A.sy(c - 2.5), A.sx(x0), A.sy(c + 2.5), { stroke: 'c6', sw: 1.5, dash: true, free: true }); }));
       g.line(A.sx(0), A.sy(Math.max(0, Math.min(12, y0))), A.sx(10), A.sy(Math.max(0, Math.min(12, y1))), { stroke: 'c2', sw: 3.5, free: true });
       if (k >= 2) g.fade(on(k, 2, t), g => { XY.forEach(([x, y]) => g.line(A.sx(x), A.sy(y), A.sx(x), A.sy(Proff.clamp(line(x), 0, 12)), { stroke: 'c5', sw: 2.5, free: true }));
-        g.tex(A.x + A.w * .25, A.sy(11), `\\textstyle\\sum_i r_i^2 = ${sse(p.b).toFixed(1)}`, { size: 26, w: 240 }); });
+        g.tex(A.x + A.w * .25, A.sy(11), `\\textstyle\\sum_i r_i^2 = ${sse(p.b).toFixed(1)}`, { size: 28, w: 260 }); });
       XY.forEach(([x, y]) => g.circle(A.sx(x), A.sy(y), 8, { fill: 'c1', stroke: 'fig', sw: 1.5, free: true }));
     });
     g.panel('loss', D => {
-      const A = g.axes({ ...D, xd: [-.4, 1.4], yd: [0, 80], xt: [-.4, 0, .4, .8, 1.2], yt: [0, 20, 40, 60, 80], grid: true, xl: 'slope b', yl: '−log L' });
+      const A = g.axes({ ...D, xd: [-.4, 1.4], yd: [0, 80], xt: [-.4, 0, .4, .8, 1.2], yt: [0, 20, 40, 60, 80], grid: true, xl: 'slope b', yl: '−log L (the loss)' });
       g.curve(nll5, A, -.4, 1.4, { stroke: 'c5', sw: 3 });
       g.line(A.sx(bHat), A.sy(48), A.sx(bHat), A.y + A.h, { stroke: 'c3', sw: 3, dash: true, free: true });
       g.text(A.sx(bHat) + 14, A.sy(6), `b̂ = ${bHat.toFixed(2)}`, { size: 24, weight: 800, mono: true, fill: 'c3' });
       g.circle(A.sx(p.b), A.sy(nll5(p.b)), 9, { fill: 'c2', stroke: 'fig', sw: 2, free: true });
-      g.tex(A.x + A.w * .5, A.sy(72), `-\\log L = \\tfrac{1}{2}\\textstyle\\sum_i r_i^2 + 13.8 = ${nll5(p.b).toFixed(1)}`, { size: 26, w: 480 });
-      if (k >= 4) g.fade(on(k, 4, t), g => g.tex(A.x + A.w * .5, A.sy(58), `\\text{MSE} = \\tfrac{1}{15}\\textstyle\\sum_i r_i^2 = ${(sse(p.b) / XY.length).toFixed(2)}`, { size: 26, w: 400 }));
+      g.tex(A.x + A.w * .5, A.sy(72), `-\\log L = \\tfrac{1}{2}\\textstyle\\sum_i r_i^2 + ${c5.toFixed(1)} = ${nll5(p.b).toFixed(1)}`, { size: 28, w: 500 });
+      if (k >= 4) g.fade(on(k, 4, t), g => g.tex(A.x + A.w * .5, A.sy(58), `\\text{MSE} = \\tfrac{1}{15}\\textstyle\\sum_i r_i^2 = ${(sse(p.b) / XY.length).toFixed(2)}`, { size: 28, w: 420 }));
     });
   }
 });
 
-// ---------------- scene 6: classification, cross-entropy, gradient descent ----------------
+// ---------------- scene 12: classification, cross-entropy, gradient descent ----------------
 const CELLS = (() => { const r = Proff.rng(13), a = []; for (let i = 0; i < 16; i++) { const x = r() * 10, pt = 1 / (1 + Math.exp(-1.2 * (x - 5))); a.push([x, r() < pt ? 1 : 0]); } return a.sort((u, v) => u[0] - v[0]); })();
 const sig = v => 1 / (1 + Math.exp(-v)), pTrue = (w, [x, y]) => { const q = sig(w * (x - 5)); return y ? q : 1 - q; };
-const nll6 = w => -CELLS.reduce((a, c) => a + Math.log(pTrue(w, c)), 0), grad6 = w => -CELLS.reduce((a, [x, y]) => a + (y - sig(w * (x - 5))) * (x - 5), 0);
+const nll6 = w => -CELLS.reduce((a, c) => a + ln(pTrue(w, c)), 0), grad6 = w => -CELLS.reduce((a, [x, y]) => a + (y - sig(w * (x - 5))) * (x - 5), 0);
 const wHat = (() => { let b = 0, v = 1e9; for (let w = 0; w <= 3; w += .005) { const l = nll6(w); if (l < v) { v = l; b = w; } } return b; })();
-Proff.prose('Last step: predict a category instead of a number. This is where machine learning and deep learning live.');
 Proff.scene({
-  title: 'Cross-entropy is the negative log-likelihood', acc: 6, h: 640,
+  title: 'Cross-entropy is the negative log-likelihood', phase: 'part 6 · classification', acc: 6, h: 640,
   panels: [{ id: 'fit', from: 0 }, { id: 'loss', from: 2 }, { id: 'train', from: 4 }],
   controls: [{ name: 'w', label: 'weight w', min: 0, max: 3, step: .01, value: .4 }],
   info: {
@@ -1145,23 +1468,23 @@ Proff.scene({
       y_i: ['true label of cell i: 1 tumour, 0 normal', 'the top row of dots are 1s'],
       p_i: ['model\'s chance that cell i is tumour', 'read off the S-curve at the cell\'s marker level'],
       w: ['weight: how steeply the S-curve rises; the knob training learns', 'w = 0.40 at the start'],
-      '\\sigma(z)': ['logistic (sigmoid) function 1/(1 + exp(−z)): squeezes any number into 0–1', 'σ(0) = 0.5'],
-      '-\\log P': ['loss for one cell: minus log of the chance given to its true label', '−log 0.5 = 0.69'],
+      '\\sigma(z)': ['logistic (sigmoid) function 1/(1 + e^(−z)): squeezes any number into 0–1', 'σ(0) = 0.5'],
+      '-\\log P': ['loss for one cell: minus log of the chance given to its true label', `−log 0.5 = ${(-ln(.5)).toFixed(2)}`],
       '\\eta': ['step size (learning rate)', 'η = 0.05 here'] },
-    try: 'Set **weight w** to 3: the curve is sharp, and the one tumour cell far to the left becomes a confident mistake.' },
+    try: 'Set **weight w** to 3: the curve is sharp, and the tumour cell far to the left becomes a confident mistake.' },
   steps: [
     { cap: 'Sixteen cells (simulated): marker level and true label, tumour (top) or normal (bottom). The S-curve is the predicted chance of tumour.',
       info: { see: ['Filled dots: tumour (y = 1)', 'Open dots: normal (y = 0)', 'S-curve: p = σ(w·(marker − 5))'] } },
-    { cap: 'Each cell is a coin flip whose bias pᵢ depends on its marker level. The likelihood is the coin formula again.',
-      info: { see: ['Gaps: distance from each dot to the curve, the chance given to the wrong label', 'Formula: the same Bernoulli product as the coin'] } },
-    { cap: 'Score each cell by −log of the chance given to its true label. The sum is **binary cross-entropy**.',
+    { cap: 'Each cell is a coin flip whose bias pᵢ depends on its marker level. The likelihood is the coin formula from part 3.',
+      info: { see: ['Gaps: from each dot to the curve, the chance given to the wrong label', 'Formula: the same product as the coin, one factor per cell'] } },
+    { cap: 'Score each cell by −log of the chance given to its true label. The sum is **binary cross-entropy**, the standard classifier loss.',
       info: { see: ['One bar per cell, left to right by marker level', 'Formula: the total'], read: ['Cross-entropy and negative log-likelihood are the same number here'] } },
-    { cap: 'The log punishes confident mistakes hardest. A chance of 0.5 costs 0.69; a chance of 0.05 costs 3.0.',
-      info: { see: ['Label: the worst cell'], read: ['−log p goes to infinity as p goes to 0', 'One badly wrong cell can outweigh many right ones'] } },
-    { cap: 'Training = walking downhill on −log L: new w = old w − η × slope. This is **gradient descent**.',
+    { cap: `The log punishes confident mistakes hardest. A chance of 0.5 costs ${(-ln(.5)).toFixed(2)}; a chance of 0.05 costs ${(-ln(.05)).toFixed(2)}.`,
+      info: { see: ['Label: the worst cell'], read: ['−log p grows without limit as p goes to 0', 'One badly wrong cell can outweigh many right ones'] } },
+    { cap: 'Training = walking downhill on −log L: new w = old w − η × slope. This is **gradient descent**, part 4 upside down.',
       info: { see: ['Curve: −log L for every w', 'Dots: 15 descent steps from your w', 'Dashed line: the best w'] } },
     { cap: 'A deep network only changes how pᵢ is computed: millions of weights instead of one. The loss and the downhill steps stay the same.',
-      info: { see: ['Formula: the loss every classifier trains on; θ = all the weights'], read: ['Many classes: softmax gives pᵢ, and the same −log P is "categorical cross-entropy"'] } }],
+      info: { see: ['Formula: the loss every classifier trains on; θ ("theta") = all the weights'], read: ['Many classes: a softmax layer gives pᵢ, and the same −log P is "categorical cross-entropy"'] } }],
   draw(g, k, t, p) {
     const P = x => sig(p.w * (x - 5));
     g.panel('fit', D => {
@@ -1173,42 +1496,42 @@ Proff.scene({
         g.circle(A.sx(x), cy, 8, { fill: y ? 'c1' : 'fig', stroke: 'c1', sw: 2.5, free: true }); });
       g.text(A.sx(9.8), A.sy(1) - 30, 'tumour', { size: 20, anchor: 'end', weight: 700, fill: 'c1' });
       g.text(A.sx(9.8), A.sy(0) + 34, 'normal', { size: 20, anchor: 'end', weight: 700, fill: 'c1' });
-      if (k >= 1) g.fade(on(k, 1, t), g => g.tex(A.x + A.w * .3, A.sy(1.24), 'L = \\prod_i p_i^{\\,y_i}(1-p_i)^{1-y_i}', { size: 26, w: 340 }));
+      if (k >= 1) g.fade(on(k, 1, t), g => g.tex(A.x + A.w * .3, A.sy(1.24), 'L = \\prod_i p_i^{\\,y_i}(1-p_i)^{1-y_i}', { size: 28, w: 360 }));
     });
     g.panel('loss', D => {
       const A = g.axes({ ...D, xd: [.4, 16.6], yd: [0, 6], xt: [1, 4, 8, 12, 16], yt: [0, 1, 2, 3, 4, 5, 6], grid: true, xl: 'cell, sorted by marker level', yl: '−log P(true label)' });
       const bw = (A.sx(1) - A.sx(0)) * .7; let worst = 0;
-      CELLS.forEach((c, i) => { const v = -Math.log(pTrue(p.w, c)), y = A.sy(Math.min(5, v)); if (v > -Math.log(pTrue(p.w, CELLS[worst]))) worst = i;
+      CELLS.forEach((c, i) => { const v = -ln(pTrue(p.w, c)), y = A.sy(Math.min(5, v)); if (v > -ln(pTrue(p.w, CELLS[worst]))) worst = i;
         g.rect(A.sx(i + 1) - bw / 2, y, bw, A.y + A.h - y, { fill: c[1] ? 'f5' : 'fig', stroke: 'c5', sw: 2, free: true }); });
-      g.tex(A.x + A.w * .5, A.sy(5.5), `-\\log L = -\\textstyle\\sum_i \\log P(y_i\\mid x_i) = ${nll6(p.w).toFixed(2)}`, { size: 26, w: 520 });
-      if (k >= 3) g.fade(on(k, 3, t), g => { const c = CELLS[worst], pr = pTrue(p.w, c), v = -Math.log(pr), bx = A.sx(worst + 1), by = A.sy(Math.min(5, v));
-        g.label(bx + (worst < 8 ? 200 : -200), A.sy(4.2), `P = ${pr.toFixed(2)} → ${v.toFixed(2)}`, { to: [bx, by], size: 22, weight: 800, fill: 'c5' }); });
+      g.tex(A.x + A.w * .5, A.sy(5.5), `-\\log L = -\\textstyle\\sum_i \\log P(y_i\\mid x_i) = ${nll6(p.w).toFixed(2)}`, { size: 28, w: 540 });
+      if (k >= 3) g.fade(on(k, 3, t), g => { const c = CELLS[worst], pr = pTrue(p.w, c), v = -ln(pr), bx = A.sx(worst + 1), by = A.sy(Math.min(5, v));
+        g.label(bx + (worst < 8 ? 200 : -230), A.sy(v > 3.6 ? 2.6 : 4.2), `P = ${f2(pr)} → ${f2(v)}`, { to: [bx, by], size: 22, weight: 800, fill: 'c5' }); });
     });
     g.panel('train', D => {
-      const A = g.axes({ ...D, xd: [0, 3], yd: [0, 14], xt: [0, 1, 2, 3], yt: [0, 4, 8, 12], grid: true, xl: 'weight w', yl: '−log L' });
+      const A = g.axes({ ...D, xd: [0, 3], yd: [0, 14], xt: [0, 1, 2, 3], yt: [0, 4, 8, 12], grid: true, xl: 'weight w', yl: '−log L (the loss)' });
       g.curve(nll6, A, 0, 3, { stroke: 'c5', sw: 3 });
       g.line(A.sx(wHat), A.sy(10.5), A.sx(wHat), A.y + A.h, { stroke: 'c3', sw: 3, dash: true, free: true });
-      g.text(A.sx(wHat) + 14, A.sy(1), `ŵ = ${wHat.toFixed(2)}`, { size: 24, weight: 800, mono: true, fill: 'c3' });
+      g.text(A.sx(wHat) + 14, A.sy(1), `ŵ = ${f2(wHat)}`, { size: 24, weight: 800, mono: true, fill: 'c3' });
       let w = p.w; const path = [w]; for (let i = 0; i < 15; i++) { w = Proff.clamp(w - .05 * grad6(w), 0, 3); path.push(w); }
       path.forEach((v, i) => g.circle(A.sx(v), A.sy(nll6(v)), i === 0 || i === 15 ? 9 : 6, { fill: i === 15 ? 'c3' : 'c2', stroke: 'fig', sw: 1.5, op: i === 0 || i === 15 ? 1 : .75, free: true }));
-      if (k === 4) g.fade(t, g => g.tex(A.x + A.w * .5, A.sy(12.6), `w \\leftarrow w - \\eta\\,\\frac{d(-\\log L)}{dw},\\quad \\eta = 0.05 \\quad\\Rightarrow\\quad w = ${path[15].toFixed(2)}`, { size: 26, w: 620 }));
-      if (k >= 5) g.fade(on(k, 5, t), g => g.tex(A.x + A.w * .5, A.sy(12.6), '\\text{loss}(\\theta) = -\\frac{1}{n}\\sum_i \\log P_\\theta(y_i\\mid x_i)', { size: 26, w: 460 }));
+      if (k === 4) g.fade(t, g => g.tex(A.x + A.w * .5, A.sy(12.6), `w \\leftarrow w - \\eta\\,\\frac{d(-\\log L)}{dw},\\quad \\eta = 0.05 \\quad\\Rightarrow\\quad w = ${f2(path[15])}`, { size: 28, w: 640 }));
+      if (k >= 5) g.fade(on(k, 5, t), g => g.tex(A.x + A.w * .5, A.sy(12.6), '\\text{loss}(\\theta) = -\\frac{1}{n}\\sum_i \\log P_\\theta(y_i\\mid x_i)', { size: 28, w: 480 }));
     });
   }
 });
 
 // ---------------- closing: the recipe and the map ----------------
-Proff.section('the recipe, for any model');
+Proff.section('the whole story in four steps');
 Proff.tiles([
-  { tag: 'step 1', h: 'Pick a distribution', text: 'What could have produced one data point? Counts of yes/no: Bernoulli. Measurements: normal. Read counts: Poisson or negative binomial.' },
-  { tag: 'step 2', h: 'Multiply over points', text: 'Independent points: L(θ) = product of each point\'s probability or density. θ (theta) stands for all the knobs.' },
-  { tag: 'step 3', h: 'Take the log', text: 'log L = sum of logs. Same peak, no underflow, easier slopes.' },
-  { tag: 'step 4', h: 'Climb, or descend', text: 'Solve slope = 0 when you can (p̂ = h/n, μ̂ = x̄). Otherwise step along the slope. ML minimises −log L instead: same thing.' },
+  { tag: 'step 1', h: 'Pick a distribution', text: 'What could have produced one data point? Yes/no: Bernoulli (a coin). Measurements: normal. Read counts: Poisson or negative binomial.' },
+  { tag: 'step 2', h: 'Multiply over points', text: 'Independent points: L(θ) = product of each point\'s chance or density. θ ("theta") stands for all the knobs.' },
+  { tag: 'step 3', h: 'Take the log', text: 'log L = sum of logs. Same peak, no underflow, easy slopes.' },
+  { tag: 'step 4', h: 'Climb, or descend', text: 'Solve slope = 0 when you can (p̂ = h/n, μ̂ = x̄). Otherwise step along the slope. ML minimises −log L: the same thing.' },
 ]);
 Proff.section('which distribution gives which loss');
 Proff.compare(['data per point', 'distribution assumed', '−log L becomes', 'where you meet it'], [
   ['yes / no', 'Bernoulli', 'binary cross-entropy', 'logistic regression, cell classifiers'],
-  ['one of K classes', 'categorical (softmax)', 'categorical cross-entropy', 'image and cell-type classifiers, language models'],
+  ['one of K classes', 'categorical (softmax)', 'categorical cross-entropy', 'cell-type and image classifiers, language models'],
   ['a continuous number', 'normal, fixed σ', 'squared error (MSE)', 'linear regression, regression networks'],
   ['a count', 'Poisson', 'Poisson loss: μ − y log μ', 'count models, Poisson regression'],
   ['an overdispersed count', 'negative binomial', 'NB negative log-likelihood', 'RNA-seq models such as DESeq2, edgeR, scVI'],

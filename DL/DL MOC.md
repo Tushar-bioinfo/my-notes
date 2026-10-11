@@ -15,7 +15,7 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
-- [[Maximum likelihood, from coins to neural nets - Visual]] *(Interactive Visual)*
+- [[Maximum likelihood, from zero - Visual]] *(Interactive Visual)*
 - [[Reading the maths in methods sections - Visual]] *(Interactive Visual)*
 - [[Reading Deep Learning Notation (Opus Edition) - Visual]] *(Interactive Visual)*
 - [[Reading Deep Learning Notation - Visual]] *(Interactive Visual)*
