@@ -15,6 +15,7 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
+- [[Counting and chance - Visual]] *(Interactive Visual)*
 - [[Reading the maths in methods sections - Visual]] *(Interactive Visual)*
 
 ## Bridges
