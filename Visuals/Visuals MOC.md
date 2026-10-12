@@ -26,6 +26,7 @@ This hub tracks interactive visualizations and visual reference pages across all
 - [[Reading Deep Learning Notation - Visual]] — *From x_ij to softmax(QKᵀ/√d)V: what each symbol says and how the numbers move. Key stages:...*
 ## 📐 Mathematics & Statistics Visuals
 
+- [[AND multiplies, OR adds - Visual]] — *4 pink + 6 blue balls. Draw 2. Every pair is drawn as its own chip.. Key stages: One outco...*
 - [[Counting and chance - Visual]] — *Permutations, combinations, and probability, from zero. Key stages: Choices multiply, Repe...*
 - [[Maximum likelihood, from zero - Visual]] — *Start with one coin flip. End with how neural networks learn. Each scene uses only what the...*
 - [[Reading the maths in methods sections - Visual]] — *An A–Z course in statistics and deep-learning notation, from the first subscript to KL div...*

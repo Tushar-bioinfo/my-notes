@@ -15,6 +15,7 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
+- [[AND multiplies, OR adds - Visual]] *(Interactive Visual)*
 - [[Counting and chance - Visual]] *(Interactive Visual)*
 - [[Maximum likelihood, from zero - Visual]] *(Interactive Visual)*
 - [[Reading the maths in methods sections - Visual]] *(Interactive Visual)*
