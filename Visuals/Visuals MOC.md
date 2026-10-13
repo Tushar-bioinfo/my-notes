@@ -36,7 +36,7 @@ This hub tracks interactive visualizations and visual reference pages across all
 - [[Why Counts Get Logged - Visual]] — *Why counts get logged...*
 ## 🌐 General & Web Visuals
 
-
+- [[One equation, three jobs - Visual]] — *β₀ + β₁x as matrices: regression, differential expression, batch removal. Key stages: A li...*
 ## Ingestion Flow
 To add an HTML file, run:
 ```bash

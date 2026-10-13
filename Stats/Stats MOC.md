@@ -14,6 +14,7 @@ status: permanent
 - Add probability, distributions, hypothesis testing, regression, Bayesian methods, survival analysis, and study design here.
 
 ## Visuals & Walkthroughs
+- [[One equation, three jobs - Visual|One equation, three jobs]] — β₀ + β₁x as matrices: regression, DE, batch removal
 
 - [[AND multiplies, OR adds - Visual]] *(Interactive Visual)*
 - [[Counting and chance - Visual]] *(Interactive Visual)*
