@@ -14,7 +14,7 @@ This hub tracks interactive visualizations and visual reference pages across all
 
 ## 🧬 Biology & Digital Pathology Visuals
 
-- [[Why some guides came out 19 long - Visual]] — *Why some guides came out 19 long...*
+- [[Why some guides came out 19 long - Visual]] — *One read from FASTQ to the count matrix: why G-guides trim to 19 nt and how aligners rescue them...*
 - [[Hematoxylin from an H&E image - Visual]] — *Watch light pass through stained tissue. Turn what reaches the camera into optical density...*
 - [[MAGeCK RRA, step by step - Visual]] — *A toy knockout screen: 5 genes × 3 guides, day 0 vs day 21. Every number is computed.. Key...*
 - [[MAGeCK-MLE, step by step - Visual]] — *One gene, 3 guides, 3 samples. Watch each number get made.. Key stages: Where z falls if G...*

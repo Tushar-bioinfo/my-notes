@@ -129,7 +129,7 @@ def extract_proff_metadata(html_raw: str):
         "scenes": [],
         "chunks": []
     }
-    pages = re.findall(r"Proff\.page\s*\(\s*\{([^}]+)\}\s*\)", html_raw, re.DOTALL)
+    pages = re.findall(r"(?:Proff|P_|P)\.page\s*\(\s*\{([^}]+)\}\s*\)", html_raw, re.DOTALL)
     for p in pages:
         tm = re.search(r"title\s*:\s*['\"]([^'\"]+)['\"]", p)
         if tm and not meta["title"]:
@@ -147,7 +147,14 @@ def extract_proff_metadata(html_raw: str):
         if s_clean not in ("dark", "neon", "lab", "article", meta["title"]) and s_clean not in meta["scenes"]:
             meta["scenes"].append(s_clean)
 
-    calls = re.findall(r"Proff\.(?:section|prose|fact|qna|deck|card|step|tiles|compare)\s*\((.*?)\)", html_raw, re.DOTALL)
+    # Capture captions and detailed notes from step definitions
+    step_caps = re.findall(r"cap\s*:\s*['\"]([^'\"]{8,300})['\"]", html_raw)
+    for cap in step_caps:
+        c_clean = re.sub(r"<[^>]+>", " ", cap).replace("**", "").replace("*", "").strip()
+        if c_clean and c_clean not in meta["chunks"]:
+            meta["chunks"].append(c_clean)
+
+    calls = re.findall(r"(?:Proff|P_|P)\.(?:section|prose|fact|qna|deck|card|step|tiles|compare)\s*\((.*?)\)", html_raw, re.DOTALL)
     for c in calls:
         strs = re.findall(r"['\"]([^'\"]{8,250})['\"]", c)
         for s in strs:
@@ -426,6 +433,8 @@ def ingest_html(source: str, domain: str = None, title: str = None, tags: list =
     # Avoid overwriting different files with identical names
     counter = 1
     while dest_html_file.exists() and not is_url and dest_html_file.resolve() != Path(source).resolve():
+        if dest_html_file.read_text(encoding="utf-8", errors="replace") == html_raw:
+            break
         dest_html_file = HTML_DIR / f"{slug}-{counter}.html"
         counter += 1
 
