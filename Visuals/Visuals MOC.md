@@ -14,6 +14,7 @@ This hub tracks interactive visualizations and visual reference pages across all
 
 ## 🧬 Biology & Digital Pathology Visuals
 
+- [[Why some guides came out 19 long - Visual]] — *Why some guides came out 19 long...*
 - [[Hematoxylin from an H&E image - Visual]] — *Watch light pass through stained tissue. Turn what reaches the camera into optical density...*
 - [[MAGeCK RRA, step by step - Visual]] — *A toy knockout screen: 5 genes × 3 guides, day 0 vs day 21. Every number is computed.. Key...*
 - [[MAGeCK-MLE, step by step - Visual]] — *One gene, 3 guides, 3 samples. Watch each number get made.. Key stages: Where z falls if G...*
@@ -26,6 +27,12 @@ This hub tracks interactive visualizations and visual reference pages across all
 - [[Reading Deep Learning Notation - Visual]] — *From x_ij to softmax(QKᵀ/√d)V: what each symbol says and how the numbers move. Key stages:...*
 ## 📐 Mathematics & Statistics Visuals
 
+- [[Same plants, new ruler - Visual]] — *Five seedlings show why multiplying by c multiplies the SD by |c| and the variance by c²,...*
+- [[Prevalence, cumulative incidence, incidence rate - Visual]] — *Three ways to count disease in the same people · PHC6756 lesson 2.3. Key stages: Prevalenc...*
+- [[A positive screen is not a diagnosis - Visual]] — *Sensitivity, specificity, PPV and NPV, and why prevalence moves only the last two. Key sta...*
+- [[Measures of association from a 2×2 table - Visual]] — *Campsite outbreak, lesson 2.3. Watch each measure come out of four counts.. Key stages: Co...*
+- [[The bell curve, piece by piece - Visual]] — *What each part of the normal-density equation does, and what breaks without it.. Key stage...*
+- [[Counting sickness in one town - Visual]] — *Public-health measures, each computed from simulated data. Key stages: Every measure start...*
 - [[AND multiplies, OR adds - Visual]] — *4 pink + 6 blue balls. Draw 2. Every pair is drawn as its own chip.. Key stages: One outco...*
 - [[Counting and chance - Visual]] — *Permutations, combinations, and probability, from zero. Key stages: Choices multiply, Repe...*
 - [[Maximum likelihood, from zero - Visual]] — *Start with one coin flip. End with how neural networks learn. Each scene uses only what the...*

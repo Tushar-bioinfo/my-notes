@@ -16,6 +16,7 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
+- [[Why some guides came out 19 long - Visual]] *(Interactive Visual)*
 - [[MAGeCK RRA, step by step - Visual]] *(Interactive Visual)*
 - [[MAGeCK-MLE, step by step - Visual]] *(Interactive Visual)*
 - [[Counts to log-CPM Calculation - Visual]] *(Interactive Visual)*

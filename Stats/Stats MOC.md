@@ -14,6 +14,12 @@ status: permanent
 - Add probability, distributions, hypothesis testing, regression, Bayesian methods, survival analysis, and study design here.
 
 ## Visuals & Walkthroughs
+- [[Same plants, new ruler - Visual]] *(Interactive Visual)*
+- [[Prevalence, cumulative incidence, incidence rate - Visual]] *(Interactive Visual)*
+- [[A positive screen is not a diagnosis - Visual]] *(Interactive Visual)*
+- [[Measures of association from a 2×2 table - Visual]] *(Interactive Visual)*
+- [[The bell curve, piece by piece - Visual]] *(Interactive Visual)*
+- [[Counting sickness in one town - Visual]] *(Interactive Visual)*
 - [[One equation, three jobs - Visual|One equation, three jobs]] — β₀ + β₁x as matrices: regression, DE, batch removal
 
 - [[AND multiplies, OR adds - Visual]] *(Interactive Visual)*
