@@ -16,6 +16,8 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
+- [[MAGeCK RRA (v2-detailed) - Visual]] *(Interactive Visual)*
+- [[MAGeCK-MLE (v2-detailed) - Visual]] *(Interactive Visual)*
 - [[Why some guides came out 19 long - Visual]] *(Interactive Visual)*
 - [[MAGeCK RRA, step by step - Visual]] *(Interactive Visual)*
 - [[MAGeCK-MLE, step by step - Visual]] *(Interactive Visual)*

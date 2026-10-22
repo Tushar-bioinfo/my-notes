@@ -15,6 +15,7 @@ aliases:
   - MAGeCK-MLE
   - MAGeCK MLE
   - Maximum Likelihood Estimation in CRISPR Screens
+  - MAGeCK-MLE (v1)
 date: 2026-10-10
 status: permanent
 type: visual
@@ -29,6 +30,9 @@ source: "proff-viz"
 
 ## Interactive Visual
 
+> [!TIP] Detailed Walkthrough Available
+> See also the expanded 11-chapter count-by-count edition: [[MAGeCK-MLE (v2-detailed) - Visual]].
+
 > [!TIP] Preview
 > You can interact with this visualization below, or [open it standalone in a new tab](html/mageck-mle-step-by-step.html).
 
@@ -40,12 +44,14 @@ source: "proff-viz"
 
 - **Topic Area**: Functional Genomics & Statistical Modeling
 - **Core Concept**: Fits multi-condition CRISPR knockout screens into a negative binomial GLM, using an EM mixture model to identify and discount ineffective (dud) sgRNAs and reporting gene-level beta ($\beta$) effect sizes.
-- **Interactive File**: `Visuals/html/mageck-mle-step-by-step.html`
+- **Interactive File**: `Visuals/html/mageck-mle-step-by-step.html` (detailed version mirrored as `Visuals/html/mageck-mle-v2-detailed.html`; legacy v1 archived as `Visuals/html/mageck-mle-step-by-step-v1.html`)
 
 ---
 
 ## Related Notes
 
+- [[MAGeCK-MLE (v2-detailed) - Visual]]
+- [[MAGeCK RRA (v2-detailed) - Visual]]
 - [[MAGeCK RRA, step by step - Visual]]
 - [[A CRISPR Knockout Screen - Visual]]
 - [[CRISPR Knockout Screen (Standalone) - Visual]]

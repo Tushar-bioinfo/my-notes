@@ -49,6 +49,8 @@ status: permanent
 
 ## Visuals & Walkthroughs
 
+- [[MAGeCK RRA (v2-detailed) - Visual]] *(Interactive Visual)*
+- [[MAGeCK-MLE (v2-detailed) - Visual]] *(Interactive Visual)*
 - [[MAGeCK RRA, step by step - Visual]] *(Interactive Visual)*
 - [[MAGeCK-MLE, step by step - Visual]] *(Interactive Visual)*
 - [[A CRISPR Knockout Screen - Visual]] *(Interactive Visual)*

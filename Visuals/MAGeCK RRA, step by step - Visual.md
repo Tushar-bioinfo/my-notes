@@ -16,6 +16,7 @@ aliases:
   - MAGeCK RRA
   - Robust Rank Aggregation in CRISPR Screens
   - alpha-RRA
+  - MAGeCK RRA (v1)
 date: 2026-10-10
 status: permanent
 type: visual
@@ -30,6 +31,9 @@ source: "proff-viz"
 
 ## Interactive Visual
 
+> [!TIP] Detailed Walkthrough Available
+> See also the expanded 26-step calculation edition: [[MAGeCK RRA (v2-detailed) - Visual]].
+
 > [!TIP] Preview
 > You can interact with this visualization below, or [open it standalone in a new tab](html/mageck-rra-step-by-step.html).
 
@@ -41,12 +45,14 @@ source: "proff-viz"
 
 - **Topic Area**: Functional Genomics & Statistical Modeling
 - **Core Concept**: Ranks guide RNAs by negative binomial depletion p-values and aggregates them with $\alpha$-cutoff Beta order statistics to identify essential genes robust to single guide outliers.
-- **Interactive File**: `Visuals/html/mageck-rra-step-by-step.html`
+- **Interactive File**: `Visuals/html/mageck-rra-step-by-step.html` (detailed version mirrored as `Visuals/html/mageck-rra-v2-detailed.html`; legacy v1 archived as `Visuals/html/mageck-rra-step-by-step-v1.html`)
 
 ---
 
 ## Related Notes
 
+- [[MAGeCK RRA (v2-detailed) - Visual]]
+- [[MAGeCK-MLE (v2-detailed) - Visual]]
 - [[MAGeCK-MLE, step by step - Visual]]
 - [[A CRISPR Knockout Screen - Visual]]
 - [[CRISPR Knockout Screen (Standalone) - Visual]]
